@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test';
 import { FlowRecorder } from '@ibid/testing';
 import {
   CHIP,
-  COMPOSER,
   CONFIRM,
   DISMISS,
   ENTRY,
