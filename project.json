@@ -56,7 +56,7 @@
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "camila:build",
-        "staticFilePath": "dist/apps/camila/browser",
+        "staticFilePath": "dist/camila/browser",
         "spa": true
       }
     },
