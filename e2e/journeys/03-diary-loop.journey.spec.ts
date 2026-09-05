@@ -94,13 +94,15 @@ test.describe('The diary loop', () => {
     await expect(scene).not.toHaveAttribute('style', opening ?? '');
   });
 
-  test('the composer empties itself once the entry is kept', async ({ page }) => {
+  test('the entry is durably kept once written', async ({ page }) => {
     await freezeClock(page, JUST_AFTER_SEED);
     await openSeeded(page, '/diario');
 
     await write(page, sentenceFor('escola'));
 
-    await expect(page.locator(COMPOSER)).toHaveValue('', { timeout: 20_000 });
+    await expect(page.locator(ENTRY_TEXT).first()).toHaveText(sentenceFor('escola'));
+    await page.reload({ waitUntil: 'commit' });
+    await expect(page.locator(ENTRY_TEXT).first()).toHaveText(sentenceFor('escola'));
   });
 
   test('the first run is empty and never blames anyone for it', async ({ page }) => {

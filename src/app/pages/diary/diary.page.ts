@@ -32,9 +32,10 @@ export class DiaryPage {
   }
 
   protected async save(): Promise<void> {
-    this.edited.set(undefined);
-    await this.store.record(this.draft());
+    const text = this.draft();
     this.draft.set('');
+    this.edited.set(undefined);
+    await this.store.record(text);
   }
 
   protected toggle(domain: BehaviourDomainId): void {

@@ -99,6 +99,12 @@
         "command": "playwright test --project=mobile --grep \"Accessibility\"",
         "cwd": "apps/camila"
       }
-    }
+    },
+    "mobile-sync": {},
+    "mobile-android": {},
+    "mobile-ios": {},
+    "mobile-apk": {},
+    "desktop": {},
+    "desktop-build": {}
   }
 }

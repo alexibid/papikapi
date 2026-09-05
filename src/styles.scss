@@ -65,18 +65,18 @@ body.camila.kirigami {
     }
   }
 
-  .a-textarea__field {
+  .a-textarea {
     background-color: var(--color-surface);
     border: none;
     clip-path: var(--kirigami-cut-2);
     filter: drop-shadow(0 2px 5px var(--kirigami-paper-shadow));
   }
 
-  .a-chip__control {
+  .a-chip {
     clip-path: var(--kirigami-snip);
   }
 
-  .a-chip__control:not(.a-chip__control--selected) {
+  .a-chip:not(.a-chip--selected) {
     background-color: var(--color-surface);
     border-color: var(--kirigami-paper-edge);
   }
