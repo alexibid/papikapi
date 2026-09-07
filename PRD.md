@@ -239,10 +239,20 @@ before anyone writes a stronger claim than that.
 
 **Next, in order:**
 
-1. **The template generator.** A small companion app where a figure is described and previewed,
-   producing the SVG net and the matching 3D data from **one source of truth**. Today the 3D
-   figure and the printable template are two hand-authored geometries, and keeping them in step
-   by hand is the thing that will rot first.
+1. **Kirigami Studio (`apps/kirigami-studio`).** An independent companion application in `apps/`
+   dedicated exclusively to Kirigami papercraft creation (cutting, scoring/folding, and gluing with tabs).
+   - **Single Geometric Source of Truth:** A unified parametric model (boxes, prisms, and decors)
+     from which both the interactive 3D CSS model and the unfolded 2D printable SVG cut-sheet are mathematically derived.
+   - **Automatic Unfolding Engine:** Generates cut boundaries (solid lines), mountain/valley folds (dashed lines),
+     and numbered glue tabs on mating edges, packed onto standard A4 printable sheets (`viewBox="0 0 210 297"`).
+   - **Quality Assurance & Geometric Validator:** Automatic verification of 2D non-overlap, A4 margin containment,
+     minimum tab dimensions for child hands, and topological completeness.
+   - **Human-in-the-Loop Fine Tuning:** A split-screen studio interface with prompt textarea for Gemini,
+     raw geometric code textarea for immediate manual coordinates/dimensions editing, and simultaneous live 3D & 2D previews.
+   - **Gemini Engine & Observability:** Structured JSON schema generation via Gemini Flash/Pro, prompt versioning,
+     and validation error auditing.
+   - **Export Pipeline:** Print-ready A4 PDF generation (coloured and outline colouring variants), clean SVG export,
+     and direct TypeScript model generation for `domain/data/paper-models.ts` in Camila.
 2. **Folds tied to the figure.** The figure currently stands complete. It should assemble part by
    part as thresholds are crossed — which is what turns the points into suspense.
 3. **Biometrics and PIN** on the "Grown-ups!" crossing, which needs Capacitor.
