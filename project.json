@@ -1,9 +1,9 @@
 {
-  "name": "camila",
+  "name": "papikapi",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "prefix": "camila",
-  "sourceRoot": "apps/camila/src",
+  "prefix": "papikapi",
+  "sourceRoot": "apps/papikapi/src",
   "tags": [],
   "targets": {
     "build": {
@@ -11,7 +11,7 @@
       "defaultConfiguration": "production",
       "options": {
         "styles": [
-          "apps/camila/src/styles.scss"
+          "apps/papikapi/src/styles.scss"
         ]
       },
       "configurations": {
@@ -55,16 +55,16 @@
       "continuous": true,
       "executor": "@nx/web:file-server",
       "options": {
-        "buildTarget": "camila:build",
-        "staticFilePath": "dist/camila/browser",
+        "buildTarget": "papikapi:build",
+        "staticFilePath": "dist/papikapi/browser",
         "spa": true
       }
     },
     "storybook": {
       "executor": "@storybook/angular-vite:start-storybook",
       "options": {
-        "configDir": "apps/camila/.storybook",
-        "browserTarget": "camila:build",
+        "configDir": "apps/papikapi/.storybook",
+        "browserTarget": "papikapi:build",
         "port": 6008
       }
     },
@@ -74,30 +74,30 @@
         "{options.outputDir}"
       ],
       "options": {
-        "configDir": "apps/camila/.storybook",
-        "browserTarget": "camila:build",
-        "outputDir": "dist/storybook/camila"
+        "configDir": "apps/papikapi/.storybook",
+        "browserTarget": "papikapi:build",
+        "outputDir": "dist/storybook/papikapi"
       }
     },
     "e2e": {
       "executor": "nx:run-commands",
       "options": {
         "command": "playwright test --project=mobile --grep-invert \"Accessibility\"",
-        "cwd": "apps/camila"
+        "cwd": "apps/papikapi"
       }
     },
     "e2e-all": {
       "executor": "nx:run-commands",
       "options": {
         "command": "playwright test --grep-invert \"Accessibility\"",
-        "cwd": "apps/camila"
+        "cwd": "apps/papikapi"
       }
     },
     "test-a11y": {
       "executor": "nx:run-commands",
       "options": {
         "command": "playwright test --project=mobile --grep \"Accessibility\"",
-        "cwd": "apps/camila"
+        "cwd": "apps/papikapi"
       }
     },
     "mobile-sync": {},
