@@ -2,12 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviourDomainId, BranchLevels } from '@domain/models/behaviour-domain';
 import { Badge, TreeState, createTreeState } from '@domain/models/tree-state';
 import { TreeRepository } from '@domain/repositories/tree.repository';
-import { CamilaDatabaseService } from './camila-database.service';
+import { PapikapiDatabaseService } from './papikapi-database.service';
 import { RxBadgeDocument } from './schemas/tree-state.schema';
 
 @Injectable({ providedIn: 'root' })
 export class RxdbTreeRepository implements TreeRepository {
-  private readonly databases = inject(CamilaDatabaseService);
+  private readonly databases = inject(PapikapiDatabaseService);
 
   async byChild(childId: string): Promise<TreeState> {
     const collection = await this.collection();

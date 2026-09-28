@@ -7,16 +7,16 @@ import { RECOGNITION_SCHEMA, RxRecognitionDocument } from './schemas/recognition
 import { RxTreeStateDocument, TREE_STATE_SCHEMA } from './schemas/tree-state.schema';
 import { RxVocabularyDocument, VOCABULARY_SCHEMA } from './schemas/vocabulary.schema';
 
-export interface CamilaCollections {
+export interface PapikapiCollections {
   diary_entries: RxCollection<RxDiaryEntryDocument>;
   recognitions: RxCollection<RxRecognitionDocument>;
   tree_states: RxCollection<RxTreeStateDocument>;
   vocabularies: RxCollection<RxVocabularyDocument>;
 }
 
-export type CamilaDatabase = RxDatabase<CamilaCollections>;
+export type PapikapiDatabase = RxDatabase<PapikapiCollections>;
 
-const DATABASE_NAME = 'camila_db';
+const DATABASE_NAME = 'papikapi_db';
 
 function isTestEnvironment(): boolean {
   if (typeof window === 'undefined') return true;
@@ -25,10 +25,10 @@ function isTestEnvironment(): boolean {
 }
 
 @Injectable({ providedIn: 'root' })
-export class CamilaDatabaseService {
-  private connection?: Promise<CamilaDatabase>;
+export class PapikapiDatabaseService {
+  private connection?: Promise<PapikapiDatabase>;
 
-  getDatabase(): Promise<CamilaDatabase> {
+  getDatabase(): Promise<PapikapiDatabase> {
     this.connection ??= this.connect();
     return this.connection;
   }
@@ -45,10 +45,10 @@ export class CamilaDatabaseService {
     if (pending) await (await pending).remove();
   }
 
-  private async connect(): Promise<CamilaDatabase> {
+  private async connect(): Promise<PapikapiDatabase> {
     const testing = isTestEnvironment();
 
-    const database = await createRxDatabase<CamilaCollections>({
+    const database = await createRxDatabase<PapikapiCollections>({
       name: testing ? `${DATABASE_NAME}_${crypto.randomUUID()}` : DATABASE_NAME,
       storage: testing ? getRxStorageMemory() : getRxStorageDexie(),
       multiInstance: !testing,

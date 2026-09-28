@@ -6,7 +6,7 @@ import { DiaryStore } from '@application/services/diary-store';
 import { PaperModelComponent } from '@ui/organisms/paper-model/paper-model';
 
 @Component({
-  selector: 'camila-home-page',
+  selector: 'papikapi-home-page',
   standalone: true,
   imports: [PaperModelComponent, RouterModule],
   templateUrl: './home.page.html',

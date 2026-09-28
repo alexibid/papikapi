@@ -1,26 +1,26 @@
 import { TestBed } from '@angular/core/testing';
-import { CamilaDatabaseService } from '@infrastructure/rxdb/camila-database.service';
+import { PapikapiDatabaseService } from '@infrastructure/rxdb/papikapi-database.service';
 import { DEMO_ENTRY_COUNT } from '@application/testing/demo-seed';
 import { DiaryStore } from './diary-store';
-import { provideCamilaDevBridge } from './dev-bridge';
+import { providePapikapiDevBridge } from './dev-bridge';
 
 describe('the development bridge', () => {
   beforeEach(() => {
     sessionStorage.clear();
-    delete window.camilaDev;
-    TestBed.configureTestingModule({ providers: [provideCamilaDevBridge()] });
+    delete window.papikapiDev;
+    TestBed.configureTestingModule({ providers: [providePapikapiDevBridge()] });
   });
 
   afterEach(async () => {
-    await TestBed.inject(CamilaDatabaseService).close();
-    delete window.camilaDev;
+    await TestBed.inject(PapikapiDatabaseService).close();
+    delete window.papikapiDev;
   });
 
   it('exposes seeding and resetting on the window', () => {
     TestBed.inject(DiaryStore);
 
-    expect(typeof window.camilaDev?.seed).toBe('function');
-    expect(typeof window.camilaDev?.reset).toBe('function');
+    expect(typeof window.papikapiDev?.seed).toBe('function');
+    expect(typeof window.papikapiDev?.reset).toBe('function');
   });
 
   it('fills an empty database so the first run is never a blank app', async () => {
@@ -43,9 +43,9 @@ describe('the development bridge', () => {
 
   it('seeds on demand through the bridge', async () => {
     const store = TestBed.inject(DiaryStore);
-    await window.camilaDev?.reset();
+    await window.papikapiDev?.reset();
 
-    await window.camilaDev?.seed();
+    await window.papikapiDev?.seed();
 
     expect(store.entries()).toHaveLength(DEMO_ENTRY_COUNT);
   });
@@ -54,9 +54,9 @@ describe('the development bridge', () => {
     const store = TestBed.inject(DiaryStore);
     await store.seedIfEmpty();
 
-    await window.camilaDev?.reset();
+    await window.papikapiDev?.reset();
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [provideCamilaDevBridge()] });
+    TestBed.configureTestingModule({ providers: [providePapikapiDevBridge()] });
     const revived = TestBed.inject(DiaryStore);
     await revived.load();
 
@@ -67,7 +67,7 @@ describe('the development bridge', () => {
     const store = TestBed.inject(DiaryStore);
     await store.seedIfEmpty();
 
-    await window.camilaDev?.reset();
+    await window.papikapiDev?.reset();
 
     expect(store.entries()).toHaveLength(0);
     expect(store.tree().badges).toHaveLength(0);

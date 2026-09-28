@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { I18N_CONFIG_TOKEN } from '@ibid/services';
 import { BOX_DINO } from '@domain/data/paper-models';
-import { CAMILA_I18N_CONFIG } from '../../../i18n.config';
+import { PAPIKAPI_I18N_CONFIG } from '../../../i18n.config';
 import { PaperModelComponent } from './paper-model';
 
 const MODEL_LABEL = 'a paper model';
@@ -10,7 +10,7 @@ describe('PaperModelComponent', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
       imports: [PaperModelComponent],
-      providers: [{ provide: I18N_CONFIG_TOKEN, useValue: CAMILA_I18N_CONFIG }],
+      providers: [{ provide: I18N_CONFIG_TOKEN, useValue: PAPIKAPI_I18N_CONFIG }],
     })
   );
 

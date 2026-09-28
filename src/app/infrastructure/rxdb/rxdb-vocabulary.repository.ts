@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { LearnedVocabulary, Vocabulary, createLearnedVocabulary } from '@domain/models/vocabulary';
 import { VocabularyRepository } from '@domain/repositories/vocabulary.repository';
-import { CamilaDatabaseService } from './camila-database.service';
+import { PapikapiDatabaseService } from './papikapi-database.service';
 
 @Injectable({ providedIn: 'root' })
 export class RxdbVocabularyRepository implements VocabularyRepository {
-  private readonly databases = inject(CamilaDatabaseService);
+  private readonly databases = inject(PapikapiDatabaseService);
 
   async byChild(childId: string): Promise<LearnedVocabulary> {
     const collection = await this.collection();

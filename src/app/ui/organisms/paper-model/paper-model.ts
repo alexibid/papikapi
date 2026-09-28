@@ -52,7 +52,7 @@ const OPENING_SPIN = -32;
 const OPENING_TILT = -10;
 
 @Component({
-  selector: 'camila-paper-model',
+  selector: 'papikapi-paper-model',
   standalone: true,
   templateUrl: './paper-model.html',
   styleUrl: './paper-model.scss',

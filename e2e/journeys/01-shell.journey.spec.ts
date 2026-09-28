@@ -23,11 +23,11 @@ test.describe('Application shell', () => {
     await recorder.step(3, 'switch back', 'the child screen returns');
   });
 
-  test('wears the kirigami theme and fits the viewport without scrolling', async ({ page }) => {
+  test('wears the papikapi theme and fits the viewport without scrolling', async ({ page }) => {
     await freezeClock(page, 1_700_000_000_000);
     await openSeeded(page, '/');
 
-    await expect(page.locator('body')).toHaveClass(/kirigami/);
+    await expect(page.locator('body')).toHaveClass(/papikapi/);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollHeight - window.innerHeight
     );
@@ -39,7 +39,7 @@ test.describe('Application shell', () => {
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(t('diaryTitle'));
 
-    await page.locator('.camila-language').click();
+    await page.locator('.papikapi-language').click();
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(EN('diaryTitle'));
   });

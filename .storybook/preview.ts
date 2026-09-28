@@ -2,7 +2,7 @@ import type { Preview } from '@storybook/angular-vite';
 import { applicationConfig } from '@storybook/angular-vite';
 import { provideRouter } from '@angular/router';
 import { I18N_CONFIG_TOKEN } from '@ibid/services';
-import { CAMILA_I18N_CONFIG } from '../src/app/i18n.config';
+import { PAPIKAPI_I18N_CONFIG } from '../src/app/i18n.config';
 
 import '../src/styles.scss';
 
@@ -11,7 +11,7 @@ const preview: Preview = {
     applicationConfig({
       providers: [
         provideRouter([]),
-        { provide: I18N_CONFIG_TOKEN, useValue: CAMILA_I18N_CONFIG },
+        { provide: I18N_CONFIG_TOKEN, useValue: PAPIKAPI_I18N_CONFIG },
       ],
     }),
   ],

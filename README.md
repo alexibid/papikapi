@@ -1,6 +1,6 @@
-# 🦖 Camila
+# 🦖 Papikapi
 
-Camila is a family reward system whose prize is a **real object**. Chore apps hand a child a number that goes up; Camila hands them a paper figure that unfolds as they earn it — turning in three dimensions on screen, and finally as a printable template they cut out and build with a parent. The points stop being an abstraction the moment the dinosaur stands on the shelf.
+Papikapi is a family reward system whose prize is a **real object**. Chore apps hand a child a number that goes up; Papikapi hands them a paper figure that unfolds as they earn it — turning in three dimensions on screen, and finally as a printable template they cut out and build with a parent. The points stop being an abstraction the moment the dinosaur stands on the shelf.
 
 The adult side is deliberately not a form. The parent **writes one ordinary sentence** — *"Tidied up his toys and gave his brother a hug"* — and an on-device assistant reads it, proposes which behaviour domains it touched and how many points each is worth, and asks for a single confirmation. Nothing is categorised by hand unless the parent wants to correct it, and only a correction teaches the assistant.
 
@@ -8,11 +8,11 @@ Built on three pillars: **the prize is physical**, **the adult never fills in a 
 
 **The child has no device.** They look at the adult's phone — which is exactly why the child's screen is the entry point and the adult's side sits behind a **"Grown-ups!"** tab. You open the app, hand the phone over, and take it back. The boundary that matters is between screens, not devices.
 
-Around that: there is no Camila account, no backend, no database — we never receive a word of a family's diary. Synchronisation is **adult-to-adult only**: two parents, two phones, one household file in **their own Google Drive**.
+Around that: there is no Papikapi account, no backend, no database — we never receive a word of a family's diary. Synchronisation is **adult-to-adult only**: two parents, two phones, one household file in **their own Google Drive**.
 
 Having no infrastructure to pay for is also what makes the app free: the adult unlocks more figures by **watching a rewarded ad on their own screen**, instead of paying a subscription. Advertising lives strictly behind the **"Grown-ups!"** tab; the child build carries no ad code at all. See [`PRD.md`](PRD.md) §1.6 for the exact boundary and §6 for the obligations that follow.
 
-Angular 22 with signals, `libs/ibid-ui` under the **Kirigami** theme, RxDB for local storage, and the 3D figure rendered with **CSS 3D transforms and no 3D library**. Mobile only, by design.
+Angular 22 with signals, `libs/ibid-ui` under the **Papikapi** theme, RxDB for local storage, and the 3D figure rendered with **CSS 3D transforms and no 3D library**. Mobile only, by design.
 
 See [`PRD.md`](PRD.md) for the full vision, the functional requirements and the active roadmap (§5), and [`MVP.md`](MVP.md) for the scope and acceptance of the first shippable version.
 
@@ -23,14 +23,14 @@ See [`PRD.md`](PRD.md) for the full vision, the functional requirements and the 
 ## 🏗️ Project Structure
 
 ```text
-apps/camila/            # the app inside the ibid-workspace monorepo
+apps/papikapi/            # the app inside the ibid-workspace monorepo
 ├── src/
 │   ├── app/
 │   │   ├── domain/         # entities, rules, the classifier — pure TypeScript
 │   │   ├── infrastructure/ # RxDB schemas and adapters
 │   │   ├── application/    # use cases, signal state, i18n, the demo seed
 │   │   └── ui/             # molecules, organisms, pages
-│   ├── styles.scss         # the Kirigami theme plus Camila's own overrides
+│   ├── styles.scss         # the Papikapi theme plus Papikapi's own overrides
 │   └── index.html
 ├── e2e/
 │   ├── journeys/       # Deterministic Stateful Journeys, mobile only
@@ -52,7 +52,7 @@ Within `src/app/` the layers are strict, so the product rules never depend on An
 | `domain/` | Entities, the growth engine, the classifier, repository interfaces | Pure TypeScript. No Angular import, ever. |
 | `infrastructure/` | RxDB schemas and adapters | Nothing reaches IndexedDB outside this folder. |
 | `application/` | Use cases, `DiaryStore` (signals), i18n, the demo seed | Orchestrates the domain; owns no rules of its own. |
-| `ui/` | `molecules/`, `organisms/`, `pages/` | Presentation only. Product-specific components carry the `camila-` prefix. |
+| `ui/` | `molecules/`, `organisms/`, `pages/` | Presentation only. Product-specific components carry the `papikapi-` prefix. |
 
 Path aliases: `@domain/*`, `@application/*`, `@infrastructure/*`, `@ui/*`, plus the workspace's `ibid-ui`, `@ibid/services`, `@ibid/testing` and `@ibid/utils`.
 
@@ -77,14 +77,14 @@ Three properties worth knowing:
 
 ## 🎨 Styling Architecture & Conventions
 
-Camila wears the **Kirigami** theme from `libs/ibid-ui/src/themes/kirigami/`: cut-paper surfaces with irregular scissor edges, soft sheet lighting from the top-left, and a warm paper white.
+Papikapi wears the **Papikapi** theme from `libs/ibid-ui/src/themes/papikapi/`: cut-paper surfaces with irregular scissor edges, soft sheet lighting from the top-left, and a warm paper white.
 
 The workspace conventions apply without exception — **SCSS with ITCSS layering**, **BEM** for every class, tokens from `settings/` and mixins from `tools/` instead of literal values, and no overrides outside the `trumps` layer.
 
-Three Camila-specific overrides live in `src/styles.scss`, each for a stated reason:
+Three Papikapi-specific overrides live in `src/styles.scss`, each for a stated reason:
 
-* The theme paints primary buttons in solid blue; Camila repaints them ink-on-paper.
-* `<ibid-header>` takes flow space while its shell is `position: fixed`, so the header would be counted twice; Camila zeroes its height.
+* The theme paints primary buttons in solid blue; Papikapi repaints them ink-on-paper.
+* `<ibid-header>` takes flow space while its shell is `position: fixed`, so the header would be counted twice; Papikapi zeroes its height.
 * The backdrop wash is dialled down, because the composition is quiet and the theme's default is not.
 
 **Muted text uses a defined ink, never `opacity`** — opacity dropped small text to 3.9:1 contrast and failed the accessibility audit.
@@ -122,7 +122,7 @@ The workspace standards apply in full — see the root `README.md`. The ones thi
 * **Strict TypeScript.** Never `any`; `readonly` by default; union types over numeric enums; type guards over assertions.
 * **Never return or accept `null`/`undefined` when it is avoidable.** Errors are thrown, not returned as codes.
 * **Files of at most 200–300 lines**, small functions with one level of abstraction.
-* **Selector prefix `camila-`**, enforced at lint time. The `app-` prefix is banned workspace-wide.
+* **Selector prefix `papikapi-`**, enforced at lint time. The `app-` prefix is banned workspace-wide.
 * **English** in documentation and code; user-facing copy lives in `i18n.config.ts`, default `pt-PT`.
 
 ---
@@ -131,12 +131,12 @@ The workspace standards apply in full — see the root `README.md`. The ones thi
 
 ```bash
 npm install
-npx nx serve camila
+npx nx serve papikapi
 ```
 
 The app opens on **http://localhost:4400** and **seeds itself on first run**, so it is never a blank screen. The seed is an eight-week history that lands the figures across several fold stages, with exactly one entry the assistant cannot read — so the correction path is visible immediately.
 
-In development, `window.camilaDev` exposes `seed()` and `reset()`. It is installed only when `isDevMode()` is true, and a deliberate `reset()` is remembered for the session so the app does not refill behind you.
+In development, `window.papikapiDev` exposes `seed()` and `reset()`. It is installed only when `isDevMode()` is true, and a deliberate `reset()` is remembered for the session so the app does not refill behind you.
 
 ---
 
@@ -144,12 +144,12 @@ In development, `window.camilaDev` exposes `seed()` and `reset()`. It is install
 
 | For | Command |
 | :--- | :--- |
-| Serve | `npx nx serve camila` (port 4400) |
-| Build | `npx nx build camila` |
-| Unit tests | `npx nx test camila` |
-| E2E journeys | `npx nx e2e camila` |
-| Accessibility audit | `npx nx test-a11y camila` |
-| Storybook | `npx nx storybook camila` (port 6008) |
+| Serve | `npx nx serve papikapi` (port 4400) |
+| Build | `npx nx build papikapi` |
+| Unit tests | `npx nx test papikapi` |
+| E2E journeys | `npx nx e2e papikapi` |
+| Accessibility audit | `npx nx test-a11y papikapi` |
+| Storybook | `npx nx storybook papikapi` (port 6008) |
 | Validate a change | `npx nx affected -t lint test build` |
 
 Ports: **4400** serve, **4401** e2e, **6008** Storybook.
@@ -172,7 +172,7 @@ The journeys never test against empty data by accident — `openSeeded()` and `o
 
 ## 🌿 Git & Versioning
 
-The workspace rules apply: work is reviewed and committed through GitHub Desktop, in batches of at most ten files, each with a single Conventional Commits subject line, scope `camila`. The type decides the version: `fix` bumps patch, `feat` bumps minor, `feat!` bumps major.
+The workspace rules apply: work is reviewed and committed through GitHub Desktop, in batches of at most ten files, each with a single Conventional Commits subject line, scope `papikapi`. The type decides the version: `fix` bumps patch, `feat` bumps minor, `feat!` bumps major.
 
 ---
 

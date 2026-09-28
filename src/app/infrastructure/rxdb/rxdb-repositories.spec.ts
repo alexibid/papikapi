@@ -6,7 +6,7 @@ import { RxdbDiaryRepository } from './rxdb-diary.repository';
 import { RxdbRecognitionRepository } from './rxdb-recognition.repository';
 import { RxdbTreeRepository } from './rxdb-tree.repository';
 import { RxdbVocabularyRepository } from './rxdb-vocabulary.repository';
-import { CamilaDatabaseService } from './camila-database.service';
+import { PapikapiDatabaseService } from './papikapi-database.service';
 
 const CHILD = 'child-1';
 const NOW = 1_700_000_000_000;
@@ -15,7 +15,7 @@ describe('the RxDB repositories', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   afterEach(async () => {
-    await TestBed.inject(CamilaDatabaseService).close();
+    await TestBed.inject(PapikapiDatabaseService).close();
   });
 
   it('round-trips a diary entry and lists it by child', async () => {

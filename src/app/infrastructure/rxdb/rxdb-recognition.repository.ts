@@ -2,12 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { Recognition, RecognitionSource } from '@domain/models/recognition';
 import { RecognitionRepository } from '@domain/repositories/recognition.repository';
-import { CamilaDatabaseService } from './camila-database.service';
+import { PapikapiDatabaseService } from './papikapi-database.service';
 import { RxRecognitionDocument } from './schemas/recognition.schema';
 
 @Injectable({ providedIn: 'root' })
 export class RxdbRecognitionRepository implements RecognitionRepository {
-  private readonly databases = inject(CamilaDatabaseService);
+  private readonly databases = inject(PapikapiDatabaseService);
 
   async saveAll(recognitions: readonly Recognition[]): Promise<void> {
     if (recognitions.length === 0) return;

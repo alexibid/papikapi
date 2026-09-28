@@ -1,20 +1,20 @@
-@use 'libs/ibid-ui/src/themes/kirigami';
+@use 'libs/ibid-ui/src/themes/papikapi';
 
 :root {
   --header-nav-offset: 57px;
 }
 
-body.camila.kirigami {
-  --camila-muted: #5a5249;
-  --kirigami-wash-opacity: 0.34;
-  --kirigami-wash-size: 78vmax;
+body.papikapi {
+  --papikapi-muted: #5a5249;
+  --papikapi-wash-opacity: 0.34;
+  --papikapi-wash-size: 78vmax;
 }
 
 ibid-header {
   display: block;
 }
 
-body.camila.kirigami ibid-header {
+body.papikapi ibid-header {
   height: 0;
   overflow: visible;
 }
@@ -37,20 +37,20 @@ body.camila.kirigami ibid-header {
   justify-content: space-between;
 }
 
-.camila-section {
+.papikapi-section {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm, 0.75rem);
   margin-bottom: var(--spacing-lg, 2rem);
 }
 
-.camila-section__intro {
+.papikapi-section__intro {
   margin: 0;
   font-size: var(--text-s, 0.9rem);
   opacity: 0.72;
 }
 
-body.camila.kirigami {
+body.papikapi {
   .a-button,
   ibid-button button {
     &,
@@ -68,16 +68,16 @@ body.camila.kirigami {
   .a-textarea {
     background-color: var(--color-surface);
     border: none;
-    clip-path: var(--kirigami-cut-2);
-    filter: drop-shadow(0 2px 5px var(--kirigami-paper-shadow));
+    clip-path: var(--papikapi-cut-2);
+    filter: drop-shadow(0 2px 5px var(--papikapi-paper-shadow));
   }
 
   .a-chip {
-    clip-path: var(--kirigami-snip);
+    clip-path: var(--papikapi-snip);
   }
 
   .a-chip:not(.a-chip--selected) {
     background-color: var(--color-surface);
-    border-color: var(--kirigami-paper-edge);
+    border-color: var(--papikapi-paper-edge);
   }
 }

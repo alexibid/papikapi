@@ -3,7 +3,7 @@ import { BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { ORIGAMI_STAGES, OrigamiFacet, origamiFor } from '@domain/data/origami-figures';
 
 @Component({
-  selector: 'camila-origami',
+  selector: 'papikapi-origami',
   standalone: true,
   templateUrl: './origami.html',
   styleUrl: './origami.scss',

@@ -3,10 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { I18N_CONFIG_TOKEN } from '@ibid/services';
 import { App } from './app';
-import { CAMILA_I18N_CONFIG } from './i18n.config';
-import { provideCamilaTheme } from './theme.config';
+import { PAPIKAPI_I18N_CONFIG } from './i18n.config';
+import { providePapikapiTheme } from './theme.config';
 
-@Component({ selector: 'camila-stub-page', standalone: true, template: '' })
+@Component({ selector: 'papikapi-stub-page', standalone: true, template: '' })
 class StubPage {}
 
 const ROUTES = [
@@ -14,8 +14,8 @@ const ROUTES = [
   { path: 'diario', component: StubPage },
 ];
 
-const PROFILE = '.camila-profile';
-const LANGUAGE = '.camila-language';
+const PROFILE = '.papikapi-profile';
+const LANGUAGE = '.papikapi-language';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -25,8 +25,8 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideRouter(ROUTES),
-        { provide: I18N_CONFIG_TOKEN, useValue: CAMILA_I18N_CONFIG },
-        ...provideCamilaTheme(),
+        { provide: I18N_CONFIG_TOKEN, useValue: PAPIKAPI_I18N_CONFIG },
+        ...providePapikapiTheme(),
       ],
     }).compileComponents();
   });
@@ -41,7 +41,7 @@ describe('App', () => {
   it('renders the shell with the brand and a header', async () => {
     const compiled = (await render()).nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('.camila-brand')?.textContent).toContain('Camila');
+    expect(compiled.querySelector('.papikapi-brand')?.textContent).toContain('Papikapi');
     expect(compiled.querySelector('ibid-header')).not.toBeNull();
   });
 
@@ -49,7 +49,7 @@ describe('App', () => {
     const compiled = (await render()).nativeElement as HTMLElement;
 
     expect(compiled.querySelector(PROFILE)?.textContent?.trim()).toBe(
-      CAMILA_I18N_CONFIG.translations['pt']['toParents']
+      PAPIKAPI_I18N_CONFIG.translations['pt']['toParents']
     );
   });
 
@@ -76,9 +76,9 @@ describe('App', () => {
     expect(code()).toBe('EN');
   });
 
-  it('wears the kirigami theme as a body class', async () => {
+  it('wears the papikapi theme as a body class', async () => {
     await render();
 
-    expect(document.body.classList.contains('kirigami')).toBe(true);
+    expect(document.body.classList.contains('papikapi')).toBe(true);
   });
 });

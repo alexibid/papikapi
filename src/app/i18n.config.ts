@@ -1,9 +1,9 @@
 import { I18nConfig } from '@ibid/services';
 
-export const CAMILA_I18N_CONFIG: I18nConfig = {
+export const PAPIKAPI_I18N_CONFIG: I18nConfig = {
   translations: {
     pt: {
-      appName: 'Camila',
+      appName: 'Papikapi',
       languageToggleLabel: 'Mudar de idioma',
       profileToChild: 'Criança',
       profileToParent: 'Adulto',
@@ -53,7 +53,7 @@ export const CAMILA_I18N_CONFIG: I18nConfig = {
       sheetLabel: 'Molde de papel do dinossauro, para recortar e colar',
     },
     en: {
-      appName: 'Camila',
+      appName: 'Papikapi',
       languageToggleLabel: 'Change language',
       profileToChild: 'Child',
       profileToParent: 'Adult',

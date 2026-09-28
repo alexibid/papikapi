@@ -129,8 +129,8 @@
     font-size: 1.1rem;
     line-height: 1;
     cursor: pointer;
-    clip-path: var(--kirigami-snip);
-    filter: drop-shadow(0 2px 3px var(--kirigami-paper-shadow));
+    clip-path: var(--papikapi-snip);
+    filter: drop-shadow(0 2px 3px var(--papikapi-paper-shadow));
 
     &:focus-visible {
       outline: 2px solid var(--color-ink);

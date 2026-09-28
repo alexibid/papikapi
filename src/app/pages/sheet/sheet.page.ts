@@ -8,7 +8,7 @@ interface SheetSlide {
 }
 
 @Component({
-  selector: 'camila-sheet-page',
+  selector: 'papikapi-sheet-page',
   standalone: true,
   imports: [CutSheetComponent],
   templateUrl: './sheet.page.html',

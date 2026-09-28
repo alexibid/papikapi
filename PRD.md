@@ -1,17 +1,17 @@
 # 📄 Product Requirement Document (PRD)
 
-**Product Name:** Camila *(working name — see §6)*
+**Product Name:** Papikapi *(working name — see §6)*
 **Version:** 0.1.0 (pre-MVP)
 **Target Platforms:** Mobile web today; Android and iOS through Capacitor when the loop is proven
-**Core Tech Stack:** Angular 22, RxDB, `ibid-ui` with the Kirigami theme, CSS 3D
+**Core Tech Stack:** Angular 22, RxDB, `ibid-ui` with the Papikapi theme, CSS 3D
 
 ---
 
 ## 1. Executive Summary & Mission: The Paper Reward That Gets Built
 
 ### 1.1. Product Mission
-**Camila** is a family reward system whose prize is a real object. Chore apps hand a child a
-number that goes up; Camila hands them a **paper figure that unfolds as they earn it**, on screen
+**Papikapi** is a family reward system whose prize is a real object. Chore apps hand a child a
+number that goes up; Papikapi hands them a **paper figure that unfolds as they earn it**, on screen
 in three dimensions, and finally as a printable template they cut out and build with a parent.
 The points stop being an abstraction the moment the dinosaur stands on the shelf.
 
@@ -21,14 +21,14 @@ proposes which behaviour domains it touched and how many points each is worth, a
 confirmation. Nothing is categorised by hand unless the parent wants to correct it.
 
 ### 1.2. Who Pays, and How
-Camila has no server, so it has no server bill. That makes two things possible that a
+Papikapi has no server, so it has no server bill. That makes two things possible that a
 subscription product cannot offer: the app is free to use, and the adult can **unlock more
 figures by watching a rewarded ad on their own screen**. Advertising is a parent-side
 transaction — the child's surface is never touched by it — and it is what pays for the
 catalogue instead of a monthly fee.
 
 ### 1.3. Target User & Persona ("Nobody Fills In Forms at 22:30")
-Camila is for a parent who is tired. Chip pickers and category dropdowns feel frictionless to a
+Papikapi is for a parent who is tired. Chip pickers and category dropdowns feel frictionless to a
 designer and feel like paperwork to a parent at the end of a long day. Every feature must pass
 this test: *does it ask the adult to think, structure or choose before it accepts what happened?*
 If it does, the assistant has to absorb that work.
@@ -43,7 +43,7 @@ their standing, never the diary. Biometrics or a PIN guard that crossing *(not i
 see §5)*.
 
 ### 1.5. How the Assistant Learns (In Plain Language)
-Camila runs a lightweight classifier that lives entirely inside the device.
+Papikapi runs a lightweight classifier that lives entirely inside the device.
 
 * **In simple terms:** the assistant ships knowing a few hundred ordinary Portuguese words —
   *dishes*, *teeth*, *hug*, *patience* — and which part of family life each one belongs to.
@@ -75,7 +75,7 @@ than about a category. That photo is treated as the hardest case in the whole sy
 
 Around that, two facts about data:
 
-1. **We operate no server.** No Camila account, no backend, no database. We never receive, store
+1. **We operate no server.** No Papikapi account, no backend, no database. We never receive, store
    or process a word of a family's diary.
 2. **Synchronisation is adult-to-adult only** — two parents, two phones, one household file in
    **their own Google Drive**, so each sees what the other wrote. It is their file, in their
@@ -105,7 +105,7 @@ before anyone writes a stronger claim than that.
    A tree that grows more slowly is indistinguishable from one that had fewer entries, which is
    why the negative side was dropped rather than hidden.
 6. **A design that is the product.** Cut paper, folded surfaces and a single display serif — the
-   Kirigami theme is not decoration on a chore tracker, it is what makes a child want to look.
+   Papikapi theme is not decoration on a chore tracker, it is what makes a child want to look.
 
 ---
 
@@ -114,12 +114,12 @@ before anyone writes a stronger claim than that.
 | Layer | Technology | Function / Description |
 | :--- | :--- | :--- |
 | **Frontend Core** | Angular 22 (SPA), signals | Reactive UI and state, zoneless-friendly. |
-| **UI Design System** | `libs/ibid-ui` + Kirigami theme | Cut-paper surfaces, hand-drawn contours, `ibid-*` atoms. No third-party kit. |
+| **UI Design System** | `libs/ibid-ui` + Papikapi theme | Cut-paper surfaces, hand-drawn contours, `ibid-*` atoms. No third-party kit. |
 | **Local Database** | RxDB (Dexie in the browser, memory in tests) | Offline-first document store. Nothing reaches IndexedDB outside `infrastructure/rxdb/`. |
 | **On-Device Assistant** | Pure TypeScript in `domain/` | Two layers of word matching: a shipped Portuguese vocabulary plus privately learned rules that always win. No external service. |
 | **3D Figure** | CSS 3D transforms | Extruded paper profiles and box nets rendered with `clip-path` faces and contour bands. **No 3D library.** |
 | **Printable Template** | Inline SVG, A4 `viewBox` | Two variants from one geometry: coloured and line-art. |
-| **Household Sync** | `@ibid/services` → Google Drive REST API | One household file in the inviting adult's Drive, shared with the co-parent's Google account. Already built for `oh-save-me`. **Not wired into Camila yet, see §5.** |
+| **Household Sync** | `@ibid/services` → Google Drive REST API | One household file in the inviting adult's Drive, shared with the co-parent's Google account. Already built for `oh-save-me`. **Not wired into Papikapi yet, see §5.** |
 | **Rewarded Advertising** | Certified ad SDK, adult surface only | Unlocks catalogue figures. Loaded lazily on the adult's screen, behind an age gate. Never rendered while the child's screen is showing. **Not implemented, see §5.** |
 | **Consent** | CMP (TCF v2.2 in the EEA and UK) | Required before any personalised ad request. **Not implemented, see §5.** |
 | **Mobile Wrapper** | Capacitor | **Not started.** Needed for biometrics, notifications and the ad SDK, see §5. |
@@ -239,8 +239,8 @@ before anyone writes a stronger claim than that.
 
 **Next, in order:**
 
-1. **Kirigami Studio (`apps/kirigami-studio`).** An independent companion application in `apps/`
-   dedicated exclusively to Kirigami papercraft creation (cutting, scoring/folding, and gluing with tabs).
+1. **Papikapi Studio (`apps/papikapi-studio`).** An independent companion application in `apps/`
+   dedicated exclusively to Papikapi papercraft creation (cutting, scoring/folding, and gluing with tabs).
    - **Single Geometric Source of Truth:** A unified parametric model (boxes, prisms, and decors)
      from which both the interactive 3D CSS model and the unfolded 2D printable SVG cut-sheet are mathematically derived.
    - **Automatic Unfolding Engine:** Generates cut boundaries (solid lines), mountain/valley folds (dashed lines),
@@ -252,7 +252,7 @@ before anyone writes a stronger claim than that.
    - **Gemini Engine & Observability:** Structured JSON schema generation via Gemini Flash/Pro, prompt versioning,
      and validation error auditing.
    - **Export Pipeline:** Print-ready A4 PDF generation (coloured and outline colouring variants), clean SVG export,
-     and direct TypeScript model generation for `domain/data/paper-models.ts` in Camila.
+     and direct TypeScript model generation for `domain/data/paper-models.ts` in Papikapi.
 2. **Folds tied to the figure.** The figure currently stands complete. It should assemble part by
    part as thresholds are crossed — which is what turns the points into suspense.
 3. **Biometrics and PIN** on the "Grown-ups!" crossing, which needs Capacitor.
@@ -308,7 +308,7 @@ follow from that, and the product must pick one:
 
 ### 6.2. Advertising
 * **Apple's Kids Category forbids third-party advertising and third-party analytics.** A rewarded
-  ad model is therefore incompatible with it. Camila ships as a **parenting tool for adults**,
+  ad model is therefore incompatible with it. Papikapi ships as a **parenting tool for adults**,
   which is what it is: the adult is the operator, the buyer and the only person the ad is shown to.
 * **Google Play Families Policy** applies wherever a child is part of the audience. Expect a
   mixed-audience classification, which requires a **certified ad SDK**, age-appropriate ad
@@ -342,7 +342,7 @@ follow from that, and the product must pick one:
 
 ## 7. Open Decisions
 
-1. **The public name.** `camila` is the folder and the working name. It is a real person's name;
+1. **The public name.** `papikapi` is the folder and the working name. It is a real person's name;
    shipping under it is not a default.
 2. **Route to market.** Market research points away from a PT-PT consumer launch: the whole
    category on the Portuguese App Store totals roughly 22 ratings, and ClassDojo already owns the

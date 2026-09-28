@@ -1,21 +1,21 @@
-.camila-brand {
+.papikapi-brand {
   font-family: var(--font-brand);
   font-size: var(--text-m);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.camila-profile {
+.papikapi-profile {
   padding: 7px 14px;
-  background-color: var(--kirigami-yellow-bg, #fdf3d8);
+  background-color: var(--papikapi-yellow-bg, #fdf3d8);
   border: none;
   color: var(--color-ink);
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
-  clip-path: var(--kirigami-snip);
-  filter: drop-shadow(0 2px 4px var(--kirigami-paper-shadow));
+  clip-path: var(--papikapi-snip);
+  filter: drop-shadow(0 2px 4px var(--papikapi-paper-shadow));
 
   &:focus-visible {
     outline: 2px solid var(--color-ink);
@@ -23,7 +23,7 @@
   }
 }
 
-.camila-language {
+.papikapi-language {
   padding: 4px 2px;
   background: none;
   border: none;
@@ -38,11 +38,11 @@
   }
 }
 
-.camila-language {
-  color: var(--camila-muted, #5a5249);
+.papikapi-language {
+  color: var(--papikapi-muted, #5a5249);
 }
 
-.camila-page {
+.papikapi-page {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;

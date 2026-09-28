@@ -12,7 +12,7 @@ export default defineConfig({
     baseURL: BASE_URL
   },
   webServer: {
-    command: 'npx nx run camila:serve-e2e',
+    command: 'npx nx run papikapi:serve-e2e',
     cwd: '../..',
     url: BASE_URL,
     reuseExistingServer: !process.env['CI'],

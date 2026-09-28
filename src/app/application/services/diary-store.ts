@@ -5,7 +5,7 @@ import { DiaryEntry } from '@domain/models/diary-entry';
 import { DomainHit, Recognition } from '@domain/models/recognition';
 import { Badge, TreeState, createTreeState } from '@domain/models/tree-state';
 import { nextThreshold } from '@domain/services/growth-engine';
-import { CamilaDatabaseService } from '@infrastructure/rxdb/camila-database.service';
+import { PapikapiDatabaseService } from '@infrastructure/rxdb/papikapi-database.service';
 import { RxdbDiaryRepository } from '@infrastructure/rxdb/rxdb-diary.repository';
 import { RxdbRecognitionRepository } from '@infrastructure/rxdb/rxdb-recognition.repository';
 import { RxdbTreeRepository } from '@infrastructure/rxdb/rxdb-tree.repository';
@@ -31,7 +31,7 @@ export class DiaryStore {
     newId: () => crypto.randomUUID(),
   };
 
-  private readonly databases = inject(CamilaDatabaseService);
+  private readonly databases = inject(PapikapiDatabaseService);
 
   private readonly entriesState = signal<readonly DiaryEntry[]>([]);
   private readonly recognitionsState = signal<readonly Recognition[]>([]);

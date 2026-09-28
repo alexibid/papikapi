@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { DiaryEntry } from '@domain/models/diary-entry';
 import { DiaryRepository } from '@domain/repositories/diary.repository';
-import { CamilaDatabaseService } from './camila-database.service';
+import { PapikapiDatabaseService } from './papikapi-database.service';
 
 @Injectable({ providedIn: 'root' })
 export class RxdbDiaryRepository implements DiaryRepository {
-  private readonly databases = inject(CamilaDatabaseService);
+  private readonly databases = inject(PapikapiDatabaseService);
 
   async save(entry: DiaryEntry): Promise<void> {
     const collection = await this.collection();

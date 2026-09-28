@@ -1,26 +1,26 @@
 import { EnvironmentProviders, inject, isDevMode, provideEnvironmentInitializer } from '@angular/core';
 import { DiaryStore } from './diary-store';
 
-export interface CamilaDevBridge {
+export interface PapikapiDevBridge {
   seed(startedAt?: number): Promise<void>;
   reset(): Promise<void>;
 }
 
 declare global {
   interface Window {
-    camilaDev?: CamilaDevBridge;
+    papikapiDev?: PapikapiDevBridge;
   }
 }
 
-const EMPTIED_KEY = 'camila_emptied_on_purpose';
+const EMPTIED_KEY = 'papikapi_emptied_on_purpose';
 
-export function provideCamilaDevBridge(): EnvironmentProviders {
+export function providePapikapiDevBridge(): EnvironmentProviders {
   return provideEnvironmentInitializer(() => {
     if (!isDevMode() || typeof window === 'undefined') return;
 
     const store = inject(DiaryStore);
 
-    window.camilaDev = {
+    window.papikapiDev = {
       seed: async (startedAt?: number) => {
         rememberEmptied(false);
         await store.seed(startedAt);

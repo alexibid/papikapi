@@ -1,6 +1,6 @@
-# 🚀 Minimum Viable Product (MVP) — Camila
+# 🚀 Minimum Viable Product (MVP) — Papikapi
 
-**Product Name:** Camila *(working name)*
+**Product Name:** Papikapi *(working name)*
 **Version:** 0.1.0 (pre-MVP)
 **Target Platform:** Mobile web
 
@@ -45,14 +45,14 @@ Nothing else is required for the MVP to be a product rather than a demo.
 
 | | Delivered |
 | --- | --- |
-| **Shell** | Kirigami theme, pt/en, header, navigation, two routes |
+| **Shell** | Papikapi theme, pt/en, header, navigation, two routes |
 | **Diary** | Free-text entry, persisted. One sentence is a complete entry |
 | **Assistant** | On-device classifier with a shipped Portuguese vocabulary over the six domains |
 | **Recognition** | A domain and a weight derived per entry, correctable |
 | **Correction** | One-tap reassignment writing a private rule that outranks the baseline |
 | **Rules** | Seeded thresholds per domain, editable as data |
 | **Badges** | Earned when a threshold is crossed |
-| **Tree** | `camila-growth-scene`, data-driven, one branch per domain |
+| **Tree** | `papikapi-growth-scene`, data-driven, one branch per domain |
 | **Persistence** | RxDB, local only |
 
 ## 3. Out of scope, deliberately
@@ -118,8 +118,8 @@ Each batch is one commit, at most ten files, handed over for the user to review 
 
 | Batch | Contents | Proves |
 | --- | --- | --- |
-| 1 | `project.json`, four tsconfigs, `eslint.config.mjs`, `playwright.config.ts`, `public/` | `nx build camila` |
-| 2 | `index.html`, `main.ts`, `styles.scss`, `app.config.ts`, `i18n.config.ts`, `theme.config.ts`, `app.{ts,html,scss}`, `app.routes.ts` | shell on the kirigami theme |
+| 1 | `project.json`, four tsconfigs, `eslint.config.mjs`, `playwright.config.ts`, `public/` | `nx build papikapi` |
+| 2 | `index.html`, `main.ts`, `styles.scss`, `app.config.ts`, `i18n.config.ts`, `theme.config.ts`, `app.{ts,html,scss}`, `app.routes.ts` | shell on the papikapi theme |
 | 3 | Diary and tree pages with their stories | two routes render |
 | 4 | `app.spec.ts`, `.storybook/`, two journeys | `nx test`, `nx e2e`, `nx test-a11y` |
 
@@ -139,7 +139,7 @@ The product is fully testable at the end of Phase 1, before a single pixel exist
 
 | Batch | Contents |
 | --- | --- |
-| 8 | `ibid-textarea` in `ibid-ui`, with story and spec — **scope `ibid-ui`, not `camila`** |
+| 8 | `ibid-textarea` in `ibid-ui`, with story and spec — **scope `ibid-ui`, not `papikapi`** |
 | 9 | Diary composer, wired to the use case |
 | 10 | `ibid-chip` extracted from `oh-save-me`'s `active-filter-chips` — **scope `ibid-ui`** |
 | 11 | Correction path |
@@ -148,18 +148,18 @@ The product is fully testable at the end of Phase 1, before a single pixel exist
 
 | Batch | Contents |
 | --- | --- |
-| 12 | `camila-growth-scene` |
+| 12 | `papikapi-growth-scene` |
 | 13 | Tree route wired to `TreeState`, and the full DSJ journey |
 
 ## 7. The one real risk
 
-`camila-growth-scene` is the only piece that cannot be derived from what already exists. It is
+`papikapi-growth-scene` is the only piece that cannot be derived from what already exists. It is
 the product's whole visual identity, it is bespoke, and it is not specifiable in a table.
 
 It is de-risked by being **data-driven rather than art-driven**: a pure SVG fed by `TreeState`
 — one growth level per branch, one branch per domain — so the mechanic is testable and the art
 can evolve without touching logic. The first version will be honest and simple, not exhibition
-kirigami.
+papikapi.
 
 ## 8. What is deliberately not decided here
 

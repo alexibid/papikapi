@@ -20,7 +20,7 @@ const DIARY_ROUTE = '/diario';
 
 @Component({
   imports: [RouterModule, HeaderComponent],
-  selector: 'camila-root',
+  selector: 'papikapi-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

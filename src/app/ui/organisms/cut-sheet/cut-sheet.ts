@@ -6,7 +6,7 @@ export type SheetVariant = 'coloured' | 'outline';
 const CREST_STEP = 11;
 
 @Component({
-  selector: 'camila-cut-sheet',
+  selector: 'papikapi-cut-sheet',
   standalone: true,
   templateUrl: './cut-sheet.html',
   styleUrl: './cut-sheet.scss',

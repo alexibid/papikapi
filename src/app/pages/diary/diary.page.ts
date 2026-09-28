@@ -9,7 +9,7 @@ import { DiaryStore } from '@application/services/diary-store';
 const MANUAL_POINTS = 2;
 
 @Component({
-  selector: 'camila-diary-page',
+  selector: 'papikapi-diary-page',
   standalone: true,
   imports: [ButtonComponent, ChipComponent, TextareaComponent],
   templateUrl: './diary.page.html',

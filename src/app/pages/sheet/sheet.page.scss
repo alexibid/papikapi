@@ -1,4 +1,4 @@
-.camila-sheet {
+.papikapi-sheet {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm, 0.75rem);
@@ -13,7 +13,7 @@
   &__intro {
     margin: 0;
     font-size: 0.8rem;
-    color: var(--camila-muted, #5a5249);
+    color: var(--papikapi-muted, #5a5249);
   }
 
   &__tabs {
@@ -28,8 +28,8 @@
     color: var(--color-ink);
     font-size: 0.78rem;
     cursor: pointer;
-    clip-path: var(--kirigami-snip);
-    filter: drop-shadow(0 2px 3px var(--kirigami-paper-shadow));
+    clip-path: var(--papikapi-snip);
+    filter: drop-shadow(0 2px 3px var(--papikapi-paper-shadow));
 
     &--active {
       background-color: var(--color-ink);
@@ -43,6 +43,6 @@
   }
 
   &__carousel {
-    filter: drop-shadow(0 4px 10px var(--kirigami-paper-shadow));
+    filter: drop-shadow(0 4px 10px var(--papikapi-paper-shadow));
   }
 }

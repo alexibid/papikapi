@@ -1,4 +1,4 @@
-.camila-diary {
+.papikapi-diary {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm, 0.75rem);
@@ -17,20 +17,20 @@
   }
 }
 
-.camila-reading {
+.papikapi-reading {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm, 0.75rem);
   padding: var(--spacing-md, 1rem) 0;
-  border-top: 1px dashed var(--kirigami-paper-edge, var(--color-border));
-  border-bottom: 1px dashed var(--kirigami-paper-edge, var(--color-border));
+  border-top: 1px dashed var(--papikapi-paper-edge, var(--color-border));
+  border-bottom: 1px dashed var(--papikapi-paper-edge, var(--color-border));
 
   &__lead {
     margin: 0;
     font-size: 0.75rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--camila-muted, #5a5249);
+    color: var(--papikapi-muted, #5a5249);
   }
 
   &__summary {
@@ -61,20 +61,20 @@
     background: none;
     border: none;
     font-size: 0.85rem;
-    color: var(--camila-muted, #5a5249);
+    color: var(--papikapi-muted, #5a5249);
     text-decoration: underline;
     cursor: pointer;
   }
 }
 
-.camila-log {
+.papikapi-log {
   margin: 0;
   padding: 0;
   list-style: none;
 
   &__entry {
     padding: var(--spacing-sm, 0.75rem) 0;
-    border-bottom: 1px dashed var(--kirigami-paper-edge, var(--color-border));
+    border-bottom: 1px dashed var(--papikapi-paper-edge, var(--color-border));
   }
 
   &__text {
@@ -87,11 +87,11 @@
     font-size: 0.75rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--camila-muted, #5a5249);
+    color: var(--papikapi-muted, #5a5249);
   }
 
   &__empty {
     padding: var(--spacing-md, 1rem) 0;
-    color: var(--camila-muted, #5a5249);
+    color: var(--papikapi-muted, #5a5249);
   }
 }
