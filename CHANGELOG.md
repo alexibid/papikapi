@@ -1,3 +1,11 @@
+## 0.1.6 (2026-09-28)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** rename camila references to papikapi across app, docs and e2e (5d937ec)
+- **papikapi:** rename Nx project and package to papikapi (9317d7d)
+- **camila:** add android release signing config and document kirigami-studio in the PRD (7505218)
+
 ## 0.1.4 (2026-09-05)
 
 ### 🐛 Bug Fixes
