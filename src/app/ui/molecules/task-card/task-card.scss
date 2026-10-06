@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 5.5rem;
+}
+
+.m-task-card {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  color: var(--color-ink);
+
+  &--done {
+    --papikapi-paper-fill: var(--papikapi-mint-bg);
+  }
+
+  &--next {
+    --papikapi-paper-fill: var(--papikapi-butter-bg);
+  }
+
+  &--upcoming {
+    --papikapi-paper-fill: var(--papikapi-peach-bg);
+  }
+
+  &__pictogram {
+    display: block;
+    width: 74%;
+    height: 74%;
+  }
+
+  &__check {
+    position: absolute;
+    top: -0.7rem;
+    right: -0.5rem;
+    display: block;
+    width: 2.2rem;
+    height: 2.2rem;
+    filter: drop-shadow(0 2px 3px var(--papikapi-paper-lift));
+  }
+
+  &__status {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.45rem;
+    display: block;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0.3rem;
+    --papikapi-paper-fill: var(--color-surface);
+  }
+}

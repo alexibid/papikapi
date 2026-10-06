@@ -1,0 +1,5 @@
+<svg class="a-pictogram" [attr.viewBox]="viewBox()" aria-hidden="true" focusable="false">
+  @for (facet of icon().facets; track $index) {
+    <polygon [attr.points]="facet[0]" [attr.fill]="facet[1]" [attr.stroke]="facet[1]" />
+  }
+</svg>

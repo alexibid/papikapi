@@ -1,9 +1,75 @@
-<section class="papikapi-stage">
-  <h1 class="papikapi-stage__headline">{{ i18n.translate('modelPet') }}</h1>
+<section class="papikapi-child">
+  <h1 class="papikapi-child__title">{{ i18n.translate('childPageTitle') }}</h1>
 
-  <papikapi-paper-model [model]="model" [ariaLabel]="i18n.translate('modelDinoLabel')" />
+  <header class="papikapi-child__bar">
+    <span class="papikapi-child__avatar" role="img" [attr.aria-label]="i18n.translate('childAvatar')">
+      <papikapi-sticker name="avatar" />
+    </span>
 
-  <p class="papikapi-stage__hint">{{ i18n.translate('modelHint') }}</p>
+    <papikapi-progress-pips
+      class="papikapi-child__progress"
+      [total]="tasks.length"
+      [filled]="doneCount()"
+      [ariaLabel]="i18n.translate('childProgress')"
+    />
 
-  <a class="papikapi-stage__sheet" routerLink="/molde">{{ i18n.translate('seeSheet') }}</a>
+    <ibid-icon-button
+      [ariaLabel]="i18n.translate(soundOn() ? 'childSoundOn' : 'childSoundOff')"
+      (clicked)="toggleSound()"
+    >
+      <span class="papikapi-child__glyph" [class.papikapi-child__glyph--muted]="!soundOn()">
+        <papikapi-sticker name="sound" />
+      </span>
+    </ibid-icon-button>
+  </header>
+
+  <div class="papikapi-child__stage">
+    <papikapi-assembly-stage
+      [source]="figureSource()"
+      [modelSource]="figureModel()"
+      [built]="builtPieces()"
+      (ready)="onStageReady($event)"
+      (settled)="onStageSettled($event)"
+      [ariaLabel]="i18n.translate('modelDinoLabel')"
+      [releaseLabel]="i18n.translate('childStageRelease')"
+      [completeLabel]="i18n.translate('childStageComplete')"
+      [animatedLabel]="i18n.translate('childStageAnimated')"
+    />
+    <papikapi-scenery />
+    <a
+      class="papikapi-child__gate"
+      routerLink="/adultos"
+      [attr.aria-label]="i18n.translate('childGate')"
+    >
+      <papikapi-sticker name="photo" />
+    </a>
+  </div>
+
+  <div class="papikapi-child__rail" [ibidHandDrawn]="4">
+    @for (task of tasks; track task.id) {
+      <papikapi-task-card [task]="task" [ariaLabel]="taskLabel(task)" />
+    }
+  </div>
+
+  <section class="papikapi-child__shelf" [attr.aria-label]="i18n.translate('childShelf')">
+    <papikapi-progress-pips
+      class="papikapi-child__mounted"
+      [total]="mounted().total"
+      [filled]="mounted().mounted"
+      [ariaLabel]="i18n.translate('childShelfProgress')"
+    />
+
+    @for (shelf of shelves(); track shelf.id) {
+      <div class="papikapi-child__board">
+        @for (trophy of shelf.trophies; track trophy.id) {
+          <papikapi-trophy
+            [trophy]="trophy"
+            [ariaLabel]="trophyLabel(trophy.state)"
+            (chosen)="onFigureChosen($event)"
+          />
+        }
+      </div>
+      <span class="papikapi-child__plank" [ibidHandDrawn]="1"></span>
+    }
+  </section>
 </section>

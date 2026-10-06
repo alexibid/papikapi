@@ -1,0 +1,10 @@
+<div class="m-agenda-item" [attr.data-kind]="event().kind" [ibidHandDrawn]="2">
+  <span class="m-agenda-item__icon">
+    <papikapi-pictogram [name]="pictogram()" />
+  </span>
+  <div class="m-agenda-item__text">
+    <span class="m-agenda-item__title">{{ event().title }}</span>
+    <span class="m-agenda-item__detail">{{ event().detail }}</span>
+  </div>
+  <span class="m-agenda-item__kind" [ibidHandDrawn]="1">{{ kindLabel() }}</span>
+</div>

@@ -1,0 +1,7 @@
+<svg class="o-balloon-bunch" viewBox="0 0 400 472" aria-hidden="true" focusable="false">
+  @for (string of strings; track $index) {
+    <path class="o-balloon-bunch__string" [attr.d]="string" />
+    <path class="o-balloon-bunch__twist" [attr.d]="string" />
+  }
+  <image href="scene/balloons.webp" x="0" y="0" width="400" height="316" />
+</svg>

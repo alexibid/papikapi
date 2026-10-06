@@ -15,15 +15,21 @@
   </div>
 
   @if (store.proposal(); as proposal) {
-    <div class="papikapi-reading">
+    <div class="papikapi-reading" [ibidHandDrawn]="2">
       <p class="papikapi-reading__lead">
+        <span class="papikapi-reading__sparkle"><papikapi-pictogram name="sparkle" /></span>
         {{ hits().length > 0 ? i18n.translate('proposalTitle') : i18n.translate('proposalEmpty') }}
       </p>
 
       @if (hits().length > 0) {
         <p class="papikapi-reading__summary">
           @for (hit of hits(); track hit.domain) {
-            <span class="papikapi-reading__hit">{{ summaryOf(hit) }}</span>
+            <span class="papikapi-reading__hit">
+              <span class="papikapi-reading__icon">
+                <papikapi-pictogram [name]="pictogramOf(hit.domain)" />
+              </span>
+              {{ summaryOf(hit) }}
+            </span>
           }
         </p>
       }
@@ -42,23 +48,23 @@
         <ibid-button [disabled]="hits().length === 0" (clicked)="confirm()">
           {{ i18n.translate('proposalConfirm') }}
         </ibid-button>
-        <button type="button" class="papikapi-reading__dismiss" (click)="dismiss()">
+        <ibid-button variant="outlined" (clicked)="dismiss()">
           {{ i18n.translate('proposalDismiss') }}
-        </button>
+        </ibid-button>
       </div>
     </div>
   }
 
   <ul class="papikapi-log">
     @for (entry of store.entries(); track entry.id) {
-      <li class="papikapi-log__entry">
+      <li class="papikapi-log__entry" [ibidHandDrawn]="1">
         <p class="papikapi-log__text">{{ entry.text }}</p>
         @if (domainsOf(entry.id); as domains) {
           <p class="papikapi-log__domains">{{ domains }}</p>
         }
       </li>
     } @empty {
-      <li class="papikapi-log__empty">{{ i18n.translate('diaryEmpty') }}</li>
+      <li class="papikapi-log__empty" [ibidHandDrawn]="1">{{ i18n.translate('diaryEmpty') }}</li>
     }
   </ul>
 </section>

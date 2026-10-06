@@ -6,8 +6,6 @@
 
 body.papikapi {
   --papikapi-muted: #5a5249;
-  --papikapi-wash-opacity: 0.34;
-  --papikapi-wash-size: 78vmax;
 }
 
 ibid-header {
@@ -22,8 +20,6 @@ body.papikapi ibid-header {
 .o-header-shell {
   z-index: 30;
   padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
-  background-color: var(--color-surface, #ffffff);
-  border-bottom: 1px solid var(--color-border, #e2e8f0);
 }
 
 .o-header-shell__bar {
@@ -48,36 +44,4 @@ body.papikapi ibid-header {
   margin: 0;
   font-size: var(--text-s, 0.9rem);
   opacity: 0.72;
-}
-
-body.papikapi {
-  .a-button,
-  ibid-button button {
-    &,
-    &.a-button--primary,
-    &:nth-of-type(4n + 1),
-    &:nth-of-type(4n + 2),
-    &:nth-of-type(4n + 3),
-    &:nth-of-type(4n + 4) {
-      background-color: var(--color-ink);
-      color: var(--color-surface);
-      font-weight: 500;
-    }
-  }
-
-  .a-textarea {
-    background-color: var(--color-surface);
-    border: none;
-    clip-path: var(--papikapi-cut-2);
-    filter: drop-shadow(0 2px 5px var(--papikapi-paper-shadow));
-  }
-
-  .a-chip {
-    clip-path: var(--papikapi-snip);
-  }
-
-  .a-chip:not(.a-chip--selected) {
-    background-color: var(--color-surface);
-    border-color: var(--papikapi-paper-edge);
-  }
 }

@@ -1,0 +1,67 @@
+<section class="papikapi-backoffice">
+  <header class="papikapi-backoffice__head">
+    <h1 class="papikapi-backoffice__title">{{ i18n.translate('boTitle') }}</h1>
+    <p class="papikapi-backoffice__child">
+      {{ child.name }} · {{ child.age }} {{ i18n.translate('boYears') }} · {{ child.schoolYear }}
+    </p>
+  </header>
+
+  <a class="papikapi-backoffice__diary" routerLink="/diario" [ibidHandDrawn]="2">
+    <span class="papikapi-backoffice__diary-title">{{ i18n.translate('boDiaryTitle') }}</span>
+    <span class="papikapi-backoffice__diary-hint">{{ i18n.translate('boDiaryHint') }}</span>
+  </a>
+
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boRhythm') }}</h2>
+    <div class="papikapi-backoffice__rhythm">
+      <ibid-slider
+        class="papikapi-backoffice__slider"
+        [value]="rhythm.rhythm().speed"
+        [min]="0.5"
+        [max]="3"
+        [step]="0.5"
+        [ariaLabel]="i18n.translate('boSpeed')"
+        (valueChange)="setSpeed($event)"
+      />
+      <span class="papikapi-backoffice__speed">{{ rhythm.rhythm().speed }}x</span>
+    </div>
+    <p class="papikapi-backoffice__note">
+      {{ pointsPerPiece() }} {{ i18n.translate('boPointsPerPiece') }}
+    </p>
+  </ibid-card>
+
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boSchedule') }}</h2>
+    <ibid-segmented-control
+      [options]="dayOptions()"
+      [value]="selectedDay()"
+      (valueChange)="selectDay($event)"
+    />
+    <p class="papikapi-backoffice__note">
+      {{ i18n.translate('boBackpack') }}: {{ backpack() }}
+    </p>
+  </ibid-card>
+
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boAgenda') }}</h2>
+    <div class="papikapi-backoffice__list">
+      @for (event of agenda; track event.id) {
+        <papikapi-agenda-item [event]="event" [kindLabel]="kindLabel(event.kind)" />
+      }
+    </div>
+  </ibid-card>
+
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">
+      {{ i18n.translate('boGrades') }}
+      <span class="papikapi-backoffice__average">
+        {{ i18n.translate('boAverage') }} {{ average }}
+      </span>
+    </h2>
+    <div class="papikapi-backoffice__tiles">
+      @for (grade of grades; track grade.id) {
+        <papikapi-grade-tile [grade]="grade" />
+      }
+    </div>
+  </ibid-card>
+</section>

@@ -1,0 +1,16 @@
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.o-scenery {
+  position: absolute;
+  inset: 0;
+
+  &__ornament {
+    position: absolute;
+    display: block;
+  }
+}

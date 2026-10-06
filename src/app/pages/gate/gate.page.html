@@ -1,0 +1,43 @@
+<section class="papikapi-gate">
+  <a
+    class="papikapi-gate__close"
+    routerLink="/"
+    [ibidHandDrawn]="2"
+    [attr.aria-label]="i18n.translate('gateClose')"
+  >
+    <papikapi-pictogram name="close" />
+  </a>
+
+  <span class="papikapi-gate__lock" [ibidHandDrawn]="4">
+    <papikapi-pictogram name="lock" />
+  </span>
+
+  <h1 class="papikapi-gate__title">{{ i18n.translate('gateTitle') }}</h1>
+
+  <div class="papikapi-gate__slots" role="img" [attr.aria-label]="i18n.translate('gatePin')">
+    @for (isFilled of slots(); track $index) {
+      <span
+        class="papikapi-gate__slot"
+        [class.papikapi-gate__slot--filled]="isFilled"
+        [ibidHandDrawn]="1"
+      ></span>
+    }
+  </div>
+
+  <div class="papikapi-gate__keypad">
+    @for (digit of digits; track digit) {
+      <ibid-button class="papikapi-gate__key" variant="outlined" [intensity]="2" (clicked)="press(digit)">
+        {{ digit }}
+      </ibid-button>
+    }
+    <ibid-button
+      class="papikapi-gate__key papikapi-gate__key--erase"
+      variant="highlight"
+      [intensity]="2"
+      [ariaLabel]="i18n.translate('gateErase')"
+      (clicked)="erase()"
+    >
+      <span class="papikapi-gate__erase"><papikapi-pictogram name="backspace" /></span>
+    </ibid-button>
+  </div>
+</section>

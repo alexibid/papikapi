@@ -1,25 +1,30 @@
-<ibid-header #headerHost>
-  <span headerBrand class="papikapi-brand">{{ i18n.translate('appName') }}</span>
+<ibid-header #headerHost [class.papikapi-header--hidden]="wordless()">
+  <span headerBrand class="papikapi-brand">
+    <span class="papikapi-brand__mark"><papikapi-pictogram name="mascot" /></span>
+    {{ i18n.translate('appName') }}
+  </span>
 
-  <button
+  <ibid-button
     headerActions
-    type="button"
     class="papikapi-profile"
-    [attr.aria-label]="profileLabel()"
-    (click)="toggleProfile()"
+    variant="outlined"
+    [intensity]="2"
+    [ariaLabel]="profileLabel()"
+    (clicked)="toggleProfile()"
   >
     {{ onDiary() ? i18n.translate('profileToChild') : i18n.translate('toParents') }}
-  </button>
+  </ibid-button>
 
-  <button
+  <ibid-button
     headerActions
-    type="button"
     class="papikapi-language"
-    [attr.aria-label]="i18n.translate('languageToggleLabel')"
-    (click)="toggleLanguage()"
+    variant="secondary"
+    [intensity]="1"
+    [ariaLabel]="i18n.translate('languageToggleLabel')"
+    (clicked)="toggleLanguage()"
   >
     {{ languageCode() }}
-  </button>
+  </ibid-button>
 </ibid-header>
 
 <main class="papikapi-page">

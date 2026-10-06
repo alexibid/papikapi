@@ -14,8 +14,8 @@ const ROUTES = [
   { path: 'diario', component: StubPage },
 ];
 
-const PROFILE = '.papikapi-profile';
-const LANGUAGE = '.papikapi-language';
+const PROFILE = '.papikapi-profile button';
+const LANGUAGE = '.papikapi-language button';
 
 describe('App', () => {
   beforeEach(async () => {

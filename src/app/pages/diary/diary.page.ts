@@ -1,8 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { I18nService } from '@ibid/services';
-import { ButtonComponent, ChipComponent, TextareaComponent } from 'ibid-ui';
+import { ButtonComponent, ChipComponent, HandDrawnDirective, TextareaComponent } from 'ibid-ui';
 import { BEHAVIOUR_DOMAIN_CATALOGUE, behaviourDomainOf } from '@domain/data/behaviour-domains';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
+import { DOMAIN_PICTOGRAMS } from '@ui/atoms/pictogram/domain-pictograms';
+import { PictogramName } from '@ui/atoms/pictogram/paper-icons';
+import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { DomainHit } from '@domain/models/recognition';
 import { DiaryStore } from '@application/services/diary-store';
 
@@ -11,7 +14,7 @@ const MANUAL_POINTS = 2;
 @Component({
   selector: 'papikapi-diary-page',
   standalone: true,
-  imports: [ButtonComponent, ChipComponent, TextareaComponent],
+  imports: [ButtonComponent, ChipComponent, HandDrawnDirective, PictogramComponent, TextareaComponent],
   templateUrl: './diary.page.html',
   styleUrl: './diary.page.scss',
 })
@@ -74,5 +77,9 @@ export class DiaryPage {
       .filter((domain) => found.has(domain.id))
       .map((domain) => this.labelOf(domain.id))
       .join(' · ');
+  }
+
+  protected pictogramOf(domain: BehaviourDomainId): PictogramName {
+    return DOMAIN_PICTOGRAMS[domain];
   }
 }

@@ -1,0 +1,33 @@
+<div
+  class="m-trophy"
+  [class.m-trophy--mounted]="trophy().state === 'mounted'"
+  [class.m-trophy--queued]="queued()"
+  [class.m-trophy--building]="building()"
+  [ibidHandDrawn]="2"
+  [attr.role]="queued() ? null : 'img'"
+  [attr.aria-label]="queued() ? null : ariaLabel() || null"
+>
+  <span class="m-trophy__figure" [ibidHandDrawn]="1">
+    <papikapi-figure-thumbnail [figureId]="trophy().figureId" />
+  </span>
+
+  @if (building()) {
+    <papikapi-progress-pips
+      class="m-trophy__pips"
+      [total]="trophy().piecesTotal"
+      [filled]="trophy().piecesBuilt"
+    />
+  } @else if (stateGlyph(); as glyph) {
+    <span class="m-trophy__state" [ibidHandDrawn]="1">
+      <papikapi-pictogram [name]="glyph" />
+    </span>
+  }
+
+  @if (queued()) {
+    <ibid-icon-button
+      class="m-trophy__pick"
+      [ariaLabel]="ariaLabel()"
+      (clicked)="chosen.emit(trophy().figureId)"
+    />
+  }
+</div>

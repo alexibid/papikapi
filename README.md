@@ -12,7 +12,7 @@ Around that: there is no Papikapi account, no backend, no database — we never 
 
 Having no infrastructure to pay for is also what makes the app free: the adult unlocks more figures by **watching a rewarded ad on their own screen**, instead of paying a subscription. Advertising lives strictly behind the **"Grown-ups!"** tab; the child build carries no ad code at all. See [`PRD.md`](PRD.md) §1.6 for the exact boundary and §6 for the obligations that follow.
 
-Angular 22 with signals, `libs/ibid-ui` under the **Papikapi** theme, RxDB for local storage, and the 3D figure rendered with **CSS 3D transforms and no 3D library**. Mobile only, by design.
+Angular 22 with signals, `libs/ibid-ui` under the **Papikapi** theme, RxDB for local storage, and the 3D figure rendered with **three.js**. Mobile only, by design.
 
 See [`PRD.md`](PRD.md) for the full vision, the functional requirements and the active roadmap (§5), and [`MVP.md`](MVP.md) for the scope and acceptance of the first shippable version.
 
@@ -93,14 +93,25 @@ Three Papikapi-specific overrides live in `src/styles.scss`, each for a stated r
 
 ## 🧊 The 3D Figure
 
-`ui/organisms/paper-model/` renders paper models with **CSS 3D transforms only**. Two construction grammars are supported, matching how the paper is actually folded:
+`ui/organisms/assembly-stage/` renders the figure with **three.js** from an assembly plan (`assembly.json`) produced by Papikapi Studio. The plan lists the paper pieces in build order, with the fold hinges and the placed pose of every face.
 
-* **Extruded silhouette** — one profile, a front face and a back face, and a band per edge giving the volume. This is the *Paper Pet* construction: simplest to fold.
-* **Box nets** — prisms with six shaded faces, plus crest spikes. This is the modular construction: trivially generatable, and the net *is* the 3D model.
+* The scene always looks at the figure. The finished figure stands as a transparent ghost on its plinth, and each piece turns opaque as it is built.
+* Pieces still to build lie on the horizon with their printed number above; the next one is highlighted.
+* Only when a piece is earned does the camera go to it, the piece folds and travels to the figure, and the camera returns to centre on the figure.
+* The canvas only responds to drag and wheel after it has been clicked, so the page keeps scrolling over it. Clicking outside, Escape, scrolling the page or the close button give the page back.
 
-Faces are `div` elements with `clip-path`, **not SVG**. An `<svg>` inside a `transform-style: preserve-3d` context is flattened by the browser — it renders three pixels wide. This is written down because it is not obvious and it cost an afternoon.
+Responsibilities are split: `StageViewport` (renderer, lights, resize, drawing), `BuildDirector` (which pieces are shown and when to animate), `BuildAnimation` (the timer), and `AssemblyRig` / `PieceRig` (the three.js objects). The geometry and timing rules are pure functions in `domain/assembly/`.
 
-`domain/data/paper-models.ts` holds the geometry; the component only projects it.
+---
+
+## 🔶 The Icons
+
+Every icon in the app is a **folded-paper, low-poly** drawing: flat polygons with no strokes, one colour family per icon, light from the top left. There is no other icon language in the app, and no icon font, emoji or text symbol is used as an icon.
+
+* `ui/atoms/pictogram/paper-icons.ts` is the registry; `<papikapi-pictogram name="…">` draws any of them as an `svg` made of `polygon` facets.
+* The mascot, `heart`, `book`, `broom`, `trophy`, `calendar`, `health`, `sparkle` and `shield` come from the Papikapi design file. The others (`toothbrush`, `bed`, `backpack`, `plate`, `check`, `close`, `backspace`, `eye`, `reset`, `hourglass`, `lock`, `sound`, `mute`, `avatar`, `balloon`) were drawn in the same language with the colour ramps in `paper-icon.ts`.
+* `paper-icons.spec.ts` guards the language: every icon is filled polygons with hex colours and stays inside its own grid.
+* The app icons in `public/` (favicons, PWA, touch icon) are the mascot on the paper background.
 
 ---
 

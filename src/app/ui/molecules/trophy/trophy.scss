@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  flex: 0 0 calc((100% - 2 * var(--spacing-sm, 0.75rem)) / 3);
+  min-width: 0;
+}
+
+.m-trophy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.5rem;
+  color: var(--color-ink);
+
+  &--mounted {
+    --papikapi-paper-fill: var(--papikapi-green-bg);
+  }
+
+  &--building {
+    --papikapi-paper-fill: var(--papikapi-yellow-bg);
+  }
+
+  &--queued {
+    --papikapi-paper-fill: var(--color-surface);
+  }
+
+  &__figure {
+    display: block;
+    width: 4.5rem;
+    height: 4.5rem;
+    padding: 0.25rem;
+    --papikapi-paper-fill: var(--color-surface);
+  }
+
+  &__state {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0.2rem;
+    --papikapi-paper-fill: var(--color-surface);
+  }
+
+  &__pips {
+    width: 100%;
+  }
+
+  &__pick {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    --papikapi-paper-fill: transparent;
+    filter: none;
+  }
+}

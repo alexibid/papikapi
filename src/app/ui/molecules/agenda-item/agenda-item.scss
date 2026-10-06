@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.m-agenda-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm, 0.75rem);
+  padding: 0.6rem 0.75rem;
+  color: var(--color-ink);
+  --papikapi-paper-fill: var(--color-surface);
+
+  &[data-kind='meeting'] {
+    --papikapi-paper-fill: var(--papikapi-red-bg);
+  }
+
+  &[data-kind='health'] {
+    --papikapi-paper-fill: var(--papikapi-green-bg);
+  }
+
+  &[data-kind='test'] {
+    --papikapi-paper-fill: var(--papikapi-yellow-bg);
+  }
+
+  &__icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  &__text {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+  }
+
+  &__detail {
+    font-size: 0.8rem;
+  }
+
+  &__kind {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    --papikapi-paper-fill: var(--color-surface);
+  }
+}

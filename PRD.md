@@ -3,7 +3,7 @@
 **Product Name:** Papikapi *(working name — see §6)*
 **Version:** 0.1.0 (pre-MVP)
 **Target Platforms:** Mobile web today; Android and iOS through Capacitor when the loop is proven
-**Core Tech Stack:** Angular 22, RxDB, `ibid-ui` with the Papikapi theme, CSS 3D
+**Core Tech Stack:** Angular 22, RxDB, `ibid-ui` with the Papikapi theme, three.js
 
 ---
 
@@ -117,7 +117,7 @@ before anyone writes a stronger claim than that.
 | **UI Design System** | `libs/ibid-ui` + Papikapi theme | Cut-paper surfaces, hand-drawn contours, `ibid-*` atoms. No third-party kit. |
 | **Local Database** | RxDB (Dexie in the browser, memory in tests) | Offline-first document store. Nothing reaches IndexedDB outside `infrastructure/rxdb/`. |
 | **On-Device Assistant** | Pure TypeScript in `domain/` | Two layers of word matching: a shipped Portuguese vocabulary plus privately learned rules that always win. No external service. |
-| **3D Figure** | CSS 3D transforms | Extruded paper profiles and box nets rendered with `clip-path` faces and contour bands. **No 3D library.** |
+| **3D Figure** | three.js | Assembly plan from Papikapi Studio: pieces fold and travel onto a ghost figure as points are earned (`ui/organisms/assembly-stage/`). |
 | **Printable Template** | Inline SVG, A4 `viewBox` | Two variants from one geometry: coloured and line-art. |
 | **Household Sync** | `@ibid/services` → Google Drive REST API | One household file in the inviting adult's Drive, shared with the co-parent's Google account. Already built for `oh-save-me`. **Not wired into Papikapi yet, see §5.** |
 | **Rewarded Advertising** | Certified ad SDK, adult surface only | Unlocks catalogue figures. Loaded lazily on the adult's screen, behind an age gate. Never rendered while the child's screen is showing. **Not implemented, see §5.** |
@@ -252,9 +252,9 @@ before anyone writes a stronger claim than that.
    - **Gemini Engine & Observability:** Structured JSON schema generation via Gemini Flash/Pro, prompt versioning,
      and validation error auditing.
    - **Export Pipeline:** Print-ready A4 PDF generation (coloured and outline colouring variants), clean SVG export,
-     and direct TypeScript model generation for `domain/data/paper-models.ts` in Papikapi.
-2. **Folds tied to the figure.** The figure currently stands complete. It should assemble part by
-   part as thresholds are crossed — which is what turns the points into suspense.
+     and the `assembly.json` plan consumed by `ui/organisms/assembly-stage/` in Papikapi.
+2. **Folds tied to the figure.** *Done:* the figure assembles piece by piece as diary points are
+   earned, and a completed figure moves to the shelf while the next one starts.
 3. **Biometrics and PIN** on the "Grown-ups!" crossing, which needs Capacitor.
 4. **The parent dashboard**: a mosaic of actionable cards — a parents' meeting inside seven days,
    entries waiting to be read — and a footer dock for new entry, points, calendar and settings.

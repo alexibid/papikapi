@@ -1,0 +1,12 @@
+<div
+  class="m-progress-pips"
+  [attr.role]="ariaLabel() ? 'img' : null"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-hidden]="ariaLabel() ? null : true"
+>
+  @for (pip of pips(); track $index) {
+    <span class="m-progress-pips__pip" [class.m-progress-pips__pip--filled]="pip.filled">
+      <papikapi-sticker [name]="pip.paw" />
+    </span>
+  }
+</div>

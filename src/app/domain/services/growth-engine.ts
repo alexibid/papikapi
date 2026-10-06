@@ -70,6 +70,10 @@ export function earnBadges(
     }));
 }
 
+export function totalPoints(branches: BranchLevels): number {
+  return Object.values(branches).reduce((sum, points) => sum + points, 0);
+}
+
 export function badgesGained(before: TreeState, after: TreeState): readonly Badge[] {
   const known = new Set(before.badges.map((badge) => badge.id));
   return after.badges.filter((badge) => !known.has(badge.id));

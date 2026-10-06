@@ -1,11 +1,11 @@
 import { BehaviourDomain, BehaviourDomainId } from '@domain/models/behaviour-domain';
 
 export const BEHAVIOUR_DOMAIN_CATALOGUE: readonly BehaviourDomain[] = [
-  { id: 'comportamento', labelKey: 'domainComportamento', icon: 'verified' },
-  { id: 'tarefas', labelKey: 'domainTarefas', icon: 'house' },
-  { id: 'escola', labelKey: 'domainEscola', icon: 'book' },
-  { id: 'conversas', labelKey: 'domainConversas', icon: 'people' },
-  { id: 'familia', labelKey: 'domainFamilia', icon: 'favorite' },
+  { id: 'comportamento', labelKey: 'domainComportamento' },
+  { id: 'tarefas', labelKey: 'domainTarefas' },
+  { id: 'escola', labelKey: 'domainEscola' },
+  { id: 'conversas', labelKey: 'domainConversas' },
+  { id: 'familia', labelKey: 'domainFamilia' },
 ];
 
 export function behaviourDomainOf(id: BehaviourDomainId): BehaviourDomain {

@@ -1,0 +1,26 @@
+:host {
+  display: block;
+}
+
+.m-progress-pips {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 3.2rem;
+  padding: 0.3rem 1rem;
+  background: url('/scene/bar.webp') center / 100% 100% no-repeat;
+  filter: drop-shadow(0 1px 1px var(--papikapi-paper-contact))
+    drop-shadow(0 6px 10px var(--papikapi-paper-lift));
+
+  &__pip {
+    display: block;
+    flex: 0 0 auto;
+    width: 1.9rem;
+    height: 1.9rem;
+    filter: grayscale(1) opacity(0.35);
+
+    &--filled {
+      filter: none;
+    }
+  }
+}

@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { I18nService } from '@ibid/services';
+import { HandDrawnDirective, SegmentOption, SegmentedControlComponent } from 'ibid-ui';
 import { CutSheetComponent, SheetVariant } from '@ui/organisms/cut-sheet/cut-sheet';
 
 interface SheetSlide {
@@ -10,7 +11,7 @@ interface SheetSlide {
 @Component({
   selector: 'papikapi-sheet-page',
   standalone: true,
-  imports: [CutSheetComponent],
+  imports: [CutSheetComponent, HandDrawnDirective, SegmentedControlComponent],
   templateUrl: './sheet.page.html',
   styleUrl: './sheet.page.scss',
 })
@@ -23,7 +24,14 @@ export class SheetPage {
     { variant: 'outline', labelKey: 'sheetOutline' },
   ];
 
-  protected show(index: number): void {
-    this.current.set(index);
+  protected readonly options = computed<readonly SegmentOption[]>(() =>
+    this.slides.map((slide, index) => ({
+      value: String(index),
+      label: this.i18n.translate(slide.labelKey),
+    }))
+  );
+
+  protected show(value: string): void {
+    this.current.set(Number(value));
   }
 }

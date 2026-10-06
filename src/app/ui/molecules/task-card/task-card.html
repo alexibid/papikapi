@@ -1,0 +1,25 @@
+<div
+  class="m-task-card"
+  [class.m-task-card--done]="task().status === 'done'"
+  [class.m-task-card--next]="task().status === 'next'"
+  [class.m-task-card--upcoming]="task().status === 'upcoming'"
+  [ibidHandDrawn]="2"
+  role="img"
+  [attr.aria-label]="ariaLabel() || null"
+>
+  <span class="m-task-card__pictogram">
+    @if (taskSticker(); as sticker) {
+      <papikapi-sticker [name]="sticker" />
+    } @else {
+      <papikapi-pictogram [name]="task().pictogram" />
+    }
+  </span>
+
+  @if (task().status === 'done') {
+    <span class="m-task-card__check"><papikapi-sticker name="check" /></span>
+  } @else if (statusGlyph(); as glyph) {
+    <span class="m-task-card__status" [ibidHandDrawn]="1">
+      <papikapi-pictogram [name]="glyph" />
+    </span>
+  }
+</div>

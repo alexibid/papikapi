@@ -1,0 +1,59 @@
+<div
+  #container
+  class="o-assembly-stage"
+  [class.o-assembly-stage--active]="active()"
+  [class.o-assembly-stage--complete]="mode() === 'complete'"
+  [ibidHandDrawn]="3"
+  role="group"
+  [attr.aria-label]="ariaLabel() || null"
+>
+  <canvas
+    #webglCanvas
+    class="o-assembly-stage__canvas"
+    role="img"
+    [attr.aria-label]="ariaLabel() || null"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointercancel)="onPointerUp()"
+    tabindex="0"
+    (blur)="deactivate()"
+    (keydown.escape)="deactivate()"
+    (wheel)="onWheel($event)"
+  ></canvas>
+
+  @if (mode() === 'complete') {
+    <papikapi-balloon-bunch class="o-assembly-stage__balloons" />
+  }
+
+  <div class="o-assembly-stage__modes" role="group">
+    <ibid-icon-button
+      class="o-assembly-stage__mode"
+      [class.o-assembly-stage__mode--on]="mode() === 'complete'"
+      [ariaLabel]="completeLabel()"
+      (clicked)="showComplete()"
+    >
+      <span class="o-assembly-stage__tile"><papikapi-sticker name="cube" /></span>
+    </ibid-icon-button>
+    <ibid-icon-button
+      class="o-assembly-stage__mode"
+      [class.o-assembly-stage__mode--on]="mode() === 'animated'"
+      [ariaLabel]="animatedLabel()"
+      (clicked)="showAnimated()"
+    >
+      <span class="o-assembly-stage__tile"><papikapi-sticker name="play" /></span>
+    </ibid-icon-button>
+  </div>
+
+  @if (active()) {
+    <ibid-icon-button
+      class="o-assembly-stage__release"
+      [ariaLabel]="releaseLabel()"
+      (clicked)="deactivate()"
+    >
+      <span class="o-assembly-stage__glyph">
+        <papikapi-pictogram name="close" />
+      </span>
+    </ibid-icon-button>
+  }
+</div>

@@ -1,0 +1,9 @@
+@if (facets().length > 0) {
+  <svg class="m-figure-thumbnail" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+    @for (facet of facets(); track $index) {
+      <polygon [attr.points]="facet.points" [attr.fill]="facet.fill" [attr.stroke]="facet.fill" />
+    }
+  </svg>
+} @else {
+  <papikapi-pictogram name="trophy" />
+}

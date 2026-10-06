@@ -1,5 +1,4 @@
 import { BOOTSTRAP_RULES } from '@domain/data/bootstrap-rules';
-import { ORIGAMI_STAGES, unfoldedStage } from '@domain/data/origami-figures';
 import { BEHAVIOUR_DOMAINS, BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { DiaryDependencies } from '@application/use-cases/diary-dependencies';
 import {
@@ -18,6 +17,7 @@ import {
 } from './demo-seed';
 
 const CHILD = 'demo-child';
+const FOLD_CAP = 4;
 
 function createDeps(): DiaryDependencies {
   let sequence = 0;
@@ -64,16 +64,16 @@ describe('the demo seed', () => {
     }
   });
 
-  it('unfolds the figures across several stages, including one complete', async () => {
+  it('earns folds across several levels, including one complete', async () => {
     const { tree } = await seeded();
 
-    const stageOf = (domain: BehaviourDomainId) =>
-      unfoldedStage(tree.badges.filter((badge) => badge.domain === domain).length);
-    const stages = BEHAVIOUR_DOMAINS.map(stageOf);
+    const foldsOf = (domain: BehaviourDomainId) =>
+      Math.min(tree.badges.filter((badge) => badge.domain === domain).length, FOLD_CAP);
+    const folds = BEHAVIOUR_DOMAINS.map(foldsOf);
 
-    expect(Math.max(...stages)).toBe(ORIGAMI_STAGES);
-    expect(Math.min(...stages)).toBeGreaterThan(0);
-    expect(new Set(stages).size).toBeGreaterThan(2);
+    expect(Math.max(...folds)).toBe(FOLD_CAP);
+    expect(Math.min(...folds)).toBeGreaterThan(0);
+    expect(new Set(folds).size).toBeGreaterThan(2);
   });
 
   it('spreads the history across the weeks it claims', async () => {

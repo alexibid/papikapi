@@ -11,7 +11,6 @@ export type BehaviourDomainId = (typeof BEHAVIOUR_DOMAINS)[number];
 export interface BehaviourDomain {
   readonly id: BehaviourDomainId;
   readonly labelKey: string;
-  readonly icon: string;
 }
 
 export type BranchLevels = Readonly<Record<BehaviourDomainId, number>>;

@@ -1,0 +1,89 @@
+:host {
+  display: flex;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.o-assembly-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  user-select: none;
+  color: var(--color-ink);
+  --papikapi-paper-fill: var(--papikapi-sheet);
+
+  &--active {
+    --papikapi-paper-fill: var(--papikapi-yellow-bg);
+  }
+
+  &__balloons {
+    position: absolute;
+    top: 1%;
+    left: 1%;
+    width: 24%;
+  }
+
+  &__canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    mix-blend-mode: multiply;
+    outline: none;
+    touch-action: pan-y;
+  }
+
+  &--active &__canvas {
+    cursor: grab;
+    touch-action: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__modes {
+    position: absolute;
+    bottom: 0.9rem;
+    left: 50%;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.4rem;
+    transform: translateX(-50%);
+  }
+
+  &__mode {
+    --ibid-icon-button-size: 4.6rem;
+    --ibid-icon-button-padding: 0;
+    --papikapi-paper-fill: transparent;
+    filter: saturate(0.7) opacity(0.8);
+
+    &--on {
+      filter: none;
+    }
+  }
+
+  &__tile {
+    display: block;
+    width: 4.6rem;
+    height: 4.6rem;
+  }
+
+  &__release {
+    --ibid-icon-button-size: 2.5rem;
+    --ibid-icon-button-padding: 0.5rem;
+
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  &__glyph {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+  }
+}

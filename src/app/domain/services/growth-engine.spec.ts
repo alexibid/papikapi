@@ -10,6 +10,7 @@ import {
   isResting,
   nextThreshold,
   rebuildTree,
+  totalPoints,
 } from './growth-engine';
 
 const RULES: readonly Rule[] = [
@@ -182,5 +183,15 @@ describe('nextThreshold', () => {
     const branches = growBranches(createEmptyBranches(), [recognition({ points: 9 })]);
 
     expect(nextThreshold(branches, RULES, 'tarefas')).toBeUndefined();
+  });
+});
+
+describe('totalPoints', () => {
+  it('rests at zero on an empty tree', () => {
+    expect(totalPoints(createEmptyBranches())).toBe(0);
+  });
+
+  it('adds the points of every branch', () => {
+    expect(totalPoints({ ...createEmptyBranches(), tarefas: 2, escola: 3 })).toBe(5);
   });
 });

@@ -1,0 +1,88 @@
+.papikapi-backoffice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    font-weight: 400;
+  }
+
+  &__child,
+  &__note {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  &__diary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.8rem 1rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    --papikapi-paper-fill: var(--papikapi-yellow-bg);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 3px;
+    }
+  }
+
+  &__diary-title {
+    font-weight: 600;
+  }
+
+  &__diary-hint {
+    font-size: 0.8rem;
+    font-style: italic;
+  }
+
+  &__heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0 0 var(--spacing-sm, 0.75rem);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__average {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  &__rhythm {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm, 0.75rem);
+  }
+
+  &__slider {
+    flex: 1 1 auto;
+  }
+
+  &__speed {
+    min-width: 3rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  &__list,
+  &__tiles {
+    display: flex;
+    gap: var(--spacing-xs, 0.5rem);
+  }
+
+  &__list {
+    flex-direction: column;
+  }
+}

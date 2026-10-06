@@ -2,22 +2,13 @@
   <h1 class="papikapi-sheet__title">{{ i18n.translate('sheetTitle') }}</h1>
   <p class="papikapi-sheet__intro">{{ i18n.translate('sheetIntro') }}</p>
 
-  <div class="papikapi-sheet__tabs" role="tablist">
-    @for (slide of slides; track slide.variant; let index = $index) {
-      <button
-        type="button"
-        role="tab"
-        class="papikapi-sheet__tab"
-        [class.papikapi-sheet__tab--active]="current() === index"
-        [attr.aria-selected]="current() === index"
-        (click)="show(index)"
-      >
-        {{ i18n.translate(slide.labelKey) }}
-      </button>
-    }
-  </div>
+  <ibid-segmented-control
+    [options]="options()"
+    [value]="'' + current()"
+    (valueChange)="show($event)"
+  />
 
-  <div class="papikapi-sheet__carousel">
+  <div class="papikapi-sheet__carousel" [ibidHandDrawn]="2">
     @for (slide of slides; track slide.variant; let index = $index) {
       @if (current() === index) {
         <papikapi-cut-sheet

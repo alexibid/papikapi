@@ -5,6 +5,7 @@ import {
   ElementRef,
   OnDestroy,
   computed,
+  effect,
   inject,
   viewChild,
 } from '@angular/core';
@@ -12,14 +13,17 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { I18nService } from '@ibid/services';
-import { HeaderComponent } from 'ibid-ui';
+import { ButtonComponent, HeaderComponent } from 'ibid-ui';
+import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
 const NAV_OFFSET_PROPERTY = '--header-nav-offset';
 const HEADER_SHELL_SELECTOR = '.o-header-shell';
 const DIARY_ROUTE = '/diario';
+const ADULT_ROUTES: readonly string[] = [DIARY_ROUTE, '/pais'];
+const WORDLESS_ROUTES: readonly string[] = ['/', '/adultos'];
 
 @Component({
-  imports: [RouterModule, HeaderComponent],
+  imports: [ButtonComponent, HeaderComponent, PictogramComponent, RouterModule],
   selector: 'papikapi-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -41,13 +45,24 @@ export class App implements AfterViewInit, OnDestroy {
     { initialValue: this.router.url }
   );
 
-  protected readonly onDiary = computed(() => this.url().startsWith(DIARY_ROUTE));
+  protected readonly onDiary = computed(() =>
+    ADULT_ROUTES.some((route) => this.url().startsWith(route))
+  );
+
+  protected readonly wordless = computed(() => WORDLESS_ROUTES.includes(this.url()));
 
   protected readonly profileLabel = computed(() =>
     this.i18n.translate(this.onDiary() ? 'profileToChild' : 'profileToParent')
   );
 
   protected readonly languageCode = computed(() => this.i18n.currentLang().toUpperCase());
+
+  constructor() {
+    effect(() => {
+      this.wordless();
+      this.publishHeaderHeight();
+    });
+  }
 
   ngAfterViewInit(): void {
     this.publishHeaderHeight();
@@ -78,8 +93,8 @@ export class App implements AfterViewInit, OnDestroy {
   }
 
   private publishHeaderHeight(): void {
-    const height = this.resolveShell().getBoundingClientRect().height;
-    if (height > 0) {
+    const height = this.wordless() ? 0 : this.resolveShell().getBoundingClientRect().height;
+    if (height > 0 || this.wordless()) {
       this.document.documentElement.style.setProperty(
         NAV_OFFSET_PROPERTY,
         `${Math.round(height)}px`

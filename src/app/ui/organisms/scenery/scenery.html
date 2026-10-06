@@ -1,0 +1,7 @@
+<div class="o-scenery" aria-hidden="true">
+  @for (ornament of ornaments; track $index) {
+    <span class="o-scenery__ornament" [style]="ornament.style">
+      <papikapi-sticker [name]="ornament.name" />
+    </span>
+  }
+</div>

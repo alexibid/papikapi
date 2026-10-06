@@ -21,11 +21,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm, 0.75rem);
-  padding: var(--spacing-md, 1rem) 0;
-  border-top: 1px dashed var(--papikapi-paper-edge, var(--color-border));
-  border-bottom: 1px dashed var(--papikapi-paper-edge, var(--color-border));
+  padding: var(--spacing-md, 1rem);
+  --papikapi-paper-fill: var(--papikapi-yellow-bg);
 
   &__lead {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin: 0;
     font-size: 0.75rem;
     letter-spacing: 0.16em;
@@ -41,7 +43,24 @@
   }
 
   &__hit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 1.15rem;
+  }
+
+  &__sparkle {
+    display: block;
+    flex: 0 0 auto;
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  &__icon {
+    display: block;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
   }
 
   &__chips {
@@ -55,26 +74,19 @@
     align-items: center;
     gap: var(--spacing-md, 1rem);
   }
-
-  &__dismiss {
-    padding: 0;
-    background: none;
-    border: none;
-    font-size: 0.85rem;
-    color: var(--papikapi-muted, #5a5249);
-    text-decoration: underline;
-    cursor: pointer;
-  }
 }
 
 .papikapi-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 0.75rem);
   margin: 0;
   padding: 0;
   list-style: none;
 
   &__entry {
-    padding: var(--spacing-sm, 0.75rem) 0;
-    border-bottom: 1px dashed var(--papikapi-paper-edge, var(--color-border));
+    padding: var(--spacing-sm, 0.75rem) var(--spacing-md, 1rem);
+    --papikapi-paper-fill: var(--color-surface);
   }
 
   &__text {
@@ -91,7 +103,8 @@
   }
 
   &__empty {
-    padding: var(--spacing-md, 1rem) 0;
+    padding: var(--spacing-md, 1rem);
+    --papikapi-paper-fill: var(--color-surface);
     color: var(--papikapi-muted, #5a5249);
   }
 }
