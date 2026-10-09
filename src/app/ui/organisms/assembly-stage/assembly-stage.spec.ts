@@ -50,8 +50,8 @@ describe('AssemblyStageComponent', () => {
       return [...element.querySelectorAll<HTMLButtonElement>('.o-assembly-stage__mode button')];
     }
 
-    it('offers one button for the complete figure and one for the animation', () => {
-      expect(modeButtons(render())).toHaveLength(2);
+    it('offers buttons for complete figure, current animation, and animate to end', () => {
+      expect(modeButtons(render())).toHaveLength(3);
     });
 
     it('starts in the animated mode', () => {
@@ -72,6 +72,17 @@ describe('AssemblyStageComponent', () => {
       modeButtons(element)[1].click();
       fixture.detectChanges();
       expect(complete()).toBeNull();
+    });
+
+    it('activates play-all mode when clicking the animate to end button', () => {
+      const element = render();
+
+      modeButtons(element)[2].click();
+      fixture.detectChanges();
+
+      const activeModes = element.querySelectorAll('.o-assembly-stage__mode--on');
+      expect(activeModes).toHaveLength(1);
+      expect(activeModes[0]).toBe(element.querySelectorAll('.o-assembly-stage__mode')[2]);
     });
   });
 

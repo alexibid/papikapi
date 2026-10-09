@@ -49,6 +49,11 @@
               "glob": "*/model.glb",
               "input": "apps/papikapi-studio/public/models",
               "output": "/figures"
+            },
+            {
+              "glob": "*/sheets.pdf",
+              "input": "apps/papikapi-studio/public/models",
+              "output": "/figures"
             }
           ]
         }

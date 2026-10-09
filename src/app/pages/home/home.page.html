@@ -24,6 +24,52 @@
   </header>
 
   <div class="papikapi-child__stage">
+    <div class="papikapi-child__stage-tools">
+      <button
+        type="button"
+        class="papikapi-child__tool-btn"
+        [ibidHandDrawn]="2"
+        (click)="openModelPicker()"
+        [attr.aria-label]="i18n.translate('chooseModel')"
+      >
+        <span class="papikapi-child__tool-icon">
+          <papikapi-pictogram name="cube" />
+        </span>
+        <span class="papikapi-child__tool-label">{{ i18n.translate('chooseModel') }}</span>
+      </button>
+
+      <a
+        [href]="currentPdfUrl()"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="papikapi-child__tool-btn papikapi-child__tool-btn--pdf"
+        [ibidHandDrawn]="2"
+        (click)="openPdf($event)"
+        [attr.aria-label]="i18n.translate('viewAndPrintPdf')"
+      >
+        <span class="papikapi-child__tool-icon">
+          <papikapi-pictogram name="book" />
+        </span>
+        <span class="papikapi-child__tool-label">{{ i18n.translate('viewAndPrintPdf') }}</span>
+      </a>
+
+      <button
+        type="button"
+        class="papikapi-child__tool-btn papikapi-child__tool-btn--prompt"
+        [ibidHandDrawn]="2"
+        (click)="requestPromptAccess()"
+        [attr.aria-label]="i18n.translate('generateModelPrompt')"
+      >
+        <span class="papikapi-child__tool-icon">
+          <papikapi-pictogram name="sparkle" />
+        </span>
+        <span class="papikapi-child__tool-label">{{ i18n.translate('generateModel') }}</span>
+        <span class="papikapi-child__tool-lock">
+          <papikapi-pictogram name="lock" />
+        </span>
+      </button>
+    </div>
+
     <papikapi-assembly-stage
       [source]="figureSource()"
       [modelSource]="figureModel()"
@@ -34,6 +80,7 @@
       [releaseLabel]="i18n.translate('childStageRelease')"
       [completeLabel]="i18n.translate('childStageComplete')"
       [animatedLabel]="i18n.translate('childStageAnimated')"
+      [animateToEndLabel]="i18n.translate('childStageAnimateToEnd')"
     />
     <papikapi-scenery />
     <a
@@ -43,6 +90,16 @@
     >
       <papikapi-sticker name="photo" />
     </a>
+
+    @if (activeCreation(); as creation) {
+      <papikapi-model-creation-loader
+        [modelName]="creation.name"
+        [prompt]="creation.prompt"
+        [images]="creation.images"
+        (completed)="onCreationCompleted($event)"
+        (dismissed)="cancelCreation()"
+      />
+    }
   </div>
 
   <div class="papikapi-child__rail" [ibidHandDrawn]="4">
@@ -72,4 +129,26 @@
       <span class="papikapi-child__plank" [ibidHandDrawn]="1"></span>
     }
   </section>
+
+  @if (modelPickerOpen()) {
+    <papikapi-model-picker-modal
+      [currentId]="currentModelId()"
+      (chosen)="onModelSelected($event)"
+      (dismissed)="closeModelPicker()"
+    />
+  }
+
+  @if (gateOpen()) {
+    <papikapi-parent-gate-modal
+      (unlocked)="onGateUnlocked()"
+      (dismissed)="closeGate()"
+    />
+  }
+
+  @if (promptOpen()) {
+    <papikapi-model-prompt-modal
+      (dismissed)="closePrompt()"
+      (modelCreated)="onModelCreated($event)"
+    />
+  }
 </section>

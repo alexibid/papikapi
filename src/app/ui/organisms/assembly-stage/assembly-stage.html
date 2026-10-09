@@ -43,6 +43,17 @@
     >
       <span class="o-assembly-stage__tile"><papikapi-sticker name="play" /></span>
     </ibid-icon-button>
+    <ibid-icon-button
+      class="o-assembly-stage__mode"
+      [class.o-assembly-stage__mode--on]="mode() === 'play-all'"
+      [ariaLabel]="animateToEndLabel()"
+      (clicked)="showPlayAll()"
+    >
+      <span class="o-assembly-stage__tile o-assembly-stage__tile--all">
+        <papikapi-sticker name="play" />
+        <papikapi-sticker name="play" />
+      </span>
+    </ibid-icon-button>
   </div>
 
   @if (active()) {

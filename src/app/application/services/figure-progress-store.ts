@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { DEFAULT_FIGURE_ID, SHIPPED_FIGURE_IDS } from '@domain/data/shipped-figures';
 import { FigureProgress } from '@domain/models/figure-progress';
+import { PLINTH_PIECES } from '@domain/models/rhythm';
 import { chooseFigure, mountCurrent, startProgress } from '@domain/services/figure-cycle';
 
 const STORAGE_KEY = 'papikapi.figure-progress';
@@ -19,6 +20,19 @@ export class FigureProgressStore {
 
   choose(figureId: string, seenPieces: number): void {
     this.save(chooseFigure(this.current(), figureId, this.catalogue, seenPieces));
+  }
+
+  select(figureId: string, options?: { readonly allowCustom?: boolean }): void {
+    if (!options?.allowCustom && !this.catalogue.includes(figureId)) return;
+    const prev = this.current();
+    if (prev.currentId === figureId) return;
+    const mountedIds = prev.mountedIds.filter((id) => id !== figureId);
+    this.save({
+      ...prev,
+      currentId: figureId,
+      mountedIds,
+      seenPieces: PLINTH_PIECES,
+    });
   }
 
   mountCurrent(totalPoints: number): void {

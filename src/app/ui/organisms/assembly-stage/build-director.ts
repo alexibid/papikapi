@@ -22,6 +22,7 @@ export interface BuildView {
 export class BuildDirector {
   private shown: number;
   private readonly animation = new BuildAnimation(BUILD_MS);
+  private playingToEnd = false;
 
   constructor(
     private readonly rig: BuildableFigure,
@@ -45,6 +46,7 @@ export class BuildDirector {
 
   advanceTo(requested: number): void {
     const built = this.clamp(requested);
+    this.playingToEnd = false;
     this.animation.stop();
     if (built > this.shown) {
       this.settleAt(built - 1);
@@ -56,6 +58,7 @@ export class BuildDirector {
 
   replay(): void {
     if (this.rig.pieceCount <= PLINTH_PIECES) return;
+    this.playingToEnd = false;
     this.animation.stop();
     const resting = this.shown;
     const target = Math.max(resting, PLINTH_PIECES + 1);
@@ -63,7 +66,35 @@ export class BuildDirector {
     this.animate(target - 1, () => this.settleAt(resting));
   }
 
+  playToEnd(stepDurationMs = 1200, onDone?: () => void): void {
+    if (this.rig.pieceCount <= PLINTH_PIECES) return;
+    this.animation.stop();
+    this.playingToEnd = true;
+
+    const startFrom = this.shown >= this.rig.pieceCount ? PLINTH_PIECES : this.shown;
+    this.settleAt(startFrom);
+
+    const step = (pieceIndex: number): void => {
+      if (!this.playingToEnd) return;
+      if (pieceIndex >= this.rig.pieceCount) {
+        this.playingToEnd = false;
+        this.settleAt(this.rig.pieceCount);
+        onDone?.();
+        return;
+      }
+
+      this.animatePiece(pieceIndex, stepDurationMs, () => {
+        if (!this.playingToEnd) return;
+        this.shown = pieceIndex + 1;
+        step(pieceIndex + 1);
+      });
+    };
+
+    step(startFrom);
+  }
+
   showComplete(): void {
+    this.playingToEnd = false;
     this.animation.stop();
     this.rig.showBuilt(this.rig.pieceCount);
     this.viewport.camera.frameSphere(this.rig.figureShot());
@@ -71,15 +102,24 @@ export class BuildDirector {
   }
 
   dispose(): void {
+    this.playingToEnd = false;
     this.animation.stop();
   }
 
   private animate(from: number, onFinish: () => void): void {
-    this.animation.run((build) => {
-      this.rig.showBuilding(from, build);
-      this.viewport.camera.frameSphere(this.rig.shot(from, build));
-      this.viewport.renderNow();
-    }, onFinish);
+    this.animatePiece(from, BUILD_MS, onFinish);
+  }
+
+  private animatePiece(from: number, durationMs: number, onFinish: () => void): void {
+    this.animation.run(
+      (build) => {
+        this.rig.showBuilding(from, build);
+        this.viewport.camera.frameSphere(this.rig.shot(from, build));
+        this.viewport.renderNow();
+      },
+      onFinish,
+      durationMs
+    );
   }
 
   private rest(built: number): void {

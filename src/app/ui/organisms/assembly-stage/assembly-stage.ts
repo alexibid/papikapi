@@ -24,7 +24,7 @@ import { HOME_YAW } from './orbit-camera';
 import { RENDERER_FACTORY } from './renderer-factory';
 import { StageViewport } from './stage-viewport';
 
-export type StageMode = 'animated' | 'complete';
+export type StageMode = 'animated' | 'complete' | 'play-all';
 
 const WHEEL_ZOOM_OUT = 0.9;
 const WHEEL_ZOOM_IN = 1.1;
@@ -51,12 +51,14 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   readonly releaseLabel = input('');
   readonly completeLabel = input('');
   readonly animatedLabel = input('');
+  readonly animateToEndLabel = input('');
   readonly ready = output<number>();
   readonly settled = output<number>();
 
   protected readonly active = signal(false);
   protected readonly mode = signal<StageMode>('animated');
   protected readonly replays = signal(0);
+  protected readonly playAllRequests = signal(0);
 
   private readonly plans = inject(AssemblyPlanService);
   private readonly createRenderer = inject(RENDERER_FACTORY);
@@ -69,6 +71,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   private director?: BuildDirector;
   private finalModel?: Promise<FinalModel | undefined>;
   private lastReplay = 0;
+  private lastPlayAll = 0;
   private dragging = false;
   private lastPointer = { x: 0, y: 0 };
 
@@ -81,15 +84,22 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       const built = this.built();
       const mode = this.mode();
       const replays = this.replays();
+      const playAlls = this.playAllRequests();
       if (!this.director) return;
       const replayRequested = replays !== this.lastReplay;
+      const playAllRequested = playAlls !== this.lastPlayAll;
       this.lastReplay = replays;
+      this.lastPlayAll = playAlls;
       if (mode === 'complete') {
         this.director.showComplete();
         void this.revealFinalModel();
         return;
       }
       void this.hideFinalModel();
+      if (mode === 'play-all' && playAllRequested) {
+        this.director.playToEnd(1200, () => this.mode.set('complete'));
+        return;
+      }
       if (replayRequested) this.director.replay();
       else this.director.advanceTo(built);
     });
@@ -146,6 +156,11 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
     this.replays.update((count) => count + 1);
   }
 
+  protected showPlayAll(): void {
+    this.mode.set('play-all');
+    this.playAllRequests.update((count) => count + 1);
+  }
+
   protected deactivate(): void {
     this.active.set(false);
     this.dragging = false;
@@ -186,7 +201,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
 
   private ensureFinalModel(): Promise<FinalModel | undefined> {
     const rig = this.rig;
-    const url = this.modelSource();
+    const url = this.modelSource() || this.source().replace(/assembly\.json(\?.*)?$/, 'model.glb$1');
     if (!rig || !url) return Promise.resolve(undefined);
     this.finalModel ??= this.loadFinalModel(url)
       .then((group) => {

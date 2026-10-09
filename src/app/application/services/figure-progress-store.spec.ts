@@ -47,6 +47,24 @@ describe('FigureProgressStore', () => {
     expect([currentId, seenPieces]).toEqual(['ankylosaurus', 5]);
   });
 
+  it('allows direct selection of any catalogue figure even if mounted', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.mountCurrent(9);
+    store.select('t-rex');
+    TestBed.resetTestingModule();
+
+    const reloaded = TestBed.inject(FigureProgressStore).progress();
+    expect(reloaded.currentId).toBe('t-rex');
+    expect(reloaded.mountedIds).not.toContain('t-rex');
+  });
+
+  it('ignores invalid figure selection', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.select('dragon-non-existent');
+
+    expect(store.progress().currentId).toBe(DEFAULT_FIGURE_ID);
+  });
+
   it('ignores a corrupted stored value', () => {
     localStorage.setItem('papikapi.figure-progress', '{"currentId":3}');
 

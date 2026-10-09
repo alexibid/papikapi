@@ -7,3 +7,7 @@ export function figureAssemblyUrl(figureId: string): string {
 export function figureModelUrl(figureId: string): string {
   return `${FIGURES_ROOT}/${figureId}/model.glb`;
 }
+
+export function figurePdfUrl(figureId: string): string {
+  return `${FIGURES_ROOT}/${figureId}/sheets.pdf`;
+}

@@ -1,4 +1,4 @@
-import { Box3, Group, Material, Matrix4, Mesh, Object3D, Quaternion, Sphere, Vector3 } from 'three';
+import { Box3, Group, LineSegments, Material, Matrix4, Mesh, Object3D, Quaternion, Sphere, Vector3 } from 'three';
 import {
   AssemblyFace,
   AssemblyPiece,
@@ -8,7 +8,7 @@ import {
 } from '@domain/assembly/assembly-plan';
 import { faceFold, pieceMotion } from '@domain/assembly/assembly-timeline';
 import { HORIZON_SCALE } from '@domain/assembly/horizon-layout';
-import { flatGeometry, solidGeometry } from './face-geometry';
+import { FigureBounds, flatGeometry, pieceWireframeGeometry, solidGeometry } from './face-geometry';
 
 const LIFT_MM = 110;
 const ARC_MM = 70;
@@ -21,7 +21,7 @@ interface FaceNode {
 
 export interface PieceMaterials {
   readonly solid: Material;
-  readonly ghost: Material;
+  readonly wireframe: Material;
 }
 
 export class PieceRig {
@@ -29,7 +29,7 @@ export class PieceRig {
 
   private readonly folding = new Group();
   private readonly finished = new Group();
-  private readonly ghost = new Group();
+  private readonly wireframe = new Group();
   private readonly nodes: readonly FaceNode[];
   private readonly maxDepth: number;
   private readonly start: Vec2;
@@ -38,6 +38,7 @@ export class PieceRig {
     piece: AssemblyPiece,
     materials: PieceMaterials,
     slot: Vec2,
+    bounds: FigureBounds,
   ) {
     this.start = [slot[0] - piece.size[0] / 2, slot[1] - piece.size[1] / 2];
     this.nodes = piece.faces.map((face) => ({ face, node: new Object3D() }));
@@ -48,23 +49,25 @@ export class PieceRig {
       (face.parent < 0 ? this.folding : this.nodes[face.parent].node).add(node);
       const solid = solidGeometry(face);
       this.finished.add(new Mesh(solid, materials.solid));
-      this.ghost.add(new Mesh(solid, materials.ghost));
     });
-    this.group.add(this.folding, this.finished, this.ghost);
+    this.wireframe.add(
+      new LineSegments(pieceWireframeGeometry(piece.faces, bounds), materials.wireframe),
+    );
+    this.group.add(this.folding, this.finished, this.wireframe);
   }
 
   markBuilt(): void {
-    this.show({ folding: false, finished: true, ghost: false });
+    this.show({ folding: false, finished: true, wireframe: false });
   }
 
   markWaiting(onHorizon: boolean): void {
-    this.show({ folding: onHorizon, finished: false, ghost: true });
+    this.show({ folding: onHorizon, finished: false, wireframe: true });
     this.pose(0, 0);
   }
 
   markBuilding(build: number): void {
     const motion = pieceMotion(WHOLE_SLICE, build);
-    this.show({ folding: !motion.arrived, finished: motion.arrived, ghost: !motion.arrived });
+    this.show({ folding: !motion.arrived, finished: motion.arrived, wireframe: !motion.arrived });
     if (!motion.arrived) {
       this.pose(motion.fold, motion.travel);
     }
@@ -83,16 +86,16 @@ export class PieceRig {
 
   dispose(): void {
     this.group.traverse((node) => {
-      if (node instanceof Mesh) {
+      if (node instanceof Mesh || node instanceof LineSegments) {
         node.geometry.dispose();
       }
     });
   }
 
-  private show(visibility: { folding: boolean; finished: boolean; ghost: boolean }): void {
+  private show(visibility: { folding: boolean; finished: boolean; wireframe: boolean }): void {
     this.folding.visible = visibility.folding;
     this.finished.visible = visibility.finished;
-    this.ghost.visible = visibility.ghost;
+    this.wireframe.visible = visibility.wireframe;
   }
 
   private pose(fold: number, travel: number): void {

@@ -95,7 +95,7 @@ Three Papikapi-specific overrides live in `src/styles.scss`, each for a stated r
 
 `ui/organisms/assembly-stage/` renders the figure with **three.js** from an assembly plan (`assembly.json`) produced by Papikapi Studio. The plan lists the paper pieces in build order, with the fold hinges and the placed pose of every face.
 
-* The scene always looks at the figure. The finished figure stands as a transparent ghost on its plinth, and each piece turns opaque as it is built.
+* The scene always looks at the figure. The unbuilt figure stands as a rainbow wireframe on its plinth, and each piece turns opaque as it is built.
 * Pieces still to build lie on the horizon with their printed number above; the next one is highlighted.
 * Only when a piece is earned does the camera go to it, the piece folds and travels to the figure, and the camera returns to centre on the figure.
 * The canvas only responds to drag and wheel after it has been clicked, so the page keeps scrolling over it. Clicking outside, Escape, scrolling the page or the close button give the page back.

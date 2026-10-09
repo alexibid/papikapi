@@ -1,0 +1,71 @@
+<div class="papikapi-picker-modal" role="dialog" aria-modal="true" [attr.aria-label]="i18n.translate('chooseModel')">
+  <button
+    type="button"
+    class="papikapi-picker-modal__backdrop"
+    [attr.aria-label]="i18n.translate('gateClose')"
+    (click)="close()"
+    (keydown.escape)="close()"
+  ></button>
+
+  <div class="papikapi-picker-modal__card" [ibidHandDrawn]="3">
+    <header class="papikapi-picker-modal__header">
+      <div class="papikapi-picker-modal__header-titles">
+        <h2 class="papikapi-picker-modal__title">{{ i18n.translate('chooseModel') }}</h2>
+        <span class="papikapi-picker-modal__count">
+          {{ items().length }} {{ i18n.translate('modelsAvailable') }}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="papikapi-picker-modal__close"
+        [ibidHandDrawn]="1"
+        [attr.aria-label]="i18n.translate('gateClose')"
+        (click)="close()"
+      >
+        <papikapi-pictogram name="close" />
+      </button>
+    </header>
+
+    <div class="papikapi-picker-modal__search-wrap" [ibidHandDrawn]="2">
+      <input
+        type="search"
+        class="papikapi-picker-modal__search"
+        [placeholder]="i18n.translate('searchModelPlaceholder')"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        [attr.aria-label]="i18n.translate('searchModelPlaceholder')"
+      />
+    </div>
+
+    <div class="papikapi-picker-modal__grid" role="list">
+      @for (item of items(); track item.id) {
+        <button
+          type="button"
+          class="papikapi-picker-modal__item"
+          [class.papikapi-picker-modal__item--active]="item.isCurrent"
+          [ibidHandDrawn]="2"
+          (click)="select(item.id)"
+          [attr.aria-pressed]="item.isCurrent"
+          role="listitem"
+        >
+          <span class="papikapi-picker-modal__thumb" [ibidHandDrawn]="1">
+            <papikapi-figure-thumbnail [figureId]="item.id" />
+          </span>
+
+          <span class="papikapi-picker-modal__name">{{ item.name }}</span>
+
+          @if (item.isCurrent) {
+            <span class="papikapi-picker-modal__badge" [ibidHandDrawn]="1">
+              <papikapi-pictogram name="check" />
+            </span>
+          }
+        </button>
+      } @empty {
+        <div class="papikapi-picker-modal__empty">
+          <p>{{ i18n.translate('noModelsFound') }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<div class="papikapi-gate-modal" role="dialog" aria-modal="true" [attr.aria-label]="i18n.translate('gateTitle')">
+  <button
+    type="button"
+    class="papikapi-gate-modal__backdrop"
+    [attr.aria-label]="i18n.translate('gateClose')"
+    (click)="close()"
+    (keydown.escape)="close()"
+  ></button>
+
+  <div class="papikapi-gate-modal__card" [ibidHandDrawn]="3">
+    <button
+      type="button"
+      class="papikapi-gate-modal__close"
+      [ibidHandDrawn]="1"
+      [attr.aria-label]="i18n.translate('gateClose')"
+      (click)="close()"
+    >
+      <papikapi-pictogram name="close" />
+    </button>
+
+    <span class="papikapi-gate-modal__lock" [ibidHandDrawn]="3">
+      <papikapi-pictogram name="lock" />
+    </span>
+
+    <h2 class="papikapi-gate-modal__title">{{ i18n.translate('gateTitle') }}</h2>
+    <p class="papikapi-gate-modal__subtitle">{{ i18n.translate('gatePromptSubtitle') }}</p>
+
+    <div class="papikapi-gate-modal__slots" role="img" [attr.aria-label]="i18n.translate('gatePin')">
+      @for (isFilled of slots(); track $index) {
+        <span
+          class="papikapi-gate-modal__slot"
+          [class.papikapi-gate-modal__slot--filled]="isFilled"
+          [ibidHandDrawn]="1"
+        ></span>
+      }
+    </div>
+
+    <div class="papikapi-gate-modal__keypad">
+      @for (digit of digits; track digit) {
+        <ibid-button
+          class="papikapi-gate-modal__key"
+          variant="outlined"
+          [intensity]="2"
+          (clicked)="press(digit)"
+        >
+          {{ digit }}
+        </ibid-button>
+      }
+      <ibid-button
+        class="papikapi-gate-modal__key papikapi-gate-modal__key--erase"
+        variant="highlight"
+        [intensity]="2"
+        [ariaLabel]="i18n.translate('gateErase')"
+        (clicked)="erase()"
+      >
+        <span class="papikapi-gate-modal__erase">
+          <papikapi-pictogram name="backspace" />
+        </span>
+      </ibid-button>
+    </div>
+  </div>
+</div>

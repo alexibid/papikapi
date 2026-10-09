@@ -122,4 +122,17 @@ describe('BuildDirector', () => {
     expect(shown.building.every(([count]) => count === 1)).toBe(true);
     expect(director.current).toBe(1);
   });
+
+  it('animates all pieces sequentially to the end without settling points', () => {
+    const onSettled = vi.fn();
+    const shown = figure();
+    const director = new BuildDirector(shown, view(), 2, onSettled);
+
+    director.playToEnd(1000);
+    vi.advanceTimersByTime(9000);
+
+    expect(director.current).toBe(PIECES);
+    expect(shown.built[shown.built.length - 1]).toBe(PIECES);
+    expect(onSettled).not.toHaveBeenCalled();
+  });
 });

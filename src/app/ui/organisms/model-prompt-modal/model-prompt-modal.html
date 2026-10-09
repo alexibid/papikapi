@@ -1,0 +1,120 @@
+<div class="papikapi-prompt-modal" role="dialog" aria-modal="true" [attr.aria-label]="i18n.translate('promptModalTitle')">
+  <button
+    type="button"
+    class="papikapi-prompt-modal__backdrop"
+    [attr.aria-label]="i18n.translate('gateClose')"
+    (click)="close()"
+    (keydown.escape)="close()"
+  ></button>
+
+  <div class="papikapi-prompt-modal__card" [ibidHandDrawn]="3">
+    <header class="papikapi-prompt-modal__header">
+      <div class="papikapi-prompt-modal__header-titles">
+        <span class="papikapi-prompt-modal__icon" [ibidHandDrawn]="1">
+          <papikapi-pictogram name="sparkle" />
+        </span>
+        <div>
+          <h2 class="papikapi-prompt-modal__title">{{ i18n.translate('promptModalTitle') }}</h2>
+          <span class="papikapi-prompt-modal__subtitle">{{ i18n.translate('promptModalSubtitle') }}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="papikapi-prompt-modal__close"
+        [ibidHandDrawn]="1"
+        [attr.aria-label]="i18n.translate('gateClose')"
+        (click)="close()"
+      >
+        <papikapi-pictogram name="close" />
+      </button>
+    </header>
+
+    @if (statusMessage()) {
+      <div class="papikapi-prompt-modal__status papikapi-prompt-modal__status--success" [ibidHandDrawn]="1">
+        <span>✓ {{ statusMessage() }}</span>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="papikapi-prompt-modal__status papikapi-prompt-modal__status--error" [ibidHandDrawn]="1">
+        <span>⚠ {{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Campo de texto único -->
+    <div class="papikapi-prompt-modal__field">
+      <label class="papikapi-prompt-modal__label" for="promptTextInput">
+        {{ i18n.translate('promptInputLabel') }}
+      </label>
+      <div class="papikapi-prompt-modal__input-wrap" [ibidHandDrawn]="1">
+        <textarea
+          id="promptTextInput"
+          class="papikapi-prompt-modal__textarea"
+          [placeholder]="i18n.translate('promptInputPlaceholder')"
+          [ngModel]="promptText()"
+          (ngModelChange)="promptText.set($event)"
+          rows="3"
+          autofocus
+        ></textarea>
+      </div>
+      <p class="papikapi-prompt-modal__field-hint">
+        💡 {{ i18n.translate('promptDetailsHint') }}
+      </p>
+    </div>
+
+    <!-- Botão para adicionar imagens com previews e dica 3/4 -->
+    <div class="papikapi-prompt-modal__photos-section">
+      <div class="papikapi-prompt-modal__photos-row">
+        @for (photo of photos(); track photo.id) {
+          <div class="papikapi-prompt-modal__photo-thumb" [ibidHandDrawn]="1">
+            <img [src]="photo.dataUrl" [alt]="photo.name" class="papikapi-prompt-modal__photo-img" />
+            <button
+              type="button"
+              class="papikapi-prompt-modal__photo-remove"
+              [attr.aria-label]="i18n.translate('gateClose')"
+              (click)="removePhoto(photo.id)"
+            >
+              ✕
+            </button>
+          </div>
+        }
+
+        @if (photos().length < 3) {
+          <label class="papikapi-prompt-modal__add-photo-btn" [ibidHandDrawn]="1">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              class="papikapi-prompt-modal__file-input"
+              (change)="onFileSelect($event)"
+            />
+            <papikapi-pictogram name="sparkle" />
+            <span>+ {{ i18n.translate('promptAddPhotos') }} ({{ photos().length }}/3)</span>
+          </label>
+        }
+      </div>
+
+      <p class="papikapi-prompt-modal__photo-tip">
+        📸 {{ i18n.translate('promptPhotoTip') }}
+      </p>
+    </div>
+
+    <!-- Botão a dizer CRIAR -->
+    <footer class="papikapi-prompt-modal__footer">
+      <ibid-button
+        variant="primary"
+        [intensity]="2"
+        [disabled]="!promptText().trim() || isCreating()"
+        (clicked)="createModel()"
+      >
+        <span class="papikapi-prompt-modal__create-btn-content">
+          <papikapi-pictogram [name]="isCreating() ? 'hourglass' : 'cube'" />
+          <span class="papikapi-prompt-modal__create-btn-text">
+            {{ isCreating() ? i18n.translate('createModelCreating') : i18n.translate('createModelBtn') }}
+          </span>
+        </span>
+      </ibid-button>
+    </footer>
+  </div>
+</div>

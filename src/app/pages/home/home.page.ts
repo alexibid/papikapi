@@ -17,10 +17,15 @@ import { countMounted } from '@domain/services/mounted-trophies';
 import { totalPoints } from '@domain/services/growth-engine';
 import { piecesBuilt } from '@domain/services/pieces-built';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
-import { figureAssemblyUrl, figureModelUrl } from '@application/config/figures';
+import { figureAssemblyUrl, figureModelUrl, figurePdfUrl } from '@application/config/figures';
 import { DiaryStore } from '@application/services/diary-store';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { RhythmStore } from '@application/services/rhythm-store';
+import { ModelCreationLoaderComponent } from '@ui/organisms/model-creation-loader/model-creation-loader';
+import { ModelPickerModalComponent } from '@ui/organisms/model-picker-modal/model-picker-modal';
+import { ModelPromptModalComponent } from '@ui/organisms/model-prompt-modal/model-prompt-modal';
+import { ParentGateModalComponent } from '@ui/organisms/parent-gate-modal/parent-gate-modal';
+import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { StickerComponent } from '@ui/atoms/sticker/sticker';
 import { ProgressPipsComponent } from '@ui/molecules/progress-pips/progress-pips';
 import { TaskCardComponent } from '@ui/molecules/task-card/task-card';
@@ -37,6 +42,11 @@ const CELEBRATION_MS = 2800;
     AssemblyStageComponent,
     HandDrawnDirective,
     IconButtonComponent,
+    ModelCreationLoaderComponent,
+    ModelPickerModalComponent,
+    ModelPromptModalComponent,
+    ParentGateModalComponent,
+    PictogramComponent,
     StickerComponent,
     ProgressPipsComponent,
     RouterModule,
@@ -57,6 +67,16 @@ export class HomePage {
   private celebration?: number;
   protected readonly tasks: readonly RoutineTask[] = WIREFRAME_ROUTINE;
   protected readonly soundOn = signal(true);
+  protected readonly modelPickerOpen = signal(false);
+  protected readonly gateOpen = signal(false);
+  protected readonly promptOpen = signal(false);
+  protected readonly activeCreation = signal<{
+    readonly name: string;
+    readonly prompt: string;
+    readonly images: readonly string[];
+  } | null>(null);
+
+  protected readonly currentModelId = computed(() => this.progress.progress().currentId);
 
   protected readonly doneCount = computed(
     () => this.tasks.filter((task) => task.status === 'done').length
@@ -68,6 +88,10 @@ export class HomePage {
 
   protected readonly figureModel = computed(() =>
     figureModelUrl(this.progress.progress().currentId)
+  );
+
+  protected readonly currentPdfUrl = computed(() =>
+    figurePdfUrl(this.progress.progress().currentId)
   );
 
   protected readonly earnedPieces = computed(() => {
@@ -122,6 +146,87 @@ export class HomePage {
     this.pieceTotal.set(0);
     this.progress.choose(figureId, seen);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected openModelPicker(): void {
+    this.modelPickerOpen.set(true);
+  }
+
+  protected closeModelPicker(): void {
+    this.modelPickerOpen.set(false);
+  }
+
+  protected onModelSelected(figureId: string): void {
+    this.pieceTotal.set(0);
+    this.progress.select(figureId);
+    this.modelPickerOpen.set(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected async openPdf(event?: MouseEvent): Promise<void> {
+    if (event) {
+      event.preventDefault();
+    }
+    const figureId = this.currentModelId();
+    const primaryUrl = figurePdfUrl(figureId);
+
+    try {
+      const res = await fetch(primaryUrl, { method: 'HEAD' });
+      if (res.ok) {
+        window.open(primaryUrl, '_blank');
+        return;
+      }
+    } catch {
+      // Fallback to Studio dev port if primary not yet picked up by asset server
+    }
+
+    try {
+      const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf`;
+      const resStudio = await fetch(studioUrl, { method: 'HEAD' });
+      if (resStudio.ok) {
+        window.open(studioUrl, '_blank');
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+
+    window.open(primaryUrl, '_blank');
+  }
+
+  protected requestPromptAccess(): void {
+    this.gateOpen.set(true);
+  }
+
+  protected closeGate(): void {
+    this.gateOpen.set(false);
+  }
+
+  protected onGateUnlocked(): void {
+    this.gateOpen.set(false);
+    this.promptOpen.set(true);
+  }
+
+  protected closePrompt(): void {
+    this.promptOpen.set(false);
+  }
+
+  protected onModelCreated(creation: {
+    readonly name: string;
+    readonly prompt: string;
+    readonly images: readonly string[];
+  }): void {
+    this.closePrompt();
+    this.activeCreation.set(creation);
+  }
+
+  protected onCreationCompleted(modelName: string): void {
+    this.activeCreation.set(null);
+    this.progress.select(modelName, { allowCustom: true });
+  }
+
+  protected cancelCreation(): void {
+    this.activeCreation.set(null);
   }
 
   protected toggleSound(): void {

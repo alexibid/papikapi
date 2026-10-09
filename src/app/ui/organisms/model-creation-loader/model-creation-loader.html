@@ -1,0 +1,55 @@
+<aside
+  class="papikapi-creation-loader"
+  [class.papikapi-creation-loader--done]="isDone()"
+  [class.papikapi-creation-loader--failed]="isFailed()"
+  role="status"
+  aria-live="polite"
+  [attr.aria-label]="i18n.translate('creationProgressTitle')"
+  [ibidHandDrawn]="2"
+>
+  <div class="papikapi-creation-loader__card">
+    <div class="papikapi-creation-loader__header">
+      <div
+        class="papikapi-creation-loader__icon-badge"
+        [class.papikapi-creation-loader__icon-badge--done]="isDone()"
+        [class.papikapi-creation-loader__icon-badge--failed]="isFailed()"
+      >
+        <papikapi-pictogram [name]="iconName()" />
+      </div>
+
+      <div class="papikapi-creation-loader__info">
+        <div class="papikapi-creation-loader__meta">
+          <span class="papikapi-creation-loader__step-tag">
+            {{ stepTag() }}
+          </span>
+          <span class="papikapi-creation-loader__percent">{{ percentLabel() }}</span>
+        </div>
+        <p class="papikapi-creation-loader__stage-text">
+          {{ i18n.translate(currentStageKey()) }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="papikapi-creation-loader__close-btn"
+        [attr.aria-label]="i18n.translate('creationProgressCancel')"
+        (click)="dismiss()"
+      >
+        <papikapi-pictogram name="close" />
+      </button>
+    </div>
+
+    <!-- Paper progress track with playful candy filling -->
+    <div class="papikapi-creation-loader__track-wrap">
+      <div class="papikapi-creation-loader__track">
+        <div
+          class="papikapi-creation-loader__fill"
+          [style.width.%]="percent()"
+        >
+          <span class="papikapi-creation-loader__shimmer"></span>
+          <span class="papikapi-creation-loader__pin" aria-hidden="true">★</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
