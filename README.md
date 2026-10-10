@@ -204,28 +204,30 @@ This product concerns a minor and is treated as YMYL throughout.
 ## Figures on Google Drive
 
 Only the `t-rex` ships inside the app. Every other figure is read from a public Google Drive
-folder, like a static server, and cached on the device so it keeps working offline.
+folder, like a static server, and cached on the device so it keeps working offline. No login and
+no API key are involved: the app downloads each file by its Drive id from
+`drive.usercontent.google.com`, which answers anonymously with CORS enabled.
 
 ```
 ibid-assets/papikapi/figures/
-├── index.json
-└── <figure-id>/  assembly.json · model.glb · sheets.pdf · art.jpeg
+├── index.json          every figure and, per file, its Drive id and a revision
+└── <figure-id>/        assembly.json · model.glb · sheets.pdf · art.jpeg
 ```
 
-**One-time setup**
+**One-time setup.** Share `ibid-assets/papikapi` as *Anyone with the link → Viewer*. The id of
+`figures/index.json` is the only value the app needs, in
+`src/app/application/config/figure-drive.config.ts`. While it is empty the app skips Drive and
+falls back to the local studio on port 4500.
 
-1. Share `ibid-assets/papikapi` as *Anyone with the link → Viewer* and copy its folder id.
-2. In Google Cloud, enable the Drive API and create an API key restricted to the Drive API only
-   (no application restriction, the requests come from the WebView).
-3. Put both values in `src/app/application/config/figure-drive.config.ts`. While they are empty the
-   app skips Drive and falls back to the local studio on port 4500.
-
-**Publishing.** The studio copies a figure into the synced Drive folder when it finishes one. To
-publish by hand, or to move every existing figure at once:
+**Publishing.** The studio copies a figure into the synced Drive folder when it finishes one, waits
+for Drive to upload it, and then rewrites `index.json` with the new ids. By hand:
 
 ```bash
-npm run publish:figures -w papikapi-studio -- --all
+npm run publish:figures -w papikapi-studio -- --all            # copy every figure
+npm run publish:figures -w papikapi-studio -- --index          # only rebuild the index
+npm run publish:figures -w papikapi-studio -- fox --wait       # one figure, wait for Drive
 ```
 
 The folder is found under `~/Library/CloudStorage/GoogleDrive-*/My Drive/ibid-assets/papikapi`, or
-set `IBID_FIGURES_DIR` to point elsewhere.
+set `IBID_FIGURES_DIR` to point elsewhere. Drive ids are read from the macOS file attributes that
+Drive for desktop sets once a file is uploaded.

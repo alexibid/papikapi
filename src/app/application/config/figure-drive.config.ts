@@ -1,13 +1,11 @@
 import { InjectionToken } from '@angular/core';
 
 export interface FigureDriveConfig {
-  readonly rootFolderId: string;
-  readonly apiKey: string;
+  readonly indexFileId: string;
 }
 
 export const FIGURE_DRIVE_CONFIG: FigureDriveConfig = {
-  rootFolderId: '',
-  apiKey: '',
+  indexFileId: '1_K-EHUZV00Z3JaEOmKBo-7rlRMsq2mHh',
 };
 
 export const FIGURE_DRIVE_CONFIG_TOKEN = new InjectionToken<FigureDriveConfig>(

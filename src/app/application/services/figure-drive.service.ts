@@ -1,109 +1,84 @@
 import { Injectable, inject } from '@angular/core';
 import { FIGURE_DRIVE_CONFIG_TOKEN } from '@application/config/figure-drive.config';
 
-const DRIVE_FILES = 'https://www.googleapis.com/drive/v3/files';
-const FOLDER_MIME = 'application/vnd.google-apps.folder';
-const FIGURES_FOLDER = 'figures';
-const CATALOGUE_FILE = 'index.json';
-const CACHE_NAME = 'papikapi-figures-v1';
+const DOWNLOAD_URL = 'https://drive.usercontent.google.com/download?export=download&id=';
+const VIEWER_URL = 'https://drive.google.com/file/d/';
+const CACHE_NAME = 'papikapi-figures-v2';
 const CACHE_ORIGIN = 'https://figures.invalid';
-const MODIFIED_HEADER = 'x-drive-modified';
+const REVISION_HEADER = 'x-figure-revision';
+const INDEX_REVISION = 'index';
 
 interface DriveFile {
   readonly id: string;
-  readonly modifiedTime: string;
+  readonly rev: string;
 }
+
+type DriveCatalogue = ReadonlyMap<string, Readonly<Record<string, DriveFile>>>;
 
 interface CachedBlob {
   readonly blob: Blob;
-  readonly modified: string;
+  readonly revision: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class FigureDriveService {
   private readonly config = inject(FIGURE_DRIVE_CONFIG_TOKEN);
-  private readonly folders = new Map<string, Promise<string | null>>();
   private readonly memory = new Map<string, CachedBlob>();
   private readonly objectUrls = new Map<string, string>();
+  private catalogue: Promise<DriveCatalogue> | null = null;
 
   isConfigured(): boolean {
-    return this.config.rootFolderId !== '' && this.config.apiKey !== '';
+    return this.config.indexFileId !== '';
   }
 
   async catalogueIds(): Promise<readonly string[]> {
-    const blob = await this.blobFor(`${CACHE_ORIGIN}/${CATALOGUE_FILE}`, async () => {
-      const folder = await this.figuresFolderId();
-      return folder ? this.findFile(folder, CATALOGUE_FILE, false) : null;
-    });
-    return idsOf(JSON.parse(await blob.text()));
+    return [...(await this.loadCatalogue()).keys()];
   }
 
   async assetUrl(figureId: string, file: string): Promise<string> {
+    const driveFile = await this.fileOf(figureId, file);
     const key = `${CACHE_ORIGIN}/${figureId}/${file}`;
-    const blob = await this.blobFor(key, () => this.locate(figureId, file));
+    const cached = await this.readCache(key);
+    if (cached?.revision === driveFile.rev) return this.objectUrlOf(key, cached.blob);
+    const blob = await this.download(driveFile.id);
+    await this.writeCache(key, { blob, revision: driveFile.rev });
     return this.objectUrlOf(key, blob);
   }
 
   async viewUrl(figureId: string, file: string): Promise<string> {
-    const found = await this.locate(figureId, file);
-    if (!found) throw new Error(`Drive asset not found: ${figureId}/${file}`);
-    return `https://drive.google.com/file/d/${found.id}/view`;
+    return `${VIEWER_URL}${(await this.fileOf(figureId, file)).id}/view`;
   }
 
-  private async locate(figureId: string, file: string): Promise<DriveFile | null> {
-    const folder = await this.figureFolderId(figureId);
-    return folder ? this.findFile(folder, file, false) : null;
+  private async fileOf(figureId: string, file: string): Promise<DriveFile> {
+    const found = (await this.loadCatalogue()).get(figureId)?.[file];
+    if (!found) throw new Error(`Drive asset not published: ${figureId}/${file}`);
+    return found;
   }
 
-  private async blobFor(key: string, locate: () => Promise<DriveFile | null>): Promise<Blob> {
-    if (!this.isConfigured()) throw new Error('Drive figures are not configured');
-    const remote = await locate().catch(() => null);
-    const cached = await this.readCache(key);
-    if (cached && (!remote || cached.modified === remote.modifiedTime)) return cached.blob;
-    if (!remote) throw new Error(`Drive asset unavailable: ${key}`);
-    const blob = await this.download(remote.id);
-    await this.writeCache(key, { blob, modified: remote.modifiedTime });
-    return blob;
-  }
-
-  private figuresFolderId(): Promise<string | null> {
-    return this.folderId(FIGURES_FOLDER, this.config.rootFolderId, FIGURES_FOLDER);
-  }
-
-  private async figureFolderId(figureId: string): Promise<string | null> {
-    const figures = await this.figuresFolderId();
-    return figures ? this.folderId(`${FIGURES_FOLDER}/${figureId}`, figures, figureId) : null;
-  }
-
-  private folderId(path: string, parentId: string, name: string): Promise<string | null> {
-    const known = this.folders.get(path);
-    if (known) return known;
-    const lookup = this.findFile(parentId, name, true)
-      .then((found) => found?.id ?? null)
-      .catch((error: unknown) => {
-        this.folders.delete(path);
-        throw error;
-      });
-    this.folders.set(path, lookup);
-    return lookup;
-  }
-
-  private async findFile(parentId: string, name: string, folder: boolean): Promise<DriveFile | null> {
-    const kind = folder ? ` and mimeType='${FOLDER_MIME}'` : '';
-    const query = `'${parentId}' in parents and name='${escaped(name)}'${kind} and trashed=false`;
-    const params = new URLSearchParams({
-      q: query,
-      fields: 'files(id,modifiedTime)',
-      pageSize: '1',
-      key: this.config.apiKey,
+  private loadCatalogue(): Promise<DriveCatalogue> {
+    if (!this.isConfigured()) return Promise.reject(new Error('Drive figures are not configured'));
+    this.catalogue ??= this.readCatalogue().catch((error: unknown) => {
+      this.catalogue = null;
+      throw error;
     });
-    const response = await fetch(`${DRIVE_FILES}?${params.toString()}`);
-    if (!response.ok) throw new Error(`Drive lookup failed: ${response.status}`);
-    return firstFileOf(await response.json());
+    return this.catalogue;
+  }
+
+  private async readCatalogue(): Promise<DriveCatalogue> {
+    const key = `${CACHE_ORIGIN}/index.json`;
+    try {
+      const blob = await this.download(this.config.indexFileId);
+      await this.writeCache(key, { blob, revision: INDEX_REVISION });
+      return catalogueOf(JSON.parse(await blob.text()));
+    } catch (error) {
+      const cached = await this.readCache(key);
+      if (!cached) throw error;
+      return catalogueOf(JSON.parse(await cached.blob.text()));
+    }
   }
 
   private async download(fileId: string): Promise<Blob> {
-    const response = await fetch(`${DRIVE_FILES}/${fileId}?alt=media&key=${this.config.apiKey}`);
+    const response = await fetch(`${DOWNLOAD_URL}${encodeURIComponent(fileId)}`);
     if (!response.ok) throw new Error(`Drive download failed: ${response.status}`);
     return response.blob();
   }
@@ -112,7 +87,7 @@ export class FigureDriveService {
     if (typeof caches === 'undefined') return this.memory.get(key) ?? null;
     const response = await (await caches.open(CACHE_NAME)).match(key);
     if (!response) return null;
-    return { blob: await response.blob(), modified: response.headers.get(MODIFIED_HEADER) ?? '' };
+    return { blob: await response.blob(), revision: response.headers.get(REVISION_HEADER) ?? '' };
   }
 
   private async writeCache(key: string, entry: CachedBlob): Promise<void> {
@@ -120,8 +95,9 @@ export class FigureDriveService {
       this.memory.set(key, entry);
       return;
     }
-    const headers = { [MODIFIED_HEADER]: entry.modified };
-    await (await caches.open(CACHE_NAME)).put(key, new Response(entry.blob, { headers }));
+    const headers = { [REVISION_HEADER]: entry.revision, 'content-type': entry.blob.type };
+    const bytes = await entry.blob.arrayBuffer();
+    await (await caches.open(CACHE_NAME)).put(key, new Response(bytes, { headers }));
   }
 
   private objectUrlOf(key: string, blob: Blob): string {
@@ -133,32 +109,27 @@ export class FigureDriveService {
   }
 }
 
-function escaped(name: string): string {
-  return name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+function catalogueOf(body: unknown): DriveCatalogue {
+  const entries = Array.isArray(body) ? body : [];
+  return new Map(
+    entries.flatMap((entry: unknown) => {
+      if (!isRecord(entry) || typeof entry['id'] !== 'string') return [];
+      return [[entry['id'], filesOf(entry['files'])] as const];
+    })
+  );
 }
 
-function firstFileOf(body: unknown): DriveFile | null {
-  if (typeof body !== 'object' || body === null || !('files' in body)) return null;
-  const [first] = Array.isArray(body.files) ? body.files : [];
-  return isDriveFile(first) ? first : null;
+function filesOf(value: unknown): Readonly<Record<string, DriveFile>> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([name, file]) => (isDriveFile(file) ? [[name, file] as const] : []))
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isDriveFile(value: unknown): value is DriveFile {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'id' in value &&
-    typeof value.id === 'string' &&
-    'modifiedTime' in value &&
-    typeof value.modifiedTime === 'string'
-  );
-}
-
-function idsOf(body: unknown): readonly string[] {
-  if (!Array.isArray(body)) return [];
-  return body.flatMap((entry: unknown) =>
-    typeof entry === 'object' && entry !== null && 'id' in entry && typeof entry.id === 'string'
-      ? [entry.id]
-      : []
-  );
+  return isRecord(value) && typeof value['id'] === 'string' && typeof value['rev'] === 'string';
 }

@@ -5,30 +5,31 @@ import {
 } from '@application/config/figure-drive.config';
 import { FigureDriveService } from './figure-drive.service';
 
-const CONFIGURED: FigureDriveConfig = { rootFolderId: 'root', apiKey: 'key' };
-const FILE_IDS: Readonly<Record<string, string>> = {
-  figures: 'figures-id',
-  'fox': 'fox-id',
-  'model.glb': 'glb-id',
-  'index.json': 'index-id',
-};
+const CONFIGURED: FigureDriveConfig = { indexFileId: 'index-id' };
 
-function queriedName(url: string): string {
-  const query = new URL(url).searchParams.get('q') ?? '';
-  return /name='([^']+)'/.exec(query)?.[1] ?? '';
+function indexWith(revision: string): string {
+  return JSON.stringify([
+    { id: 'fox', files: { 'model.glb': { id: 'glb-id', rev: revision } } },
+    { id: 'owl', files: {} },
+  ]);
 }
 
-function driveStub(modified: () => string): (input: RequestInfo | URL) => Promise<Response> {
+function driveStub(revision: () => string): (input: RequestInfo | URL) => Promise<Response> {
   return async (input) => {
-    const url = String(input);
-    if (url.includes('alt=media')) {
-      const body = url.includes('index-id') ? '[{"id":"fox"},{"id":"owl"}]' : 'glb-bytes';
-      return new Response(body, { status: 200 });
-    }
-    const id = FILE_IDS[queriedName(url)];
-    const files = id ? [{ id, modifiedTime: modified() }] : [];
-    return new Response(JSON.stringify({ files }), { status: 200 });
+    const id = new URL(String(input)).searchParams.get('id');
+    return new Response(id === 'index-id' ? indexWith(revision()) : 'glb-bytes', { status: 200 });
   };
+}
+
+function fakeCacheStorage(): CacheStorage {
+  const stored = new Map<string, Response>();
+  const cache = {
+    match: async (key: RequestInfo | URL) => stored.get(String(key))?.clone(),
+    put: async (key: RequestInfo | URL, response: Response) => {
+      stored.set(String(key), response);
+    },
+  };
+  return { open: async () => cache } as unknown as CacheStorage;
 }
 
 function configure(config: FigureDriveConfig): FigureDriveService {
@@ -39,68 +40,92 @@ function configure(config: FigureDriveConfig): FigureDriveService {
 }
 
 describe('FigureDriveService', () => {
-  let modified = 'v1';
+  let revision = 'r1';
 
   beforeEach(() => {
-    modified = 'v1';
+    revision = 'r1';
     URL.createObjectURL = vi.fn(() => 'blob:figure');
     URL.revokeObjectURL = vi.fn();
+    vi.stubGlobal('caches', fakeCacheStorage());
   });
 
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
 
-  it('stays disabled without a folder id and an api key', async () => {
-    const service = configure({ rootFolderId: '', apiKey: '' });
+  it('stays disabled without an index file id', async () => {
+    const service = configure({ indexFileId: '' });
 
     expect(service.isConfigured()).toBe(false);
     await expect(service.assetUrl('fox', 'model.glb')).rejects.toThrow('not configured');
   });
 
-  it('finds the figure folder and downloads the asset with the api key', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => modified));
-    const service = configure(CONFIGURED);
-
-    const url = await service.assetUrl('fox', 'model.glb');
-
-    expect(url).toBe('blob:figure');
-    const downloads = fetchSpy.mock.calls.filter(([input]) => String(input).includes('alt=media'));
-    expect(String(downloads[0][0])).toContain('/files/glb-id?alt=media&key=key');
-  });
-
-  it('downloads again only when the file changed on Drive', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => modified));
-    const service = configure(CONFIGURED);
-    const downloads = () =>
-      fetchSpy.mock.calls.filter(([input]) => String(input).includes('alt=media')).length;
-
-    await service.assetUrl('fox', 'model.glb');
-    await service.assetUrl('fox', 'model.glb');
-    expect(downloads()).toBe(1);
-
-    modified = 'v2';
-    await service.assetUrl('fox', 'model.glb');
-    expect(downloads()).toBe(2);
-  });
-
-  it('serves the cached asset when Drive cannot be reached', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => modified));
-    const service = configure(CONFIGURED);
-    await service.assetUrl('fox', 'model.glb');
-
-    fetchSpy.mockRejectedValue(new TypeError('offline'));
-
-    await expect(service.assetUrl('fox', 'model.glb')).resolves.toBe('blob:figure');
-  });
-
-  it('reads the catalogue ids from the published index', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => modified));
+  it('lists the published figures from the index', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
     const service = configure(CONFIGURED);
 
     await expect(service.catalogueIds()).resolves.toEqual(['fox', 'owl']);
   });
 
+  it('downloads an asset by its Drive id without any key', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
+    const service = configure(CONFIGURED);
+
+    await expect(service.assetUrl('fox', 'model.glb')).resolves.toBe('blob:figure');
+
+    const urls = fetchSpy.mock.calls.map(([input]) => String(input));
+    expect(urls).toContain(
+      'https://drive.usercontent.google.com/download?export=download&id=glb-id'
+    );
+    expect(urls.some((url) => url.includes('key='))).toBe(false);
+  });
+
+  it('downloads again only when the published revision changed', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
+    const downloads = () =>
+      fetchSpy.mock.calls.filter(([input]) => String(input).includes('id=glb-id')).length;
+
+    const first = configure(CONFIGURED);
+    await first.assetUrl('fox', 'model.glb');
+    await first.assetUrl('fox', 'model.glb');
+    expect(downloads()).toBe(1);
+
+    revision = 'r2';
+    TestBed.resetTestingModule();
+    const reopened = configure(CONFIGURED);
+    await reopened.assetUrl('fox', 'model.glb');
+    expect(downloads()).toBe(2);
+  });
+
+  it('opens again without network using the cached index and asset', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
+    await configure(CONFIGURED).assetUrl('fox', 'model.glb');
+    TestBed.resetTestingModule();
+    const offline = configure(CONFIGURED);
+
+    fetchSpy.mockRejectedValue(new TypeError('offline'));
+
+    await expect(offline.catalogueIds()).resolves.toEqual(['fox', 'owl']);
+    await expect(offline.assetUrl('fox', 'model.glb')).resolves.toBe('blob:figure');
+  });
+
+  it('fails clearly when Drive is unreachable and nothing was cached', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('offline'));
+    const service = configure(CONFIGURED);
+
+    await expect(service.catalogueIds()).rejects.toThrow('offline');
+  });
+
+  it('rejects a file that was never published', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
+    const service = configure(CONFIGURED);
+
+    await expect(service.assetUrl('owl', 'model.glb')).rejects.toThrow('not published');
+  });
+
   it('builds a Drive viewer link for files opened outside the app', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => modified));
+    vi.spyOn(globalThis, 'fetch').mockImplementation(driveStub(() => revision));
     const service = configure(CONFIGURED);
 
     await expect(service.viewUrl('fox', 'model.glb')).resolves.toBe(
