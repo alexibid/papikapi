@@ -1,4 +1,13 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent, HandDrawnDirective } from 'ibid-ui';
 import { I18nService } from '@ibid/services';
@@ -23,6 +32,9 @@ export type PromptTab = 'studio' | 'user' | 'system' | 'negative' | 'full' | 'co
 export class ModelPromptModalComponent {
   protected readonly i18n = inject(I18nService);
 
+  private readonly modelNameField =
+    viewChild.required<ElementRef<HTMLInputElement>>('modelNameField');
+
   readonly dismissed = output<void>();
   readonly modelCreated = output<{ name: string; prompt: string; images: readonly string[] }>();
 
@@ -31,6 +43,10 @@ export class ModelPromptModalComponent {
   readonly subject = this.promptText;
 
   readonly modelName = signal('');
+
+  constructor() {
+    afterNextRender(() => this.modelNameField().nativeElement.focus());
+  }
 
   readonly derivedFolderSlug = computed(() => {
     const custom = this.modelName().trim();
@@ -52,7 +68,7 @@ export class ModelPromptModalComponent {
   readonly activeTab = signal<PromptTab>('studio');
 
   readonly userPrompt = computed(() =>
-    composeStudioPrompt(this.promptText(), this.photos().length)
+    composeStudioPrompt(this.promptText(), this.photos().length),
   );
 
   readonly currentContent = computed(() => {
@@ -114,7 +130,6 @@ export class ModelPromptModalComponent {
     } catch {
       // Clipboard fallback
     }
-
 
     this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
     this.modelCreated.emit({ name, prompt, images });

@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModelPromptModalComponent } from './model-prompt-modal';
 
+type CreatedModel = { name: string; prompt: string; images: readonly string[] };
+
 describe('ModelPromptModalComponent', () => {
   let fixture: ComponentFixture<ModelPromptModalComponent>;
   let component: ModelPromptModalComponent;
@@ -84,7 +86,7 @@ describe('ModelPromptModalComponent', () => {
         }
       }
     }
-    (window as any).FileReader = MockFileReader;
+    Object.assign(window, { FileReader: MockFileReader });
 
     try {
       component['onFileSelect'](event);
@@ -103,7 +105,7 @@ describe('ModelPromptModalComponent', () => {
     ]);
     fixture.detectChanges();
 
-    let createdEvent: Record<string, any> | null = null;
+    let createdEvent: CreatedModel | null = null;
     component.modelCreated.subscribe((val) => {
       createdEvent = val;
     });
@@ -124,7 +126,7 @@ describe('ModelPromptModalComponent', () => {
 
     expect(component.derivedFolderSlug()).toBe('cat-darth');
 
-    let createdEvent: Record<string, any> | null = null;
+    let createdEvent: CreatedModel | null = null;
     component.modelCreated.subscribe((val) => {
       createdEvent = val;
     });
@@ -149,7 +151,7 @@ describe('ModelPromptModalComponent', () => {
       },
     });
 
-    let createdEvent: Record<string, any> | null = null;
+    let createdEvent: CreatedModel | null = null;
     component.modelCreated.subscribe((val) => {
       createdEvent = val;
     });

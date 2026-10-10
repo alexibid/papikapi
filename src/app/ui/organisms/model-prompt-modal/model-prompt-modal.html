@@ -55,7 +55,7 @@
           [placeholder]="i18n.translate('modelNamePlaceholder')"
           [ngModel]="modelName()"
           (ngModelChange)="modelName.set($event)"
-          autofocus
+          #modelNameField
         />
       </div>
       <p class="papikapi-prompt-modal__field-hint">
