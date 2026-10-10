@@ -1,3 +1,9 @@
+## 0.1.11 (2026-10-10)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** read drive figures through the drive api with a key because direct links block browsers (52eaf6c)
+
 ## 0.1.10 (2026-10-10)
 
 ### 🚀 Features
