@@ -1,3 +1,16 @@
+## 0.1.8 (2026-10-10)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** stub the creator service in unit tests and update journeys to the 3d stage and parent gate (15e7a6f)
+- **papikapi:** rename camila to papikapi in native configs and ship figures in production (60cbc31)
+- **papikapi:** restyle home to papercraft style with cut-out stickers and canvas-fitted 3D camera (0d9b225)
+
+### 🚀 Features
+
+- **papikapi:** add pick editor modal and dynamic 3d stage reconstruction (daf3fc0)
+- **papikapi:** add model creator with parental gate, live creation loader and pdf viewer (d6e81ad)
+
 ## 0.1.6 (2026-09-28)
 
 ### 🐛 Bug Fixes
