@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.camila.app',
-  appName: 'Camila',
-  webDir: '../../../../dist/camila/browser',
+  appId: 'com.ibid.papikapi',
+  appName: 'Papikapi',
+  webDir: '../../../../dist/papikapi/browser',
   server: {
     androidScheme: 'https',
     hostname: 'localhost'

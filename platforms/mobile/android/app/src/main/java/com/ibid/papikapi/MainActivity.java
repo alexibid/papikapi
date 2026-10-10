@@ -1,4 +1,4 @@
-package com.camila.app;
+package com.ibid.papikapi;
 
 import com.getcapacitor.BridgeActivity;
 

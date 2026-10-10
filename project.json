@@ -12,6 +12,32 @@
       "options": {
         "styles": [
           "apps/papikapi/src/styles.scss"
+        ],
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/papikapi/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "libs/ibid-ui/assets",
+            "output": "."
+          },
+          {
+            "glob": "*/assembly.json",
+            "input": "apps/papikapi-studio/public/models",
+            "output": "/figures"
+          },
+          {
+            "glob": "*/model.glb",
+            "input": "apps/papikapi-studio/public/models",
+            "output": "/figures"
+          },
+          {
+            "glob": "*/sheets.pdf",
+            "input": "apps/papikapi-studio/public/models",
+            "output": "/figures"
+          }
         ]
       },
       "configurations": {
@@ -26,34 +52,6 @@
               "type": "anyComponentStyle",
               "maximumWarning": "8kb",
               "maximumError": "16kb"
-            }
-          ]
-        },
-        "development": {
-          "assets": [
-            {
-              "glob": "**/*",
-              "input": "apps/papikapi/public"
-            },
-            {
-              "glob": "**/*",
-              "input": "libs/ibid-ui/assets",
-              "output": "."
-            },
-            {
-              "glob": "*/assembly.json",
-              "input": "apps/papikapi-studio/public/models",
-              "output": "/figures"
-            },
-            {
-              "glob": "*/model.glb",
-              "input": "apps/papikapi-studio/public/models",
-              "output": "/figures"
-            },
-            {
-              "glob": "*/sheets.pdf",
-              "input": "apps/papikapi-studio/public/models",
-              "output": "/figures"
             }
           ]
         }

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Camila</string>
-    <string name="title_activity_main">Camila</string>
-    <string name="package_name">com.camila.app</string>
-    <string name="custom_url_scheme">com.camila.app</string>
+    <string name="app_name">Papikapi</string>
+    <string name="title_activity_main">Papikapi</string>
+    <string name="package_name">com.ibid.papikapi</string>
+    <string name="custom_url_scheme">com.ibid.papikapi</string>
 </resources>

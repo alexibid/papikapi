@@ -1,10 +1,10 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "camila-tauri",
+  "productName": "papikapi",
   "version": "0.1.2",
-  "identifier": "com.camila.app",
+  "identifier": "com.ibid.papikapi",
   "build": {
-    "frontendDist": "../../../../../dist/camila/browser",
+    "frontendDist": "../../../../../dist/papikapi/browser",
     "devUrl": "http://localhost:4400",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Camila",
+        "title": "Papikapi",
         "width": 800,
         "height": 600,
         "resizable": true,
