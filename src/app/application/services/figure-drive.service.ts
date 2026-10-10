@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { FIGURE_DRIVE_CONFIG_TOKEN } from '@application/config/figure-drive.config';
 
-const DOWNLOAD_URL = 'https://drive.usercontent.google.com/download?export=download&id=';
+const DRIVE_FILES = 'https://www.googleapis.com/drive/v3/files';
 const VIEWER_URL = 'https://drive.google.com/file/d/';
 const CACHE_NAME = 'papikapi-figures-v2';
 const CACHE_ORIGIN = 'https://figures.invalid';
@@ -28,7 +28,7 @@ export class FigureDriveService {
   private catalogue: Promise<DriveCatalogue> | null = null;
 
   isConfigured(): boolean {
-    return this.config.indexFileId !== '';
+    return this.config.indexFileId !== '' && this.config.apiKey !== '';
   }
 
   async catalogueIds(): Promise<readonly string[]> {
@@ -78,7 +78,8 @@ export class FigureDriveService {
   }
 
   private async download(fileId: string): Promise<Blob> {
-    const response = await fetch(`${DOWNLOAD_URL}${encodeURIComponent(fileId)}`);
+    const url = `${DRIVE_FILES}/${encodeURIComponent(fileId)}?alt=media&key=${this.config.apiKey}`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`Drive download failed: ${response.status}`);
     return response.blob();
   }

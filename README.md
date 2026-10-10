@@ -204,9 +204,10 @@ This product concerns a minor and is treated as YMYL throughout.
 ## Figures on Google Drive
 
 Only the `t-rex` ships inside the app. Every other figure is read from a public Google Drive
-folder, like a static server, and cached on the device so it keeps working offline. No login and
-no API key are involved: the app downloads each file by its Drive id from
-`drive.usercontent.google.com`, which answers anonymously with CORS enabled.
+folder, like a static server, and cached on the device so it keeps working offline. There is no
+login: the app downloads each file by its Drive id through the Drive API with a restricted API key.
+The direct `drive.usercontent.google.com` links do not work from a browser, because Google answers
+403 to any cross-site `fetch` (`Sec-Fetch-Site: cross-site`).
 
 ```
 ibid-assets/papikapi/figures/
@@ -214,10 +215,14 @@ ibid-assets/papikapi/figures/
 └── <figure-id>/        assembly.json · model.glb · sheets.pdf · art.jpeg
 ```
 
-**One-time setup.** Share `ibid-assets/papikapi` as *Anyone with the link → Viewer*. The id of
-`figures/index.json` is the only value the app needs, in
-`src/app/application/config/figure-drive.config.ts`. While it is empty the app skips Drive and
-falls back to the local studio on port 4500.
+**One-time setup.**
+
+1. Share `ibid-assets/papikapi` as *Anyone with the link → Viewer*.
+2. In Google Cloud, enable the Drive API and create an API key restricted to the Drive API only.
+   Leave the application restriction on *None*: the requests come from a WebView.
+3. Put the key and the id of `figures/index.json` in
+   `src/app/application/config/figure-drive.config.ts`. While either is empty the app skips Drive
+   and falls back to the local studio on port 4500.
 
 **Publishing.** The studio copies a figure into the synced Drive folder when it finishes one, waits
 for Drive to upload it, and then rewrites `index.json` with the new ids. By hand:
