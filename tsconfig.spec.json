@@ -8,7 +8,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "../../tools/vitest/forbid-local-services.ts"
   ],
   "exclude": [
     "src/**/*.stories.ts"

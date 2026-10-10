@@ -1,29 +1,43 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { FigureAsset, parseFigureUrl, studioFigureUrl } from '@application/config/figures';
 import { AssemblyPlan } from '@domain/assembly/assembly-plan';
 import { readAssemblyPlan } from '@domain/assembly/assembly-plan-reader';
+import { FigureDriveService } from './figure-drive.service';
 
 @Injectable({ providedIn: 'root' })
 export class AssemblyPlanService {
+  private readonly drive = inject(FigureDriveService);
+
   async load(url: string): Promise<AssemblyPlan> {
-    let response = await fetch(url, { cache: 'no-store' });
-    if (!response.ok && url.startsWith('/figures/')) {
-      const match = url.match(/^\/figures\/([^/]+)\/(.*)$/);
-      if (match) {
-        const [, figureId, rest] = match;
-        const fallbackUrl = `http://localhost:4500/models/${figureId}/${rest}`;
-        try {
-          const fallbackRes = await fetch(fallbackUrl, { cache: 'no-store' });
-          if (fallbackRes.ok) {
-            response = fallbackRes;
-          }
-        } catch {
-          // Fallback fetch failed, retain original response
-        }
-      }
-    }
+    const response = await this.firstAvailable(url);
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
     return readAssemblyPlan(await response.json());
+  }
+
+  private async firstAvailable(url: string): Promise<Response> {
+    const bundled = await fetch(url, { cache: 'no-store' });
+    const asset = parseFigureUrl(url);
+    if (bundled.ok || !asset) return bundled;
+    return (await this.fromDrive(asset)) ?? (await this.fromStudio(asset)) ?? bundled;
+  }
+
+  private async fromDrive(asset: FigureAsset): Promise<Response | null> {
+    if (!this.drive.isConfigured()) return null;
+    try {
+      return await fetch(await this.drive.assetUrl(asset.figureId, asset.file));
+    } catch {
+      return null;
+    }
+  }
+
+  private async fromStudio(asset: FigureAsset): Promise<Response | null> {
+    try {
+      const response = await fetch(studioFigureUrl(asset), { cache: 'no-store' });
+      return response.ok ? response : null;
+    } catch {
+      return null;
+    }
   }
 }

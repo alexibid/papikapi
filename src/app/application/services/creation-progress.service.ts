@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { FigureDriveService } from './figure-drive.service';
 
 export type CreationProgressState = 'running' | 'done' | 'failed';
 
@@ -16,6 +17,8 @@ export type CreationProgressListener = (progress: CreationProgress) => void;
 
 @Injectable({ providedIn: 'root' })
 export class CreationProgressService {
+  private readonly drive = inject(FigureDriveService);
+
   connect(modelName: string, listener: CreationProgressListener): () => void {
     if (typeof EventSource === 'undefined') {
       return () => {};
@@ -108,6 +111,15 @@ export class CreationProgressService {
   async fetchCatalogue(): Promise<readonly string[]> {
     if (typeof fetch !== 'function') {
       return [];
+    }
+
+    if (this.drive.isConfigured()) {
+      try {
+        const ids = await this.drive.catalogueIds();
+        if (ids.length > 0) return ids;
+      } catch {
+        // Fall back to the local studio catalogue
+      }
     }
 
     try {
