@@ -69,3 +69,7 @@ platforms/mobile/ios/.symlinks/
 platforms/mobile/ios/App/public/
 
 *.log
+
+# Local environment: never committed
+.env
+/public/app-env.json

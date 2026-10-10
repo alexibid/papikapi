@@ -55,6 +55,24 @@
             }
           ]
         }
+      },
+      "dependsOn": [
+        "^build",
+        "app-env"
+      ],
+      "inputs": [
+        "production",
+        "^production",
+        {
+          "runtime": "node tools/builder/write-app-env.mjs --project papikapi --hash"
+        }
+      ]
+    },
+    "app-env": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "node tools/builder/write-app-env.mjs --project papikapi"
       }
     },
     "serve": {
@@ -62,7 +80,10 @@
       "defaultConfiguration": "development",
       "options": {
         "port": 4400
-      }
+      },
+      "dependsOn": [
+        "app-env"
+      ]
     },
     "serve-e2e": {
       "executor": "@angular/build:dev-server",

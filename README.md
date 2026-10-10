@@ -220,9 +220,18 @@ ibid-assets/papikapi/figures/
 1. Share `ibid-assets/papikapi` as *Anyone with the link → Viewer*.
 2. In Google Cloud, enable the Drive API and create an API key restricted to the Drive API only.
    Leave the application restriction on *None*: the requests come from a WebView.
-3. Put the key and the id of `figures/index.json` in
-   `src/app/application/config/figure-drive.config.ts`. While either is empty the app skips Drive
-   and falls back to the local studio on port 4500.
+3. Put the key in `apps/papikapi/.env` (git ignores it, see `.env.example`):
+
+   ```
+   FIGURE_DRIVE_API_KEY=AIza...
+   ```
+
+   `tools/builder/write-app-env.mjs` turns it into `public/app-env.json` before `build` and `serve`,
+   and the app reads that file on startup. In CI the same variable comes from the
+   `FIGURE_DRIVE_API_KEY` repository secret (`gh secret set FIGURE_DRIVE_API_KEY`).
+
+Without a key the app skips Drive and uses the figures it carries, or the local studio on port 4500
+while developing. `e2e` and `serve-e2e` never read the key, so journeys stay deterministic.
 
 **Publishing.** The studio copies a figure into the synced Drive folder when it finishes one, waits
 for Drive to upload it, and then rewrites `index.json` with the new ids. By hand:
