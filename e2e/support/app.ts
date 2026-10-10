@@ -48,15 +48,20 @@ export const ENTRY_TEXT = '.papikapi-log__text';
 export const ENTRY_DOMAINS = '.papikapi-log__domains';
 export const READING = '.papikapi-reading';
 export const READING_HIT = '.papikapi-reading__hit';
-export const CONFIRM = '.papikapi-reading__actions ibid-button button';
-export const DISMISS = '.papikapi-reading__dismiss';
+export const CONFIRM = '.papikapi-reading__actions .a-button--primary';
+export const DISMISS = '.papikapi-reading__actions .a-button--outlined';
 export const CHIP = '.a-chip';
 export const HERO_DOMAIN = '.papikapi-stage__domain';
 export const HERO_FOLDS = '.papikapi-stage__folds';
 export const TRAY_SLOT = '.papikapi-tray__slot';
 export const FACET = '.m-origami__facet';
-export const MODEL_PANEL = '.o-paper-model__sheet, .o-paper-model__face';
+export const STAGE = '.papikapi-child__stage';
+export const STAGE_CANVAS = '.o-assembly-stage__canvas';
+export const STAGE_MODE = '.o-assembly-stage__mode';
+export const STAGE_MODE_ON = '.o-assembly-stage__mode--on';
 export const PROFILE = '.papikapi-profile';
+export const CHILD_GATE = '.papikapi-child__gate';
+export const GATE_KEY = '.papikapi-gate__key';
 
 export const SEEDED_ENTRIES = 59;
 

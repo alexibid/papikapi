@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CreationProgressService } from '@application/services/creation-progress.service';
+import { creationProgressStub } from '../../../testing/creation-progress.stub';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { ModelPickerModalComponent } from './model-picker-modal';
 
@@ -9,6 +11,7 @@ describe('ModelPickerModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ModelPickerModalComponent],
+      providers: [{ provide: CreationProgressService, useValue: creationProgressStub }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ModelPickerModalComponent);

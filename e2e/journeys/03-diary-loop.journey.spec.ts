@@ -11,7 +11,10 @@ import {
   READING,
   READING_HIT,
   SEEDED_ENTRIES,
-  MODEL_PANEL,
+  STAGE,
+  STAGE_CANVAS,
+  STAGE_MODE,
+  STAGE_MODE_ON,
   UNREAD_SENTENCE,
   bothDomains,
   freezeClock,
@@ -79,18 +82,17 @@ test.describe('The diary loop', () => {
     await expect(page.locator(ENTRY).first().locator(ENTRY_DOMAINS)).toHaveCount(0);
   });
 
-  test('the child screen stands the paper model up and turns it', async ({ page }) => {
+  test('the child screen shows the 3d stage and switches its view', async ({ page }) => {
     await freezeClock(page, JUST_AFTER_SEED);
     await openSeeded(page, '/');
 
-    const scene = page.locator('.o-paper-model__scene');
-    await expect(page.locator('.o-paper-model__stage')).toBeVisible();
-    await expect(page.locator(MODEL_PANEL).first()).toBeVisible();
-    const opening = await scene.getAttribute('style');
+    await expect(page.locator(STAGE)).toBeVisible();
+    await expect(page.locator(STAGE_CANVAS)).toBeVisible();
+    await expect(page.locator(STAGE_MODE_ON)).toHaveCount(1);
 
-    await page.locator('.o-paper-model__key').nth(2).click();
+    await page.locator(STAGE_MODE).nth(1).click();
 
-    await expect(scene).not.toHaveAttribute('style', opening ?? '');
+    await expect(page.locator(STAGE_MODE).nth(1)).toHaveClass(/o-assembly-stage__mode--on/);
   });
 
   test('the entry is durably kept once written', async ({ page }) => {
