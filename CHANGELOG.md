@@ -1,3 +1,9 @@
+## 0.1.10 (2026-10-10)
+
+### 🚀 Features
+
+- **papikapi:** read figures from the public drive folder by file id (7c19d6f)
+
 ## 0.1.9 (2026-10-10)
 
 ### 🚀 Features
