@@ -1,3 +1,9 @@
+## 0.1.9 (2026-10-10)
+
+### 🚀 Features
+
+- **papikapi:** load figures from a public google drive folder and bundle only the t-rex (260ac0f)
+
 ## 0.1.8 (2026-10-10)
 
 ### 🐛 Bug Fixes
