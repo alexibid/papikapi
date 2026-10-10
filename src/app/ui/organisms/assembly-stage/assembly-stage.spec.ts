@@ -84,6 +84,15 @@ describe('AssemblyStageComponent', () => {
       expect(activeModes).toHaveLength(1);
       expect(activeModes[0]).toBe(element.querySelectorAll('.o-assembly-stage__mode')[2]);
     });
+
+    it('hides mode buttons while in loading state', () => {
+      const element = render();
+      expect(modeButtons(element)).toHaveLength(3);
+
+      fixture.componentRef.setInput('loading', true);
+      fixture.detectChanges();
+      expect(modeButtons(element)).toHaveLength(0);
+    });
   });
 
   describe('focus before moving', () => {

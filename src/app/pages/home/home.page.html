@@ -24,64 +24,68 @@
   </header>
 
   <div class="papikapi-child__stage">
-    <div class="papikapi-child__stage-tools">
-      <button
-        type="button"
-        class="papikapi-child__tool-btn"
-        [ibidHandDrawn]="2"
-        (click)="openModelPicker()"
-        [attr.aria-label]="i18n.translate('chooseModel')"
-      >
-        <span class="papikapi-child__tool-icon">
-          <papikapi-pictogram name="cube" />
-        </span>
-        <span class="papikapi-child__tool-label">{{ i18n.translate('chooseModel') }}</span>
-      </button>
-
-      <a
-        [href]="currentPdfUrl()"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="papikapi-child__tool-btn papikapi-child__tool-btn--pdf"
-        [ibidHandDrawn]="2"
-        (click)="openPdf($event)"
-        [attr.aria-label]="i18n.translate('viewAndPrintPdf')"
-      >
-        <span class="papikapi-child__tool-icon">
-          <papikapi-pictogram name="book" />
-        </span>
-        <span class="papikapi-child__tool-label">{{ i18n.translate('viewAndPrintPdf') }}</span>
-      </a>
-
-      <button
-        type="button"
-        class="papikapi-child__tool-btn papikapi-child__tool-btn--prompt"
-        [ibidHandDrawn]="2"
-        (click)="requestPromptAccess()"
-        [attr.aria-label]="i18n.translate('generateModelPrompt')"
-      >
-        <span class="papikapi-child__tool-icon">
-          <papikapi-pictogram name="sparkle" />
-        </span>
-        <span class="papikapi-child__tool-label">{{ i18n.translate('generateModel') }}</span>
-        <span class="papikapi-child__tool-lock">
-          <papikapi-pictogram name="lock" />
-        </span>
-      </button>
-    </div>
-
     <papikapi-assembly-stage
       [source]="figureSource()"
       [modelSource]="figureModel()"
       [built]="builtPieces()"
+      [loading]="!!activeCreation()"
       (ready)="onStageReady($event)"
       (settled)="onStageSettled($event)"
+      (failed)="onStageFailed()"
       [ariaLabel]="i18n.translate('modelDinoLabel')"
       [releaseLabel]="i18n.translate('childStageRelease')"
       [completeLabel]="i18n.translate('childStageComplete')"
       [animatedLabel]="i18n.translate('childStageAnimated')"
       [animateToEndLabel]="i18n.translate('childStageAnimateToEnd')"
     />
+
+    @if (!activeCreation()) {
+      <div class="papikapi-child__stage-tools" role="toolbar">
+        <button
+          type="button"
+          class="papikapi-child__tool-btn"
+          [ibidHandDrawn]="2"
+          (click)="openModelPicker()"
+          [attr.aria-label]="i18n.translate('chooseModel')"
+          [attr.title]="i18n.translate('chooseModel')"
+        >
+          <span class="papikapi-child__tool-icon">
+            <papikapi-pictogram name="cube" />
+          </span>
+        </button>
+
+        <a
+          [href]="currentPdfUrl()"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="papikapi-child__tool-btn papikapi-child__tool-btn--pdf"
+          [ibidHandDrawn]="2"
+          (click)="openPdf($event)"
+          [attr.aria-label]="i18n.translate('viewAndPrintPdf')"
+          [attr.title]="i18n.translate('viewAndPrintPdf')"
+        >
+          <span class="papikapi-child__tool-icon">
+            <papikapi-pictogram name="printer" />
+          </span>
+        </a>
+
+        <button
+          type="button"
+          class="papikapi-child__tool-btn papikapi-child__tool-btn--prompt"
+          [ibidHandDrawn]="2"
+          (click)="requestPromptAccess()"
+          [attr.aria-label]="i18n.translate('generateModelPrompt')"
+          [attr.title]="i18n.translate('generateModel')"
+        >
+          <span class="papikapi-child__tool-icon">
+            <papikapi-pictogram name="sparkle" />
+          </span>
+          <span class="papikapi-child__tool-lock">
+            <papikapi-pictogram name="lock" />
+          </span>
+        </button>
+      </div>
+    }
     <papikapi-scenery />
     <a
       class="papikapi-child__gate"
@@ -96,6 +100,9 @@
         [modelName]="creation.name"
         [prompt]="creation.prompt"
         [images]="creation.images"
+        [phase]="creation.phase ?? 'alternatives'"
+        [pick]="creation.pick"
+        (alternativesReady)="onAlternativesReady($event)"
         (completed)="onCreationCompleted($event)"
         (dismissed)="cancelCreation()"
       />
@@ -134,6 +141,7 @@
     <papikapi-model-picker-modal
       [currentId]="currentModelId()"
       (chosen)="onModelSelected($event)"
+      (editRequested)="onModelEditRequested($event)"
       (dismissed)="closeModelPicker()"
     />
   }
@@ -149,6 +157,15 @@
     <papikapi-model-prompt-modal
       (dismissed)="closePrompt()"
       (modelCreated)="onModelCreated($event)"
+    />
+  }
+
+  @if (alternativesModalData(); as altData) {
+    <papikapi-model-alternatives-modal
+      [modelName]="altData.name"
+      [sheetUrl]="altData.sheetUrl"
+      (picked)="onAlternativePicked($event)"
+      (dismissed)="closeAlternativesModal()"
     />
   }
 </section>

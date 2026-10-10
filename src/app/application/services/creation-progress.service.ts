@@ -58,4 +58,85 @@ export class CreationProgressService {
       return false;
     }
   }
+
+  async triggerPick(payload: {
+    readonly name: string;
+    readonly pick: number;
+  }): Promise<boolean> {
+    if (typeof fetch !== 'function') {
+      return false;
+    }
+
+    try {
+      const response = await fetch('http://localhost:4502/api/creator/pick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  sheetUrl(modelName: string): string {
+    return `http://localhost:4502/api/creator/sheet?name=${encodeURIComponent(modelName)}`;
+  }
+
+  async checkInfo(modelName: string): Promise<{
+    readonly hasAlternatives: boolean;
+    readonly sheetUrl: string;
+  } | null> {
+    if (typeof fetch !== 'function') {
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:4502/api/creator/info?name=${encodeURIComponent(modelName)}`
+      );
+      if (!response.ok) return null;
+      return (await response.json()) as {
+        hasAlternatives: boolean;
+        sheetUrl: string;
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async fetchCatalogue(): Promise<readonly string[]> {
+    if (typeof fetch !== 'function') {
+      return [];
+    }
+
+    try {
+      const response = await fetch('http://localhost:4500/models/index.json', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          return data.map((item: { id: string }) => item.id).filter(Boolean);
+        }
+      }
+    } catch {
+      // Fall back to creator server catalogue
+    }
+
+    try {
+      const response = await fetch('http://localhost:4502/api/catalogue/sync', {
+        method: 'POST',
+        cache: 'no-store',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.models && Array.isArray(data.models)) {
+          return data.models.map((item: { id: string }) => item.id).filter(Boolean);
+        }
+      }
+    } catch {
+      // Offline fallback
+    }
+
+    return [];
+  }
 }

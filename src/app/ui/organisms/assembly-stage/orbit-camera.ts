@@ -1,10 +1,11 @@
 import { PerspectiveCamera, Sphere, Vector3 } from 'three';
 
-const FIT_MARGIN = 0.69;
+const FIT_MARGIN = 0.72;
 const PITCH_LIMIT = 0.06;
 const ORBIT_SENSITIVITY = 0.008;
 const ZOOM_LIMITS = { min: 0.4, max: 4 } as const;
 const HOME = { yaw: Math.PI * 0.28, pitch: Math.PI * 0.33 } as const;
+const OPTICAL_CENTER_Y_SHIFT = 0.25;
 
 export const HOME_YAW = HOME.yaw;
 
@@ -21,6 +22,7 @@ export class OrbitCamera {
   frameSphere(sphere: Sphere): void {
     this.framed = sphere;
     this.target.copy(sphere.center);
+    this.target.y -= sphere.radius * OPTICAL_CENTER_Y_SHIFT;
     this.fitDistance();
     this.apply();
   }

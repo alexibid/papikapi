@@ -30,6 +30,17 @@ export class ModelPromptModalComponent {
   // Backwards compatibility alias for tests
   readonly subject = this.promptText;
 
+  readonly modelName = signal('');
+
+  readonly derivedFolderSlug = computed(() => {
+    const custom = this.modelName().trim();
+    if (custom) {
+      return slugify(custom).slice(0, 32).replace(/-+$/, '') || 'papikapi-model';
+    }
+    const base = this.promptText().trim();
+    return slugify(base).slice(0, 24).replace(/-+$/, '') || 'papikapi-model';
+  });
+
   readonly photos = signal<readonly ReferencePhoto[]>([]);
   readonly isCreating = signal(false);
   readonly statusMessage = signal('');
@@ -94,7 +105,7 @@ export class ModelPromptModalComponent {
     this.errorMessage.set('');
     this.statusMessage.set('');
 
-    const name = slugify(prompt).slice(0, 24).replace(/-+$/, '');
+    const name = this.derivedFolderSlug();
     const images = this.photos().map((p) => p.dataUrl);
 
     try {
@@ -104,22 +115,6 @@ export class ModelPromptModalComponent {
       // Clipboard fallback
     }
 
-    if (typeof fetch === 'function') {
-      try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 1000);
-        fetch('http://localhost:4502/api/creator/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, prompt, images }),
-          signal: controller.signal,
-        })
-          .catch(() => {})
-          .finally(() => clearTimeout(timer));
-      } catch {
-        // Non-blocking
-      }
-    }
 
     this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
     this.modelCreated.emit({ name, prompt, images });

@@ -42,7 +42,28 @@
       </div>
     }
 
-    <!-- Campo de texto único -->
+    <!-- Campo do Nome da figura (gera o slug e a pasta) -->
+    <div class="papikapi-prompt-modal__field">
+      <label class="papikapi-prompt-modal__label" for="modelNameInput">
+        {{ i18n.translate('modelNameLabel') }}
+      </label>
+      <div class="papikapi-prompt-modal__input-wrap" [ibidHandDrawn]="1">
+        <input
+          id="modelNameInput"
+          type="text"
+          class="papikapi-prompt-modal__input"
+          [placeholder]="i18n.translate('modelNamePlaceholder')"
+          [ngModel]="modelName()"
+          (ngModelChange)="modelName.set($event)"
+          autofocus
+        />
+      </div>
+      <p class="papikapi-prompt-modal__field-hint">
+        📁 {{ i18n.translate('modelNameFolderHint') }}: <code>{{ derivedFolderSlug() }}</code>
+      </p>
+    </div>
+
+    <!-- Campo de texto do prompt -->
     <div class="papikapi-prompt-modal__field">
       <label class="papikapi-prompt-modal__label" for="promptTextInput">
         {{ i18n.translate('promptInputLabel') }}
@@ -55,7 +76,6 @@
           [ngModel]="promptText()"
           (ngModelChange)="promptText.set($event)"
           rows="3"
-          autofocus
         ></textarea>
       </div>
       <p class="papikapi-prompt-modal__field-hint">

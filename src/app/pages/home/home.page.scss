@@ -74,41 +74,39 @@ ibid-icon-button {
 
   &__stage-tools {
     position: absolute;
-    top: 0.6rem;
-    left: 0.6rem;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    max-width: calc(100% - 6.5rem);
+    bottom: 5.3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 31;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
   }
 
   &__tool-btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    line-height: 1.2;
-    font-family: inherit;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    padding: 0;
     border: none;
     cursor: pointer;
     background: transparent;
     color: var(--color-ink);
     --papikapi-paper-fill: var(--color-surface, #ffffff);
-    box-shadow: 0 2px 6px rgb(0 0 0 / 8%);
-    transition: transform 0.1s ease;
-
+    box-shadow: 0 2px 6px rgb(0 0 0 / 12%);
+    transition: transform 0.15s ease, filter 0.15s ease;
     text-decoration: none;
 
     &:hover {
-      transform: translateY(-1px);
+      transform: scale(1.08);
       --papikapi-paper-fill: var(--papikapi-yellow-bg, #fef9c3);
     }
 
     &:active {
-      transform: translateY(0);
+      transform: scale(0.96);
     }
 
     &:focus-visible {
@@ -137,21 +135,23 @@ ibid-icon-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.15rem;
-    height: 1.15rem;
-  }
-
-  &__tool-label {
-    white-space: nowrap;
+    width: 2.2rem;
+    height: 2.2rem;
   }
 
   &__tool-lock {
+    position: absolute;
+    bottom: 0.1rem;
+    right: 0.1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 0.85rem;
-    height: 0.85rem;
-    opacity: 0.75;
+    width: 1.15rem;
+    height: 1.15rem;
+    padding: 0.12rem;
+    background: rgb(255 255 255 / 95%);
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 22%);
   }
 
   &__rail {

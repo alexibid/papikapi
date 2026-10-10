@@ -65,4 +65,28 @@ describe('CreationProgressService', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('triggers pick payload via POST fetch and returns sheetUrl', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
+
+    const ok = await service.triggerPick({ name: 'cat-darth', pick: 3 });
+    expect(ok).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'http://localhost:4502/api/creator/pick',
+      expect.objectContaining({ method: 'POST' })
+    );
+
+    expect(service.sheetUrl('cat-darth')).toContain('name=cat-darth');
+    fetchSpy.mockRestore();
+  });
+
+  it('fetches catalogue from server', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([{ id: 'darth' }, { id: 'alex' }]), { status: 200 })
+    );
+
+    const catalogue = await service.fetchCatalogue();
+    expect(catalogue).toEqual(['darth', 'alex']);
+    fetchSpy.mockRestore();
+  });
 });

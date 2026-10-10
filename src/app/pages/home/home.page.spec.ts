@@ -7,6 +7,7 @@ import { AssemblyPlanService } from '@application/services/assembly-plan.service
 import { FINAL_MODEL_LOADER } from '@ui/organisms/assembly-stage/final-model-loader';
 import { RENDERER_FACTORY } from '@ui/organisms/assembly-stage/renderer-factory';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
+import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
 
 const stubRenderer = {
   setPixelRatio: vi.fn(),
@@ -44,11 +45,24 @@ describe('HomePage model selection and prompt flow', () => {
     const buttons = el.querySelectorAll('.papikapi-child__tool-btn');
 
     expect(buttons.length).toBe(3);
-    expect(buttons[0].textContent).toContain('Escolher modelo');
-    expect(buttons[1].textContent).toContain('Ver molde (PDF)');
+    expect(buttons[0].getAttribute('aria-label')).toBe('Escolher modelo');
+    expect(buttons[1].getAttribute('aria-label')).toBe('Ver molde (PDF)');
     expect(buttons[1].getAttribute('href')).toContain('/figures/');
     expect(buttons[1].getAttribute('href')).toContain('/sheets.pdf');
-    expect(buttons[2].textContent).toContain('Novo modelo');
+    expect(buttons[2].getAttribute('aria-label')).toBe('Prompt do modelo');
+  });
+
+  it('hides stage tools when a model creation is active', () => {
+    component['activeCreation'].set({
+      name: 'cat',
+      prompt: 'a cute cat',
+      images: [],
+      phase: 'alternatives',
+    });
+    fixture.detectChanges();
+
+    const tools = fixture.nativeElement.querySelector('.papikapi-child__stage-tools');
+    expect(tools).toBeNull();
   });
 
   it('opens PDF in new tab when openPdf is triggered', async () => {
@@ -126,10 +140,58 @@ describe('HomePage model selection and prompt flow', () => {
     expect(component['activeCreation']()).toBeNull();
     expect(store.progress().currentId).toBe('cat-darth');
 
+    // Test alternatives ready and picking flow
+    component['onAlternativesReady']({
+      name: 'cat-darth',
+      sheetUrl: 'http://localhost:4502/api/creator/sheet?name=cat-darth',
+    });
+    fixture.detectChanges();
+    expect(component['alternativesModalData']()).not.toBeNull();
+    const altModal = fixture.nativeElement.querySelector('papikapi-model-alternatives-modal');
+    expect(altModal).not.toBeNull();
+
+    component['onAlternativePicked']({ name: 'cat-darth', pick: 4 });
+    fixture.detectChanges();
+    expect(component['alternativesModalData']()).toBeNull();
+    expect(component['activeCreation']()?.phase).toBe('mesh');
+    expect(component['activeCreation']()?.pick).toBe(4);
+
+    component['closeAlternativesModal']();
+    expect(component['alternativesModalData']()).toBeNull();
+
     // Test cancelCreation
     component['onModelCreated']({ name: 'temp', prompt: 'test', images: [] });
     expect(component['activeCreation']()).not.toBeNull();
     component['cancelCreation']();
     expect(component['activeCreation']()).toBeNull();
+  });
+
+  it('opens alternatives modal when model edit is requested from picker', () => {
+    component['openModelPicker']();
+    expect(component['modelPickerOpen']()).toBe(true);
+
+    component['onModelEditRequested']('darth');
+    fixture.detectChanges();
+
+    expect(component['modelPickerOpen']()).toBe(false);
+    expect(component['alternativesModalData']()).toEqual({
+      name: 'darth',
+      sheetUrl: expect.stringContaining('/api/creator/sheet?name=darth'),
+    });
+
+    const altModal = fixture.nativeElement.querySelector('papikapi-model-alternatives-modal');
+    expect(altModal).not.toBeNull();
+  });
+
+  it('updates modelVersion and figure URLs when creation completes', () => {
+    const initialVersion = component['modelVersion']();
+    const initialSource = component['figureSource']();
+
+    component['onCreationCompleted'](DEFAULT_FIGURE_ID);
+
+    expect(component['modelVersion']()).toBeGreaterThanOrEqual(initialVersion);
+    expect(component['figureSource']()).toContain(`?v=${component['modelVersion']()}`);
+    expect(component['figureModel']()).toContain(`?v=${component['modelVersion']()}`);
+    expect(initialSource).toContain(`?v=${initialVersion}`);
   });
 });

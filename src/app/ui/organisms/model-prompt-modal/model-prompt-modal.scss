@@ -122,6 +122,22 @@
     --papikapi-paper-fill: var(--color-surface, #ffffff);
   }
 
+  &__input {
+    width: 100%;
+    height: 2.6rem;
+    padding: 0 0.75rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    border: none;
+    background: transparent;
+    color: var(--color-ink);
+    outline: none;
+
+    &::placeholder {
+      opacity: 0.5;
+    }
+  }
+
   &__textarea {
     width: 100%;
     min-height: 5.5rem;

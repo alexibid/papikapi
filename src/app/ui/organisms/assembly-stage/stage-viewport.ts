@@ -51,15 +51,33 @@ export class StageViewport {
   }
 
   private addLights(): void {
-    const key = new DirectionalLight(0xffffff, 1.9);
-    key.position.set(3, 6, 4);
-    const rim = new DirectionalLight(0xdfe7f5, 0.9);
-    rim.position.set(-4, 2, -5);
+    const key = new DirectionalLight(0xfffdfa, 2.2);
+    key.position.set(3.5, 5.5, 4);
+
+    const fill = new DirectionalLight(0xe8f0ff, 1.5);
+    fill.position.set(-3.5, 3.5, 3.5);
+
+    const front = new DirectionalLight(0xffffff, 0.9);
+    front.position.set(0, 1.5, 5);
+
+    const rim = new DirectionalLight(0xdbe8ff, 1.3);
+    rim.position.set(-3.5, 3.5, -4.5);
+
+    const backRim = new DirectionalLight(0xffeedd, 0.8);
+    backRim.position.set(3.5, 2.5, -4);
+
+    const bounce = new DirectionalLight(0xffeedd, 0.7);
+    bounce.position.set(0, -4, 2);
+
     this.scene.add(
-      new HemisphereLight(0xfff6e5, 0x8f8f8f, 2.1),
-      new AmbientLight(0xffffff, 0.5),
+      new HemisphereLight(0xfff8ee, 0xa0acbc, 2.4),
+      new AmbientLight(0xffffff, 0.8),
       key,
-      rim
+      fill,
+      front,
+      rim,
+      backRim,
+      bounce
     );
   }
 }

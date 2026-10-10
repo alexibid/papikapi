@@ -16,11 +16,14 @@ import { arrangeShelves, figurePoints } from '@domain/services/figure-cycle';
 import { countMounted } from '@domain/services/mounted-trophies';
 import { totalPoints } from '@domain/services/growth-engine';
 import { piecesBuilt } from '@domain/services/pieces-built';
+import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
 import { figureAssemblyUrl, figureModelUrl, figurePdfUrl } from '@application/config/figures';
 import { DiaryStore } from '@application/services/diary-store';
+import { CreationProgressService } from '@application/services/creation-progress.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { RhythmStore } from '@application/services/rhythm-store';
+import { ModelAlternativesModalComponent } from '@ui/organisms/model-alternatives-modal/model-alternatives-modal';
 import { ModelCreationLoaderComponent } from '@ui/organisms/model-creation-loader/model-creation-loader';
 import { ModelPickerModalComponent } from '@ui/organisms/model-picker-modal/model-picker-modal';
 import { ModelPromptModalComponent } from '@ui/organisms/model-prompt-modal/model-prompt-modal';
@@ -42,6 +45,7 @@ const CELEBRATION_MS = 2800;
     AssemblyStageComponent,
     HandDrawnDirective,
     IconButtonComponent,
+    ModelAlternativesModalComponent,
     ModelCreationLoaderComponent,
     ModelPickerModalComponent,
     ModelPromptModalComponent,
@@ -62,6 +66,7 @@ export class HomePage {
   protected readonly store = inject(DiaryStore);
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
+  private readonly creation = inject(CreationProgressService);
   private readonly pieceTotal = signal(0);
   private readonly destroyRef = inject(DestroyRef);
   private celebration?: number;
@@ -74,6 +79,13 @@ export class HomePage {
     readonly name: string;
     readonly prompt: string;
     readonly images: readonly string[];
+    readonly phase?: 'alternatives' | 'mesh';
+    readonly pick?: number;
+  } | null>(null);
+
+  protected readonly alternativesModalData = signal<{
+    readonly name: string;
+    readonly sheetUrl: string;
   } | null>(null);
 
   protected readonly currentModelId = computed(() => this.progress.progress().currentId);
@@ -82,16 +94,18 @@ export class HomePage {
     () => this.tasks.filter((task) => task.status === 'done').length
   );
 
+  protected readonly modelVersion = signal(Date.now());
+
   protected readonly figureSource = computed(() =>
-    figureAssemblyUrl(this.progress.progress().currentId)
+    `${figureAssemblyUrl(this.progress.progress().currentId)}?v=${this.modelVersion()}`
   );
 
   protected readonly figureModel = computed(() =>
-    figureModelUrl(this.progress.progress().currentId)
+    `${figureModelUrl(this.progress.progress().currentId)}?v=${this.modelVersion()}`
   );
 
   protected readonly currentPdfUrl = computed(() =>
-    figurePdfUrl(this.progress.progress().currentId)
+    `${figurePdfUrl(this.progress.progress().currentId)}?v=${this.modelVersion()}`
   );
 
   protected readonly earnedPieces = computed(() => {
@@ -114,6 +128,11 @@ export class HomePage {
 
   constructor() {
     void this.store.load();
+    void this.creation.fetchCatalogue().then((ids) => {
+      if (ids.length > 0) {
+        this.progress.registerCustomFigures(ids);
+      }
+    });
     this.destroyRef.onDestroy(() => window.clearTimeout(this.celebration));
     effect(() => {
       const total = this.pieceTotal();
@@ -126,6 +145,12 @@ export class HomePage {
 
   protected onStageReady(pieceCount: number): void {
     this.pieceTotal.set(pieceCount);
+  }
+
+  protected onStageFailed(): void {
+    if (this.currentModelId() !== DEFAULT_FIGURE_ID) {
+      this.progress.select(DEFAULT_FIGURE_ID);
+    }
   }
 
   protected onStageSettled(pieces: number): void {
@@ -158,9 +183,17 @@ export class HomePage {
 
   protected onModelSelected(figureId: string): void {
     this.pieceTotal.set(0);
-    this.progress.select(figureId);
+    this.progress.select(figureId, { allowCustom: true });
     this.modelPickerOpen.set(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected onModelEditRequested(modelId: string): void {
+    this.modelPickerOpen.set(false);
+    this.alternativesModalData.set({
+      name: modelId,
+      sheetUrl: this.creation.sheetUrl(modelId),
+    });
   }
 
   protected async openPdf(event?: MouseEvent): Promise<void> {
@@ -168,7 +201,7 @@ export class HomePage {
       event.preventDefault();
     }
     const figureId = this.currentModelId();
-    const primaryUrl = figurePdfUrl(figureId);
+    const primaryUrl = `${figurePdfUrl(figureId)}?v=${this.modelVersion()}`;
 
     try {
       const res = await fetch(primaryUrl, { method: 'HEAD' });
@@ -181,7 +214,7 @@ export class HomePage {
     }
 
     try {
-      const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf`;
+      const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
       const resStudio = await fetch(studioUrl, { method: 'HEAD' });
       if (resStudio.ok) {
         window.open(studioUrl, '_blank');
@@ -217,12 +250,39 @@ export class HomePage {
     readonly images: readonly string[];
   }): void {
     this.closePrompt();
-    this.activeCreation.set(creation);
+    this.activeCreation.set({
+      name: creation.name,
+      prompt: creation.prompt,
+      images: creation.images,
+      phase: 'alternatives',
+    });
+  }
+
+  protected onAlternativesReady(data: { readonly name: string; readonly sheetUrl: string }): void {
+    this.activeCreation.set(null);
+    this.alternativesModalData.set(data);
+  }
+
+  protected onAlternativePicked(event: { readonly name: string; readonly pick: number }): void {
+    this.alternativesModalData.set(null);
+    this.activeCreation.set({
+      name: event.name,
+      prompt: '',
+      images: [],
+      phase: 'mesh',
+      pick: event.pick,
+    });
+  }
+
+  protected closeAlternativesModal(): void {
+    this.alternativesModalData.set(null);
   }
 
   protected onCreationCompleted(modelName: string): void {
     this.activeCreation.set(null);
-    this.progress.select(modelName, { allowCustom: true });
+    this.modelVersion.set(Date.now());
+    this.pieceTotal.set(0);
+    this.progress.select(modelName, { allowCustom: true, forceReload: true });
   }
 
   protected cancelCreation(): void {

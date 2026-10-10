@@ -70,4 +70,38 @@ describe('FigureProgressStore', () => {
 
     expect(TestBed.inject(FigureProgressStore).progress().currentId).toBe(DEFAULT_FIGURE_ID);
   });
+
+  it('allows registering and selecting custom figures', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.registerCustomFigure('darth');
+
+    expect(store.catalogue).toContain('darth');
+    store.select('darth');
+    expect(store.progress().currentId).toBe('darth');
+
+    TestBed.resetTestingModule();
+    const reloaded = TestBed.inject(FigureProgressStore);
+    expect(reloaded.catalogue).toContain('darth');
+    expect(reloaded.progress().currentId).toBe('darth');
+  });
+
+  it('allows selecting an uncatalogued figure when allowCustom is true', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.select('custom-robo', { allowCustom: true });
+
+    expect(store.progress().currentId).toBe('custom-robo');
+    expect(store.catalogue).toContain('custom-robo');
+  });
+
+  it('resets seenPieces when selecting the same figure with forceReload', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.markSeen(5);
+    expect(store.progress().seenPieces).toBe(5);
+
+    store.select(DEFAULT_FIGURE_ID);
+    expect(store.progress().seenPieces).toBe(5);
+
+    store.select(DEFAULT_FIGURE_ID, { forceReload: true });
+    expect(store.progress().seenPieces).toBe(1);
+  });
 });

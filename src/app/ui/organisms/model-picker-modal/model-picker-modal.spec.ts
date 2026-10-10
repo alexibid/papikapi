@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { ModelPickerModalComponent } from './model-picker-modal';
 
 describe('ModelPickerModalComponent', () => {
@@ -46,5 +47,26 @@ describe('ModelPickerModalComponent', () => {
 
     component['close']();
     expect(closed).toBe(true);
+  });
+
+  it('renders custom models when registered in store', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.registerCustomFigure('darth');
+    fixture.detectChanges();
+
+    const items = component['items']();
+    expect(items.some((item) => item.id === 'darth')).toBe(true);
+  });
+
+  it('emits editRequested when edit is triggered', () => {
+    let editedId = '';
+    component.editRequested.subscribe((id) => {
+      editedId = id;
+    });
+
+    const mockEvent = { stopPropagation: vi.fn() } as unknown as MouseEvent;
+    component['edit']('darth', mockEvent);
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+    expect(editedId).toBe('darth');
   });
 });

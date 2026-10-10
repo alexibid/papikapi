@@ -18,6 +18,8 @@ describe('ModelCreationLoaderComponent', () => {
       return () => {};
     }),
     triggerGeneration: vi.fn().mockResolvedValue(true),
+    triggerPick: vi.fn().mockResolvedValue(true),
+    sheetUrl: vi.fn((name: string) => `http://localhost:4502/api/creator/sheet?name=${name}`),
   };
 
   beforeEach(async () => {
@@ -69,15 +71,42 @@ describe('ModelCreationLoaderComponent', () => {
     expect(el.textContent).toContain('A transformar em figura 3D');
   });
 
-  it('marks done and emits completed event', () => {
+  it('marks alternatives ready and emits alternativesReady event in alternatives phase', () => {
+    const readySpy = vi.fn();
+    component.alternativesReady.subscribe(readySpy);
+
+    progressListener?.({
+      stepId: 's1-step-1',
+      message: 'Finished',
+      stepIndex: 1,
+      stepCount: 1,
+      expectedSeconds: 20,
+      elapsedInStepMs: 2000,
+      state: 'done',
+    } as CreationProgress);
+
+    fixture.detectChanges();
+    expect(component['isDone']()).toBe(true);
+
+    vi.advanceTimersByTime(1000);
+    expect(readySpy).toHaveBeenCalledWith({
+      name: 'darth-cat',
+      sheetUrl: expect.stringContaining('darth-cat'),
+    });
+  });
+
+  it('marks done and emits completed event in mesh phase', () => {
+    fixture.componentRef.setInput('phase', 'mesh');
+    fixture.detectChanges();
+
     const completedSpy = vi.fn();
     component.completed.subscribe(completedSpy);
 
     progressListener?.({
-      stepId: 's4-step-2',
-      message: 'Finished',
+      stepId: 's2-step-2',
+      message: 'Finished mesh',
       stepIndex: 3,
-      stepCount: 4,
+      stepCount: 3,
       expectedSeconds: 20,
       elapsedInStepMs: 2000,
       state: 'done',
@@ -101,5 +130,24 @@ describe('ModelCreationLoaderComponent', () => {
     closeBtn.click();
 
     expect(dismissedSpy).toHaveBeenCalled();
+  });
+
+  it('detects waiting in queue and updates stage text and icon', () => {
+    progressListener?.({
+      stepId: 's1-step-1',
+      message: '⟳ [RunPod Serverless] Generating sheet on Na fila de espera... (30s elapsed)',
+      stepIndex: 0,
+      stepCount: 1,
+      expectedSeconds: 20,
+      elapsedInStepMs: 30000,
+      state: 'running',
+    } as CreationProgress);
+
+    fixture.detectChanges();
+
+    expect(component['isQueued']()).toBe(true);
+    expect(component['iconName']()).toBe('hourglass');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Na fila de espera do servidor');
   });
 });

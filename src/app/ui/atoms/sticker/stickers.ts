@@ -4,6 +4,7 @@ export const STICKER_NAMES = [
   'photo',
   'cube',
   'play',
+  'play-all',
   'check',
   'bar',
   'cloud-a',

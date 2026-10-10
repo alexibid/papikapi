@@ -57,16 +57,20 @@ export class ModelCreationLoaderComponent implements OnInit {
   readonly prompt = input<string>('');
   readonly images = input<readonly string[]>([]);
   readonly startedAt = input<number>();
+  readonly phase = input<'alternatives' | 'mesh'>('alternatives');
+  readonly pick = input<number | undefined>(undefined);
 
+  readonly alternativesReady = output<{ readonly name: string; readonly sheetUrl: string }>();
   readonly completed = output<string>();
   readonly dismissed = output<void>();
 
   protected readonly percent = signal(3);
   protected readonly currentStageKey = signal('creationStageAlternatives');
   protected readonly stepNumber = signal(1);
-  protected readonly totalSteps = signal(4);
+  protected readonly totalSteps = signal(2);
   protected readonly isDone = signal(false);
   protected readonly isFailed = signal(false);
+  protected readonly isQueued = signal(false);
 
   private timerId?: ReturnType<typeof setInterval>;
   private dismissTimerId?: ReturnType<typeof setTimeout>;
@@ -82,9 +86,10 @@ export class ModelCreationLoaderComponent implements OnInit {
       .replace('{{total}}', String(this.totalSteps()));
   });
 
-  protected readonly iconName = computed<'sparkle' | 'cube' | 'check' | 'close'>(() => {
+  protected readonly iconName = computed<'sparkle' | 'cube' | 'check' | 'close' | 'hourglass'>(() => {
     if (this.isDone()) return 'check';
     if (this.isFailed()) return 'close';
+    if (this.isQueued()) return 'hourglass';
     return this.stepNumber() % 2 === 0 ? 'cube' : 'sparkle';
   });
 
@@ -92,13 +97,39 @@ export class ModelCreationLoaderComponent implements OnInit {
     const name = this.modelName();
     const promptText = this.prompt();
     const imagesList = this.images();
+    const currentPhase = this.phase();
 
-    if (promptText) {
-      void this.creationService.triggerGeneration({
-        name,
-        prompt: promptText,
-        images: imagesList,
-      });
+    if (currentPhase === 'mesh') {
+      this.stepNumber.set(2);
+      this.currentStageKey.set('creationStageMesh');
+      void this.creationService
+        .triggerPick({
+          name,
+          pick: this.pick() ?? 3,
+        })
+        .then((ok) => {
+          if (!ok) {
+            this.isFailed.set(true);
+            this.currentStageKey.set('creationStageFailed');
+          }
+        });
+    } else {
+      this.stepNumber.set(1);
+      this.currentStageKey.set('creationStageAlternatives');
+      if (promptText) {
+        void this.creationService
+          .triggerGeneration({
+            name,
+            prompt: promptText,
+            images: imagesList,
+          })
+          .then((ok) => {
+            if (!ok) {
+              this.isFailed.set(true);
+              this.currentStageKey.set('creationStageFailed');
+            }
+          });
+      }
     }
 
     const unsubscribe = this.creationService.connect(name, (progress) =>
@@ -118,6 +149,11 @@ export class ModelCreationLoaderComponent implements OnInit {
         return;
       }
 
+      if (this.isQueued()) {
+        this.currentStageKey.set('creationStageQueue');
+        return;
+      }
+
       const elapsed = (Date.now() - (this.startedAt() ?? this.startTime)) / 1000;
       const simulated = this.calculateAsymptoticPercent(elapsed, EXPECTED_GENERATION_SECONDS);
 
@@ -127,21 +163,16 @@ export class ModelCreationLoaderComponent implements OnInit {
       }
 
       const current = this.percent();
-      if (current < 25) {
-        this.currentStageKey.set('creationStageAlternatives');
-        this.stepNumber.set(1);
-      } else if (current < 55) {
-        this.currentStageKey.set('creationStagePick');
-        this.stepNumber.set(2);
-      } else if (current < 80) {
-        this.currentStageKey.set('creationStageMesh');
-        this.stepNumber.set(3);
-      } else if (current < 92) {
-        this.currentStageKey.set('creationStageSheets');
-        this.stepNumber.set(4);
+      if (this.phase() === 'mesh') {
+        if (current < 45) {
+          this.currentStageKey.set('creationStageMesh');
+        } else if (current < 85) {
+          this.currentStageKey.set('creationStageSheets');
+        } else {
+          this.currentStageKey.set('creationStageFinalizing');
+        }
       } else {
-        this.currentStageKey.set('creationStageFinalizing');
-        this.stepNumber.set(4);
+        this.currentStageKey.set('creationStageAlternatives');
       }
     }, 200);
   }
@@ -157,13 +188,29 @@ export class ModelCreationLoaderComponent implements OnInit {
 
   private handleProgressUpdate(progress: CreationProgress): void {
     if (progress.state === 'done') {
-      this.markCompleted();
+      if (this.phase() === 'alternatives') {
+        this.markAlternativesReady();
+      } else {
+        this.markCompleted();
+      }
       return;
     }
 
     if (progress.state === 'failed') {
       this.isFailed.set(true);
       this.currentStageKey.set('creationStageFailed');
+      return;
+    }
+
+    const msg = (progress.message ?? '').toLowerCase();
+    const queued =
+      msg.includes('fila de espera') ||
+      msg.includes('in_queue') ||
+      msg.includes('waiting in queue');
+    this.isQueued.set(queued);
+
+    if (queued) {
+      this.currentStageKey.set('creationStageQueue');
       return;
     }
 
@@ -185,12 +232,28 @@ export class ModelCreationLoaderComponent implements OnInit {
     }
   }
 
+  private markAlternativesReady(): void {
+    if (this.isDone()) return;
+    this.isDone.set(true);
+    this.percent.set(100);
+    this.currentStageKey.set('creationStagePick');
+    this.clearTimers();
+
+    const name = this.modelName();
+    this.dismissTimerId = setTimeout(() => {
+      this.alternativesReady.emit({
+        name,
+        sheetUrl: this.creationService.sheetUrl(name),
+      });
+    }, 600);
+  }
+
   private markCompleted(): void {
     if (this.isDone()) return;
     this.isDone.set(true);
     this.percent.set(100);
     this.currentStageKey.set('creationStageDone');
-    this.stepNumber.set(4);
+    this.stepNumber.set(2);
     this.clearTimers();
 
     this.dismissTimerId = setTimeout(() => {

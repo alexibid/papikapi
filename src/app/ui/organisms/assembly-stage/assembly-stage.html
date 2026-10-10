@@ -26,35 +26,34 @@
     <papikapi-balloon-bunch class="o-assembly-stage__balloons" />
   }
 
-  <div class="o-assembly-stage__modes" role="group">
-    <ibid-icon-button
-      class="o-assembly-stage__mode"
-      [class.o-assembly-stage__mode--on]="mode() === 'complete'"
-      [ariaLabel]="completeLabel()"
-      (clicked)="showComplete()"
-    >
-      <span class="o-assembly-stage__tile"><papikapi-sticker name="cube" /></span>
-    </ibid-icon-button>
-    <ibid-icon-button
-      class="o-assembly-stage__mode"
-      [class.o-assembly-stage__mode--on]="mode() === 'animated'"
-      [ariaLabel]="animatedLabel()"
-      (clicked)="showAnimated()"
-    >
-      <span class="o-assembly-stage__tile"><papikapi-sticker name="play" /></span>
-    </ibid-icon-button>
-    <ibid-icon-button
-      class="o-assembly-stage__mode"
-      [class.o-assembly-stage__mode--on]="mode() === 'play-all'"
-      [ariaLabel]="animateToEndLabel()"
-      (clicked)="showPlayAll()"
-    >
-      <span class="o-assembly-stage__tile o-assembly-stage__tile--all">
-        <papikapi-sticker name="play" />
-        <papikapi-sticker name="play" />
-      </span>
-    </ibid-icon-button>
-  </div>
+  @if (!loading()) {
+    <div class="o-assembly-stage__modes" role="group">
+      <ibid-icon-button
+        class="o-assembly-stage__mode"
+        [class.o-assembly-stage__mode--on]="mode() === 'complete'"
+        [ariaLabel]="completeLabel()"
+        (clicked)="showComplete()"
+      >
+        <span class="o-assembly-stage__tile"><papikapi-sticker name="cube" /></span>
+      </ibid-icon-button>
+      <ibid-icon-button
+        class="o-assembly-stage__mode"
+        [class.o-assembly-stage__mode--on]="mode() === 'animated'"
+        [ariaLabel]="animatedLabel()"
+        (clicked)="showAnimated()"
+      >
+        <span class="o-assembly-stage__tile"><papikapi-sticker name="play" /></span>
+      </ibid-icon-button>
+      <ibid-icon-button
+        class="o-assembly-stage__mode"
+        [class.o-assembly-stage__mode--on]="mode() === 'play-all'"
+        [ariaLabel]="animateToEndLabel()"
+        (clicked)="showPlayAll()"
+      >
+        <span class="o-assembly-stage__tile"><papikapi-sticker name="play-all" /></span>
+      </ibid-icon-button>
+    </div>
+  }
 
   @if (active()) {
     <ibid-icon-button

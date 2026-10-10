@@ -40,27 +40,42 @@
 
     <div class="papikapi-picker-modal__grid" role="list">
       @for (item of items(); track item.id) {
-        <button
-          type="button"
+        <div
           class="papikapi-picker-modal__item"
           [class.papikapi-picker-modal__item--active]="item.isCurrent"
           [ibidHandDrawn]="2"
-          (click)="select(item.id)"
-          [attr.aria-pressed]="item.isCurrent"
           role="listitem"
         >
-          <span class="papikapi-picker-modal__thumb" [ibidHandDrawn]="1">
-            <papikapi-figure-thumbnail [figureId]="item.id" />
-          </span>
-
-          <span class="papikapi-picker-modal__name">{{ item.name }}</span>
-
-          @if (item.isCurrent) {
-            <span class="papikapi-picker-modal__badge" [ibidHandDrawn]="1">
-              <papikapi-pictogram name="check" />
+          <button
+            type="button"
+            class="papikapi-picker-modal__select-btn"
+            (click)="select(item.id)"
+            [attr.aria-pressed]="item.isCurrent"
+          >
+            <span class="papikapi-picker-modal__thumb" [ibidHandDrawn]="1">
+              <papikapi-figure-thumbnail [figureId]="item.id" />
             </span>
-          }
-        </button>
+
+            <span class="papikapi-picker-modal__name">{{ item.name }}</span>
+
+            @if (item.isCurrent) {
+              <span class="papikapi-picker-modal__badge" [ibidHandDrawn]="1">
+                <papikapi-pictogram name="check" />
+              </span>
+            }
+          </button>
+
+          <button
+            type="button"
+            class="papikapi-picker-modal__edit-btn"
+            [ibidHandDrawn]="1"
+            (click)="edit(item.id, $event)"
+            [attr.aria-label]="i18n.translate('editModelPicks')"
+            [attr.title]="i18n.translate('editModelPicks')"
+          >
+            <papikapi-pictogram name="sparkle" />
+          </button>
+        </div>
       } @empty {
         <div class="papikapi-picker-modal__empty">
           <p>{{ i18n.translate('noModelsFound') }}</p>

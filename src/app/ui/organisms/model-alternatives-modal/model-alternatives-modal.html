@@ -1,0 +1,82 @@
+<div
+  class="papikapi-alt-modal"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="i18n.translate('pickAlternativeTitle')"
+>
+  <button
+    type="button"
+    class="papikapi-alt-modal__backdrop"
+    [attr.aria-label]="i18n.translate('pickAlternativeCancel')"
+    (click)="close()"
+    (keydown.escape)="close()"
+  ></button>
+
+  <div class="papikapi-alt-modal__card" [ibidHandDrawn]="3">
+    <header class="papikapi-alt-modal__header">
+      <div class="papikapi-alt-modal__header-titles">
+        <span class="papikapi-alt-modal__icon" [ibidHandDrawn]="1">
+          <papikapi-pictogram name="sparkle" />
+        </span>
+        <div>
+          <h2 class="papikapi-alt-modal__title">{{ i18n.translate('pickAlternativeTitle') }}</h2>
+          <span class="papikapi-alt-modal__subtitle">{{ i18n.translate('pickAlternativeSubtitle') }}</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="papikapi-alt-modal__close"
+        [ibidHandDrawn]="1"
+        [attr.aria-label]="i18n.translate('pickAlternativeCancel')"
+        (click)="close()"
+      >
+        <papikapi-pictogram name="close" />
+      </button>
+    </header>
+
+    <div class="papikapi-alt-modal__body">
+      <div class="papikapi-alt-modal__grid">
+        @for (cell of cells; track cell.pick; let idx = $index) {
+          <button
+            type="button"
+            class="papikapi-alt-modal__cell"
+            [class.papikapi-alt-modal__cell--selected]="selectedPick() === cell.pick"
+            [ibidHandDrawn]="2"
+            (click)="selectCell(cell.pick)"
+          >
+            <div
+              class="papikapi-alt-modal__preview"
+              [style.background-image]="'url(' + effectiveSheetUrl() + ')'"
+              [style.background-position]="(idx % 3) * 50 + '% ' + mathFloor(idx / 3) * 100 + '%'"
+            >
+              @if (selectedPick() === cell.pick) {
+                <span class="papikapi-alt-modal__check-pin" [ibidHandDrawn]="1">
+                  ✓
+                </span>
+              }
+            </div>
+
+            <div class="papikapi-alt-modal__cell-footer">
+              <span class="papikapi-alt-modal__cell-tag">{{ i18n.translate(cell.labelKey) }}</span>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+
+    <footer class="papikapi-alt-modal__actions">
+      <ibid-button variant="outlined" (clicked)="close()">
+        {{ i18n.translate('pickAlternativeCancel') }}
+      </ibid-button>
+
+      <ibid-button
+        variant="primary"
+        [disabled]="selectedPick() === null"
+        (clicked)="confirm()"
+      >
+        🧊 {{ confirmLabel() }}
+      </ibid-button>
+    </footer>
+  </div>
+</div>

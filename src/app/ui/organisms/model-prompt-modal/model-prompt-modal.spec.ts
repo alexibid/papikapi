@@ -103,40 +103,41 @@ describe('ModelPromptModalComponent', () => {
     ]);
     fixture.detectChanges();
 
-    let fetchPayload: any = null;
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = ((url: string, options: any) => {
-      fetchPayload = JSON.parse(options.body);
-      return Promise.resolve(new Response(JSON.stringify({ success: true })));
-    }) as unknown as typeof fetch;
+    let createdEvent: Record<string, any> | null = null;
+    component.modelCreated.subscribe((val) => {
+      createdEvent = val;
+    });
+
+    await component['createModel']();
+
+    expect(createdEvent).not.toBeNull();
+    expect(createdEvent!['prompt']).toBe('o meu gato Tobias, preto e branco');
+    expect(createdEvent!['name']).toBe('o-meu-gato-tobias-preto');
+    expect(createdEvent!['images']).toEqual(['data:image/jpeg;base64,abc123']);
+    expect(component.statusMessage()).toBeTruthy();
+  });
+
+  it('uses custom modelName to derive hyphenated folder name', async () => {
+    component.modelName.set('Cat Darth');
+    component.promptText.set('a cute tuxedo cat');
+    fixture.detectChanges();
+
+    expect(component.derivedFolderSlug()).toBe('cat-darth');
 
     let createdEvent: Record<string, any> | null = null;
     component.modelCreated.subscribe((val) => {
       createdEvent = val;
     });
 
-    try {
-      await component['createModel']();
+    await component['createModel']();
 
-      expect(createdEvent).not.toBeNull();
-      expect(createdEvent!['prompt']).toBe('o meu gato Tobias, preto e branco');
-      expect(createdEvent!['name']).toBe('o-meu-gato-tobias-preto');
-      expect(createdEvent!['images']).toEqual(['data:image/jpeg;base64,abc123']);
-      expect(fetchPayload).not.toBeNull();
-      expect(fetchPayload.prompt).toBe('o meu gato Tobias, preto e branco');
-      expect(fetchPayload.images.length).toBe(1);
-      expect(component.statusMessage()).toBeTruthy();
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
+    expect(createdEvent).not.toBeNull();
+    expect(createdEvent!['name']).toBe('cat-darth');
   });
 
-  it('falls back to clipboard and succeeds if fetch fails or studio server is unreachable', async () => {
+  it('copies studio prompt to clipboard and succeeds on createModel', async () => {
     component.promptText.set('dragão azul');
     fixture.detectChanges();
-
-    const originalFetch = globalThis.fetch;
-    globalThis.fetch = (() => Promise.reject(new Error('Network error'))) as unknown as typeof fetch;
 
     let writtenText = '';
     const originalClipboard = navigator.clipboard;
@@ -160,7 +161,6 @@ describe('ModelPromptModalComponent', () => {
       expect(writtenText).toContain('dragão azul');
       expect(component.statusMessage()).toBeTruthy();
     } finally {
-      globalThis.fetch = originalFetch;
       Object.assign(navigator, { clipboard: originalClipboard });
     }
   });

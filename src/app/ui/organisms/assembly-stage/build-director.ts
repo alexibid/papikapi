@@ -23,6 +23,8 @@ export class BuildDirector {
   private shown: number;
   private readonly animation = new BuildAnimation(BUILD_MS);
   private playingToEnd = false;
+  private looping = false;
+  private loopTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private readonly rig: BuildableFigure,
@@ -93,7 +95,50 @@ export class BuildDirector {
     step(startFrom);
   }
 
+  loopAssembly(stepDurationMs = 850): void {
+    if (this.rig.pieceCount <= PLINTH_PIECES) return;
+    this.animation.stop();
+    this.playingToEnd = false;
+    this.looping = true;
+    if (this.loopTimer) clearTimeout(this.loopTimer);
+
+    const step = (pieceIndex: number): void => {
+      if (!this.looping) return;
+      if (pieceIndex >= this.rig.pieceCount) {
+        this.loopTimer = setTimeout(() => {
+          if (!this.looping) return;
+          this.settleAt(PLINTH_PIECES);
+          this.loopTimer = setTimeout(() => {
+            if (!this.looping) return;
+            step(PLINTH_PIECES);
+          }, 350);
+        }, 900);
+        return;
+      }
+
+      this.animatePiece(pieceIndex, stepDurationMs, () => {
+        if (!this.looping) return;
+        this.shown = pieceIndex + 1;
+        step(pieceIndex + 1);
+      });
+    };
+
+    const startFrom = this.shown >= this.rig.pieceCount ? PLINTH_PIECES : this.shown;
+    this.settleAt(startFrom);
+    step(startFrom);
+  }
+
+  stopLoop(): void {
+    this.looping = false;
+    if (this.loopTimer) {
+      clearTimeout(this.loopTimer);
+      this.loopTimer = undefined;
+    }
+    this.animation.stop();
+  }
+
   showComplete(): void {
+    this.stopLoop();
     this.playingToEnd = false;
     this.animation.stop();
     this.rig.showBuilt(this.rig.pieceCount);
@@ -102,6 +147,7 @@ export class BuildDirector {
   }
 
   dispose(): void {
+    this.stopLoop();
     this.playingToEnd = false;
     this.animation.stop();
   }
@@ -114,7 +160,6 @@ export class BuildDirector {
     this.animation.run(
       (build) => {
         this.rig.showBuilding(from, build);
-        this.viewport.camera.frameSphere(this.rig.shot(from, build));
         this.viewport.renderNow();
       },
       onFinish,

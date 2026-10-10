@@ -38,15 +38,15 @@ export const STUDIO_MODEL_PRESETS: readonly StudioModelPreset[] = [
     label: 'Gato Tuxedo',
     slug: 'black-tuxedo',
     prompt:
-      'a cute standing black tuxedo kitten, pure jet-black facets with pure white chest, chin, and paw facets, closed muzzle with white whiskers painted flat as a 2D UV decal, exactly two yellow eyes with white catchlights, zero floor shadow',
+      'a cute standing black tuxedo kitten, pure jet-black facets with pure white chest, chin, and paw facets, closed smooth muzzle with zero whiskers, clean faceted cheeks, exactly two yellow eyes with white catchlights, zero floor shadow',
   },
 ];
 
 export const MODEL_SYSTEM_PROMPT =
-  'You are an expert 3D low-poly papercraft designer, origami artist, and 3D unfold engineer. You design foldable low-poly figures made of simple primary geometric volumes where micro-details are illustrated flat on the paper surface. You follow the studio signature aesthetic: cute expressive eyes with circular white catchlights and vibrant paper colors. You generate exactly one image that follows all instructions. Never write any text, letters, watermark or labels. Every rule is mandatory and none may be broken.';
+  'You are an expert 3D low-poly papercraft designer, origami artist, and 3D unfold engineer. You design foldable low-poly figures made of simple primary geometric volumes where micro-details are illustrated flat on the paper surface. All figures are designed for child papercraft physical assembly: ABSOLUTELY ZERO WHISKERS, zero thin antennae, zero needle spikes, and zero thin protruding strands (all muzzles and cheeks are completely clean, smooth, and whiskerless). You follow the studio signature aesthetic: cute expressive eyes with circular white catchlights and vibrant paper colors. You generate exactly one image that follows all instructions. Never write any text, letters, watermark or labels. Every rule is mandatory and none may be broken.';
 
 export const MODEL_NEGATIVE_PROMPT =
-  'bust, headshot, portrait, close-up, cropped, truncated torso, severed neck, partial figure, wireframe, crease lines, black fold lines, black outline lines, blueprint markings, dark edge seams, shadow, floor shadow, ground shadow, drop shadow, contact shadow, ambient occlusion beneath model, cast shadow, dark ground, 3D extruded teeth, jagged 3D spikes, open mouth cavity, top-down view, high angle view, isometric view, tilted body, leaning body, floating feet, front view, side profile view, extra eyes, three eyes, one eye, floating eyes, gradients, text, watermark, labels, cell divider borders, CGI, clay, plastic, smooth rounded cartoon';
+  'whiskers, cat whiskers, facial whiskers, whiskers protruding, thin whiskers, antennae, spikes, thin hair strands, needle spikes, whiskers lines, thin wires, bust, headshot, portrait, close-up, cropped, truncated torso, severed neck, partial figure, wireframe, crease lines, black fold lines, black outline lines, blueprint markings, dark edge seams, shadow, floor shadow, ground shadow, drop shadow, contact shadow, ambient occlusion beneath model, cast shadow, dark ground, 3D extruded teeth, jagged 3D spikes, open mouth cavity, top-down view, high angle view, isometric view, tilted body, leaning body, floating feet, front view, side profile view, extra eyes, three eyes, one eye, floating eyes, gradients, text, watermark, labels, cell divider borders, CGI, clay, plastic, smooth rounded cartoon';
 
 export const MODEL_PROMPT_TEMPLATE = `low-poly faceted 3D papercraft model of {subject}. Seen in an EYE-LEVEL THREE-QUARTER VIEW, camera at the height of the subject's body (showing front and left-side facets), with all feet, paws or wheels resting on one flat horizontal ground plane.
 
@@ -58,7 +58,8 @@ STUDIO INVARIANTS (MANDATORY):
 - ABSOLUTELY ZERO SHADOWS: Completely plain, seamless flat neutral light grey #E5E5E5 background. ZERO floor shadows, ZERO cast shadows, ZERO contact shadows under base, ZERO ambient occlusion.
 - CLEAN LOW-POLY PAPERCRAFT FACETS: Crisp planar polygon facets made of solid matte paper cardstock colors with directional flat-shading only. ABSOLUTELY ZERO BLACK OUTLINE STROKES, ZERO BLACK CREASE LINES, ZERO WIREFRAME, ZERO BLUEPRINT MARKS, ZERO FOLD GUIDE LINES. Facets meet cleanly without dark lines.
 - 100% CLOSED GEOMETRIC VOLUMES: All primary forms are closed solid low-poly polyhedra suitable for papercraft folding.
-- FLAT 2D UV TEXTURE DECALS: Fine surface details (spots, stripes, whiskers, headlights, teeth, decals) are 100% flat 2D decals printed directly on the facet surfaces, never protruding 3D physical spikes or open cavities.
+- FLAT 2D UV TEXTURE DECALS: Fine surface details (spots, stripes, headlights, teeth decals) are 100% flat 2D decals printed directly on the facet surfaces, never protruding 3D physical spikes or open cavities.
+- ZERO WHISKERS (MANDATORY): ABSOLUTELY ZERO WHISKERS on any animals or cats. The muzzle and cheeks must be completely clean and smooth cardstock without any whiskers drawn, painted, or protruding. Whiskers are strictly forbidden because they are micro-elements that cannot be assembled or folded in physical papercraft.
 - EYES: For living creatures, exactly two large cute expressive round eyes with circular white catchlights painted flat onto head facets. Never three eyes, never floating eyes.
 - No shadows, no gradients, no text, no labels, no cell dividers, no grid lines.`;
 
@@ -75,9 +76,9 @@ export function slugify(input: string): string {
 export function composeStudioPrompt(subject: string, photoCount = 0): string {
   const cleanSubject = subject.trim() || 'o meu gato';
   if (photoCount === 0) {
-    return `a cute standing ${cleanSubject}, pure low-poly papercraft cardstock facets with clean planar folds, closed solid volumes with fine details painted flat as 2D UV texture decals, exactly two large expressive eyes with white catchlights, zero floor shadow`;
+    return `a cute standing ${cleanSubject}, pure low-poly papercraft cardstock facets with clean planar folds, closed solid volumes with fine details painted flat as 2D UV texture decals, clean smooth muzzle with zero whiskers, exactly two large expressive eyes with white catchlights, zero floor shadow`;
   }
-  return `a cute standing ${cleanSubject}, faithfully matching the ${photoCount} attached 3/4 reference photo(s) in proportions, fur colors, and exact markings, pure low-poly planar papercraft cardstock facets, closed solid volumes, flat 2D decals for whiskers and spots, exactly two large cute expressive eyes with white catchlights, zero floor shadow`;
+  return `a cute standing ${cleanSubject}, faithfully matching the ${photoCount} attached 3/4 reference photo(s) in proportions, fur colors, and exact markings, pure low-poly planar papercraft cardstock facets, closed solid volumes, clean smooth muzzle with zero whiskers, flat 2D decals for spots and markings, exactly two large cute expressive eyes with white catchlights, zero floor shadow`;
 }
 
 export function composeFullAiPrompt(subject: string, photoCount = 0): string {
@@ -93,7 +94,8 @@ STUDIO INVARIANTS (MANDATORY):
 - ABSOLUTELY ZERO SHADOWS: Completely plain, seamless flat neutral light grey #E5E5E5 background. ZERO floor shadows, ZERO cast shadows, ZERO contact shadows under base.
 - CLEAN LOW-POLY PAPERCRAFT FACETS: Crisp planar polygon facets made of solid matte paper cardstock colors with directional flat-shading only. ABSOLUTELY ZERO black outline strokes, ZERO crease lines, ZERO wireframe.
 - 100% CLOSED GEOMETRIC VOLUMES: All primary forms are closed solid low-poly polyhedra suitable for papercraft folding.
-- FLAT 2D UV TEXTURE DECALS: Fine surface details (spots, stripes, whiskers, teeth) are 100% flat 2D decals printed directly on facet surfaces, never protruding 3D physical spikes.
+- FLAT 2D UV TEXTURE DECALS: Fine surface details (spots, stripes, teeth decals) are 100% flat 2D decals printed directly on facet surfaces, never protruding 3D physical spikes.
+- ZERO WHISKERS (MANDATORY): ABSOLUTELY ZERO WHISKERS. Cheeks and muzzle are completely smooth cardstock without whiskers (prohibited for papercraft folding).
 - EYES: Exactly two large cute expressive round eyes with circular white catchlights painted flat onto head facets.
 - 3x2 MATRIX (6 ALTERNATIVES): 3 columns x 2 rows (Chibi -> Youthful -> Signature Adult). Pick #3 is the Papikapi Studio default.`;
   }
@@ -106,8 +108,8 @@ SUBJECT REFERENCE PHOTOS (${photoCount} photo(s) of the real subject attached):
 - Faithfully preserve the subject's identity, proportions, body shape, fur colors, and the EXACT placement and size of every patch, spot, and marking shown in these photos.
 - Photos are taken from a 3/4 perspective: replicate the subject's distinctive features in authentic low-poly folded papercraft cardstock style with crisp polygon facets.
 - Maintain the strict eye-level three-quarter viewpoint with the body level and all feet on one flat ground plane.
-- Complete entire figure without cropping, closed solid volumes, flat 2D UV texture decals for markings, exactly two expressive eyes with white catchlights, and ABSOLUTELY ZERO FLOOR SHADOWS.
-- STUDIO INVARIANTS: Crisp planar polygon facets, solid matte paper cardstock, no black outline strokes, no crease lines, seamless light grey #E5E5E5 background, zero floor shadow.`;
+- Complete entire figure without cropping, closed solid volumes, clean smooth muzzle with zero whiskers, flat 2D UV texture decals for markings, exactly two expressive eyes with white catchlights, and ABSOLUTELY ZERO FLOOR SHADOWS.
+- STUDIO INVARIANTS: Crisp planar polygon facets, solid matte paper cardstock, no black outline strokes, no crease lines, seamless light grey #E5E5E5 background, zero floor shadow, zero whiskers.`;
 }
 
 export function buildStudioPrompt(subject: string): string {

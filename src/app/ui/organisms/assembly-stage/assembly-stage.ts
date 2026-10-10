@@ -39,7 +39,10 @@ const WHEEL_ZOOM_IN = 1.1;
     PictogramComponent,
     StickerComponent,
   ],
-  host: { '(window:scroll)': 'deactivate()' },
+  host: {
+    '(window:scroll)': 'deactivate()',
+    '[class.is-active]': 'active()',
+  },
   templateUrl: './assembly-stage.html',
   styleUrl: './assembly-stage.scss',
 })
@@ -47,6 +50,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   readonly source = input.required<string>();
   readonly modelSource = input('');
   readonly built = input(PLINTH_PIECES);
+  readonly loading = input(false);
   readonly ariaLabel = input('');
   readonly releaseLabel = input('');
   readonly completeLabel = input('');
@@ -54,6 +58,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   readonly animateToEndLabel = input('');
   readonly ready = output<number>();
   readonly settled = output<number>();
+  readonly failed = output<string>();
 
   protected readonly active = signal(false);
   protected readonly mode = signal<StageMode>('animated');
@@ -85,7 +90,13 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       const mode = this.mode();
       const replays = this.replays();
       const playAlls = this.playAllRequests();
+      const isLoading = this.loading();
       if (!this.director) return;
+      if (isLoading) {
+        this.director.loopAssembly(850);
+        return;
+      }
+      this.director.stopLoop();
       const replayRequested = replays !== this.lastReplay;
       const playAllRequested = playAlls !== this.lastPlayAll;
       this.lastReplay = replays;
@@ -177,10 +188,14 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       this.director = new BuildDirector(rig, this.viewport, this.built(), (built) =>
         this.settled.emit(built)
       );
+      if (this.loading()) {
+        this.director.loopAssembly(850);
+      }
       this.ready.emit(this.director.pieceCount);
       this.settled.emit(this.director.current);
     } catch {
       this.discardFigure();
+      this.failed.emit(url);
     }
   }
 
