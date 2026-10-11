@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  isDevMode,
   signal,
   untracked,
 } from '@angular/core';
@@ -226,18 +227,23 @@ export class HomePage {
       return;
     }
 
-    try {
-      const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
-      const resStudio = await fetch(studioUrl, { method: 'HEAD' });
-      if (isStaticAsset(resStudio)) {
-        window.open(studioUrl, '_blank');
-        return;
-      }
-    } catch {
-      // Fallback
+    const studioUrl = await this.studioPdfUrl(figureId);
+    if (studioUrl) {
+      window.open(studioUrl, '_blank');
+      return;
     }
 
     window.open(primaryUrl, '_blank');
+  }
+
+  private async studioPdfUrl(figureId: string): Promise<string | null> {
+    if (!isDevMode()) return null;
+    const url = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
+    try {
+      return isStaticAsset(await fetch(url, { method: 'HEAD' })) ? url : null;
+    } catch {
+      return null;
+    }
   }
 
   private async publishedPdfUrl(figureId: string): Promise<string | null> {

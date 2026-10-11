@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { FigureAssetsService } from './figure-assets.service';
 
 export type CreationProgressState = 'running' | 'done' | 'failed';
@@ -119,6 +119,8 @@ export class CreationProgressService {
     } catch {
       // Fall back to the local studio catalogue
     }
+
+    if (!isDevMode()) return [];
 
     try {
       const response = await fetch('http://localhost:4500/models/index.json', { cache: 'no-store' });

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import {
   FigureAsset,
   isStaticAsset,
@@ -37,6 +37,7 @@ export class AssemblyPlanService {
   }
 
   private async fromStudio(asset: FigureAsset): Promise<Response | null> {
+    if (!isDevMode()) return null;
     try {
       const response = await fetch(studioFigureUrl(asset), { cache: 'no-store' });
       return isStaticAsset(response) ? response : null;
