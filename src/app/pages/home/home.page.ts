@@ -21,7 +21,6 @@ import { PLINTH_PIECES } from '@domain/models/rhythm';
 import { figureAssemblyUrl, figureModelUrl, figurePdfUrl } from '@application/config/figures';
 import { DiaryStore } from '@application/services/diary-store';
 import { CreationProgressService } from '@application/services/creation-progress.service';
-import { FigureDriveService } from '@application/services/figure-drive.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { RhythmStore } from '@application/services/rhythm-store';
 import { ModelAlternativesModalComponent } from '@ui/organisms/model-alternatives-modal/model-alternatives-modal';
@@ -68,7 +67,6 @@ export class HomePage {
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
   private readonly creation = inject(CreationProgressService);
-  private readonly drive = inject(FigureDriveService);
   private readonly pieceTotal = signal(0);
   private readonly destroyRef = inject(DestroyRef);
   private celebration?: number;
@@ -215,12 +213,6 @@ export class HomePage {
       // Fallback to Studio dev port if primary not yet picked up by asset server
     }
 
-    const driveUrl = await this.drivePdfUrl(figureId);
-    if (driveUrl) {
-      window.open(driveUrl, '_blank');
-      return;
-    }
-
     try {
       const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
       const resStudio = await fetch(studioUrl, { method: 'HEAD' });
@@ -233,15 +225,6 @@ export class HomePage {
     }
 
     window.open(primaryUrl, '_blank');
-  }
-
-  private async drivePdfUrl(figureId: string): Promise<string | null> {
-    if (!this.drive.isConfigured()) return null;
-    try {
-      return await this.drive.viewUrl(figureId, 'sheets.pdf');
-    } catch {
-      return null;
-    }
   }
 
   protected requestPromptAccess(): void {

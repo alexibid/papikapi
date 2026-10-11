@@ -24,17 +24,17 @@
             "output": "."
           },
           {
-            "glob": "t-rex/assembly.json",
+            "glob": "*/assembly.json",
             "input": "apps/papikapi-studio/public/models",
             "output": "/figures"
           },
           {
-            "glob": "t-rex/model.glb",
+            "glob": "*/model.glb",
             "input": "apps/papikapi-studio/public/models",
             "output": "/figures"
           },
           {
-            "glob": "t-rex/sheets.pdf",
+            "glob": "*/sheets.pdf",
             "input": "apps/papikapi-studio/public/models",
             "output": "/figures"
           }
@@ -55,24 +55,6 @@
             }
           ]
         }
-      },
-      "dependsOn": [
-        "^build",
-        "app-env"
-      ],
-      "inputs": [
-        "production",
-        "^production",
-        {
-          "runtime": "node tools/builder/write-app-env.mjs --project papikapi --hash"
-        }
-      ]
-    },
-    "app-env": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "options": {
-        "command": "node tools/builder/write-app-env.mjs --project papikapi"
       }
     },
     "serve": {
@@ -80,10 +62,7 @@
       "defaultConfiguration": "development",
       "options": {
         "port": 4400
-      },
-      "dependsOn": [
-        "app-env"
-      ]
+      }
     },
     "serve-e2e": {
       "executor": "@angular/build:dev-server",

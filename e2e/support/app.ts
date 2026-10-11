@@ -69,12 +69,7 @@ export async function freezeClock(page: Page, at: number): Promise<void> {
   await page.clock.setFixedTime(new Date(at));
 }
 
-async function keepDriveOff(page: Page): Promise<void> {
-  await page.route('**/app-env.json', (route) => route.fulfill({ status: 404 }));
-}
-
 async function waitForBridge(page: Page, path: string): Promise<void> {
-  await keepDriveOff(page);
   await page.goto(path, { waitUntil: 'commit' });
   await page.waitForFunction(() => typeof window.papikapiDev?.seed === 'function', undefined, {
     timeout: 30_000,

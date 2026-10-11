@@ -1,33 +1,25 @@
-import { InjectionToken, inject } from '@angular/core';
+import { InjectionToken } from '@angular/core';
 import { Group } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { parseFigureUrl, studioFigureUrl } from '@application/config/figures';
-import { FigureDriveService } from '@application/services/figure-drive.service';
 
 export type FinalModelLoader = (url: string) => Promise<Group>;
 
 export const FINAL_MODEL_LOADER = new InjectionToken<FinalModelLoader>('FINAL_MODEL_LOADER', {
   providedIn: 'root',
-  factory: () => {
-    const drive = inject(FigureDriveService);
+  factory: () => async (url) => {
     const loader = new GLTFLoader();
-    const load = async (url: string): Promise<Group> => (await loader.loadAsync(url)).scene;
-
-    return async (url) => {
-      try {
-        return await load(url);
-      } catch (bundledError) {
-        const asset = parseFigureUrl(url);
-        if (!asset) throw bundledError;
-        if (drive.isConfigured()) {
-          try {
-            return await load(await drive.assetUrl(asset.figureId, asset.file));
-          } catch {
-            // Drive unavailable, fall back to the local studio
-          }
+    try {
+      return (await loader.loadAsync(url)).scene;
+    } catch (err) {
+      if (url.startsWith('/figures/')) {
+        const match = url.match(/^\/figures\/([^/]+)\/(.*)$/);
+        if (match) {
+          const [, figureId, rest] = match;
+          const fallbackUrl = `http://localhost:4500/models/${figureId}/${rest}`;
+          return (await loader.loadAsync(fallbackUrl)).scene;
         }
-        return load(studioFigureUrl(asset));
       }
-    };
+      throw err;
+    }
   },
 });
