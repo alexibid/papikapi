@@ -18,7 +18,13 @@ import { totalPoints } from '@domain/services/growth-engine';
 import { piecesBuilt } from '@domain/services/pieces-built';
 import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
-import { figureAssemblyUrl, figureModelUrl, figurePdfUrl } from '@application/config/figures';
+import {
+  figureAssemblyUrl,
+  figureModelUrl,
+  figurePdfUrl,
+  isStaticAsset,
+} from '@application/config/figures';
+import { FigureAssetsService } from '@application/services/figure-assets.service';
 import { DiaryStore } from '@application/services/diary-store';
 import { CreationProgressService } from '@application/services/creation-progress.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
@@ -67,6 +73,7 @@ export class HomePage {
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
   private readonly creation = inject(CreationProgressService);
+  private readonly figureAssets = inject(FigureAssetsService);
   private readonly pieceTotal = signal(0);
   private readonly destroyRef = inject(DestroyRef);
   private celebration?: number;
@@ -205,7 +212,7 @@ export class HomePage {
 
     try {
       const res = await fetch(primaryUrl, { method: 'HEAD' });
-      if (res.ok) {
+      if (isStaticAsset(res)) {
         window.open(primaryUrl, '_blank');
         return;
       }
@@ -213,10 +220,16 @@ export class HomePage {
       // Fallback to Studio dev port if primary not yet picked up by asset server
     }
 
+    const publishedUrl = await this.publishedPdfUrl(figureId);
+    if (publishedUrl) {
+      window.open(publishedUrl, '_blank');
+      return;
+    }
+
     try {
       const studioUrl = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
       const resStudio = await fetch(studioUrl, { method: 'HEAD' });
-      if (resStudio.ok) {
+      if (isStaticAsset(resStudio)) {
         window.open(studioUrl, '_blank');
         return;
       }
@@ -225,6 +238,14 @@ export class HomePage {
     }
 
     window.open(primaryUrl, '_blank');
+  }
+
+  private async publishedPdfUrl(figureId: string): Promise<string | null> {
+    try {
+      return await this.figureAssets.pdfUrl(figureId);
+    } catch {
+      return null;
+    }
   }
 
   protected requestPromptAccess(): void {

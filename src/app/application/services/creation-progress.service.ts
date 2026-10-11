@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { FigureAssetsService } from './figure-assets.service';
 
 export type CreationProgressState = 'running' | 'done' | 'failed';
 
@@ -16,6 +17,8 @@ export type CreationProgressListener = (progress: CreationProgress) => void;
 
 @Injectable({ providedIn: 'root' })
 export class CreationProgressService {
+  private readonly assets = inject(FigureAssetsService);
+
   connect(modelName: string, listener: CreationProgressListener): () => void {
     if (typeof EventSource === 'undefined') {
       return () => {};
@@ -108,6 +111,13 @@ export class CreationProgressService {
   async fetchCatalogue(): Promise<readonly string[]> {
     if (typeof fetch !== 'function') {
       return [];
+    }
+
+    try {
+      const ids = await this.assets.catalogueIds();
+      if (ids.length > 0) return ids;
+    } catch {
+      // Fall back to the local studio catalogue
     }
 
     try {

@@ -69,7 +69,12 @@ export async function freezeClock(page: Page, at: number): Promise<void> {
   await page.clock.setFixedTime(new Date(at));
 }
 
+async function keepFigureHostOffline(page: Page): Promise<void> {
+  await page.route('https://ibid-assets.web.app/**', (route) => route.abort());
+}
+
 async function waitForBridge(page: Page, path: string): Promise<void> {
+  await keepFigureHostOffline(page);
   await page.goto(path, { waitUntil: 'commit' });
   await page.waitForFunction(() => typeof window.papikapiDev?.seed === 'function', undefined, {
     timeout: 30_000,
