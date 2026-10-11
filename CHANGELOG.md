@@ -1,3 +1,9 @@
+## 0.1.13 (2026-10-11)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** revert the drive figures loading and the delivery of its api key (840caf5)
+
 ## 0.1.12 (2026-10-11)
 
 ### 🚀 Features
