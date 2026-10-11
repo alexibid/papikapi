@@ -1,3 +1,9 @@
+## 0.1.12 (2026-10-11)
+
+### 🚀 Features
+
+- **papikapi:** read the drive api key from .env through a runtime app-env.json file (d0f42b4)
+
 ## 0.1.11 (2026-10-10)
 
 ### 🐛 Bug Fixes
