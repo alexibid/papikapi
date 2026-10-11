@@ -1,3 +1,10 @@
+## 0.1.14 (2026-10-11)
+
+### 🚀 Features
+
+- **papikapi:** load figures from a static assets site and open pdfs through the drive viewer (5bc8ad4)
+- **papikapi:** load figures from a static assets site and open pdfs through the drive viewer (b5530e8)
+
 ## 0.1.13 (2026-10-11)
 
 ### 🐛 Bug Fixes
