@@ -122,7 +122,9 @@ describe('FigureAssetsService', () => {
   it('builds the Drive viewer link for the pdf without any key', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(hostStub(() => revision));
 
-    await expect(service().pdfUrl('fox')).resolves.toBe('https://drive.google.com/file/d/pdf-1/view');
-    await expect(service().pdfUrl('owl')).rejects.toThrow('pdf not published');
+    const assets = service();
+
+    await expect(assets.pdfUrl('fox')).resolves.toBe('https://drive.google.com/file/d/pdf-1/view');
+    await expect(assets.pdfUrl('owl')).rejects.toThrow('pdf not published');
   });
 });
