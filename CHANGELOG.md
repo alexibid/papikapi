@@ -1,3 +1,9 @@
+## 0.1.15 (2026-10-11)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** use the local studio only in development and stop contacting localhost in production (d3f4534)
+
 ## 0.1.14 (2026-10-11)
 
 ### 🚀 Features
