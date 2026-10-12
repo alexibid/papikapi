@@ -1,3 +1,9 @@
+## 0.1.16 (2026-10-12)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** prioritize local studio assets and isolate figure in 3d stage (c55b12e)
+
 ## 0.1.15 (2026-10-11)
 
 ### 🐛 Bug Fixes
