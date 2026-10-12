@@ -122,6 +122,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       this.canvasRef().nativeElement,
       this.containerRef().nativeElement
     );
+    this.viewport.onResize((w, h) => this.rig?.resize(w, h));
     void this.load(this.source());
   }
 
@@ -183,6 +184,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
     if (!url || !this.viewport) return;
     try {
       const rig = new AssemblyRig(await this.plans.load(url), HOME_YAW);
+      rig.resize(this.viewport.width, this.viewport.height);
       this.viewport.scene.add(rig.root);
       this.rig = rig;
       this.director = new BuildDirector(rig, this.viewport, this.built(), (built) =>

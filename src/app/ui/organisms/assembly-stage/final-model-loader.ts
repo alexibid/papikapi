@@ -14,10 +14,17 @@ export const FINAL_MODEL_LOADER = new InjectionToken<FinalModelLoader>('FINAL_MO
     const load = async (url: string): Promise<Group> => (await loader.loadAsync(url)).scene;
 
     return async (url) => {
+      const asset = parseFigureUrl(url);
+      if (asset && isDevMode()) {
+        try {
+          return await load(studioFigureUrl(asset));
+        } catch {
+          // Fall back to bundled or assets
+        }
+      }
       try {
         return await load(url);
       } catch (bundledError) {
-        const asset = parseFigureUrl(url);
         if (!asset) throw bundledError;
         try {
           return await load(await assets.assetUrl(asset.figureId, asset.file));

@@ -11,6 +11,7 @@ export class StageViewport {
   private readonly renderer: WebGLRenderer;
   private readonly resizeObserver?: ResizeObserver;
   private frameId?: number;
+  private onResizeCallback?: (width: number, height: number) => void;
 
   constructor(
     createRenderer: RendererFactory,
@@ -27,11 +28,24 @@ export class StageViewport {
     }
   }
 
+  get width(): number {
+    return this.container.clientWidth || 1;
+  }
+
+  get height(): number {
+    return this.container.clientHeight || 1;
+  }
+
+  onResize(callback: (width: number, height: number) => void): void {
+    this.onResizeCallback = callback;
+  }
+
   fit(): void {
     const width = this.container.clientWidth || 1;
     const height = this.container.clientHeight || 1;
     this.renderer.setSize(width, height, false);
     this.camera.resize(width / height);
+    this.onResizeCallback?.(width, height);
     this.draw();
   }
 
