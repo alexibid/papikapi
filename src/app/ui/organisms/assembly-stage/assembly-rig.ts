@@ -1,4 +1,5 @@
-import { DoubleSide, Group, LineBasicMaterial, MeshLambertMaterial, Sphere } from 'three';
+import { DoubleSide, Group, MeshLambertMaterial, Sphere } from 'three';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { AssemblyPlan } from '@domain/assembly/assembly-plan';
 import { focusWeight } from '@domain/assembly/assembly-timeline';
 import {
@@ -15,6 +16,7 @@ const MM_TO_SCENE = 0.001;
 const MIN_SHOT_SHARE = 0.22;
 const LABEL_HEIGHT_MM = 70;
 const LABEL_FADE_END = 0.2;
+const WIREFRAME_LINE_WIDTH = 3.5;
 
 export class AssemblyRig {
   readonly root = new Group();
@@ -24,17 +26,21 @@ export class AssemblyRig {
     side: DoubleSide,
     flatShading: true,
   });
-  private readonly wireframe = new LineBasicMaterial({
+  private readonly wireframe = new LineMaterial({
     vertexColors: true,
     transparent: true,
-    opacity: 0.9,
+    opacity: 0.95,
     depthWrite: false,
+    linewidth: WIREFRAME_LINE_WIDTH,
   });
   private readonly pieces: readonly PieceRig[];
   private readonly labels: readonly PieceLabel[];
   private readonly figure: Sphere;
 
   constructor(plan: AssemblyPlan, viewYaw: number) {
+    if (typeof window !== 'undefined') {
+      this.wireframe.resolution.set(window.innerWidth || 1024, window.innerHeight || 768);
+    }
     const footprint = figureFootprint(plan);
     const cell = horizonCell(plan.pieces.map((piece) => piece.size));
     const slots = plan.pieces.map((_, index) => horizonSlot(index, footprint, cell, viewYaw));
@@ -60,6 +66,10 @@ export class AssemblyRig {
 
   get pieceCount(): number {
     return this.pieces.length;
+  }
+
+  resize(width: number, height: number): void {
+    this.wireframe.resolution.set(width, height);
   }
 
   figureShot(): Sphere {

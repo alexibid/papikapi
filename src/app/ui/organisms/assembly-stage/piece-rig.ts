@@ -1,4 +1,7 @@
-import { Box3, Group, LineSegments, Material, Matrix4, Mesh, Object3D, Quaternion, Sphere, Vector3 } from 'three';
+import { Box3, Group, Material, Matrix4, Mesh, Object3D, Quaternion, Sphere, Vector3 } from 'three';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import {
   AssemblyFace,
   AssemblyPiece,
@@ -21,7 +24,7 @@ interface FaceNode {
 
 export interface PieceMaterials {
   readonly solid: Material;
-  readonly wireframe: Material;
+  readonly wireframe: LineMaterial;
 }
 
 export class PieceRig {
@@ -50,9 +53,16 @@ export class PieceRig {
       const solid = solidGeometry(face);
       this.finished.add(new Mesh(solid, materials.solid));
     });
-    this.wireframe.add(
-      new LineSegments(pieceWireframeGeometry(piece.faces, bounds), materials.wireframe),
-    );
+    const wireframeGeom = pieceWireframeGeometry(piece.faces, bounds);
+    const positions = wireframeGeom.getAttribute('position');
+    const colors = wireframeGeom.getAttribute('color');
+    if (positions && positions.count > 0 && colors) {
+      const lineGeom = new LineSegmentsGeometry();
+      lineGeom.setPositions(positions.array as Float32Array);
+      lineGeom.setColors(colors.array as Float32Array);
+      this.wireframe.add(new LineSegments2(lineGeom, materials.wireframe));
+    }
+    wireframeGeom.dispose();
     this.group.add(this.folding, this.finished, this.wireframe);
   }
 
@@ -86,7 +96,7 @@ export class PieceRig {
 
   dispose(): void {
     this.group.traverse((node) => {
-      if (node instanceof Mesh || node instanceof LineSegments) {
+      if (node instanceof Mesh || node instanceof LineSegments2) {
         node.geometry.dispose();
       }
     });

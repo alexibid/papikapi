@@ -25,7 +25,7 @@ export class AssemblyPlanService {
     const bundled = await fetch(url, { cache: 'no-store' });
     const asset = parseFigureUrl(url);
     if (isStaticAsset(bundled) || !asset) return bundled;
-    return (await this.fromAssets(asset)) ?? (await this.fromStudio(asset)) ?? bundled;
+    return (await this.fromStudio(asset)) ?? (await this.fromAssets(asset)) ?? bundled;
   }
 
   private async fromAssets(asset: FigureAsset): Promise<Response | null> {
