@@ -104,4 +104,69 @@ describe('FigureProgressStore', () => {
     store.select(DEFAULT_FIGURE_ID, { forceReload: true });
     expect(store.progress().seenPieces).toBe(1);
   });
+
+  it('consolidates raw points by a factor of 10 and tracks consolidating progress', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.syncTotalPoints(107);
+    expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(10);
+    expect(store.consolidatingProgress()).toBe(7);
+  });
+
+  it('preserves each figure points and built pieces when switching figures', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    // Award 15 consolidated points (from 150 raw points) to default figure
+    store.syncTotalPoints(150);
+    store.markSeen(6);
+
+    expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(15);
+    expect(store.progress().seenPieces).toBe(6);
+
+    // Transfer 3 points to ankylosaurus
+    store.allocatePoint('ankylosaurus');
+    store.allocatePoint('ankylosaurus');
+    store.allocatePoint('ankylosaurus');
+
+    expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
+    expect(store.allocation('ankylosaurus')).toBe(3);
+
+    // Switch to ankylosaurus
+    store.choose('ankylosaurus');
+    store.markSeen(2);
+
+    expect(store.progress().currentId).toBe('ankylosaurus');
+    expect(store.allocation('ankylosaurus')).toBe(3);
+    expect(store.progress().seenPieces).toBe(2);
+    expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
+
+    // Switch back to default figure: points and seen pieces are fully restored
+    store.choose(DEFAULT_FIGURE_ID);
+    expect(store.progress().currentId).toBe(DEFAULT_FIGURE_ID);
+    expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
+    expect(store.progress().seenPieces).toBe(6);
+    expect(store.allocation('ankylosaurus')).toBe(3);
+
+    // Verify persistence across reload
+    TestBed.resetTestingModule();
+    const reloaded = TestBed.inject(FigureProgressStore);
+    expect(reloaded.progress().currentId).toBe(DEFAULT_FIGURE_ID);
+    expect(reloaded.allocation(DEFAULT_FIGURE_ID)).toBe(12);
+    expect(reloaded.progress().seenPieces).toBe(6);
+    expect(reloaded.allocation('ankylosaurus')).toBe(3);
+  });
+
+  it('allows removing a 0-point figure from the shelf and restores it when chosen', () => {
+    const store = TestBed.inject(FigureProgressStore);
+    store.removeFigureFromShelf('fox');
+    expect(store.progress().hiddenShelfIds).toContain('fox');
+
+    // Reload preserves hiddenShelfIds
+    TestBed.resetTestingModule();
+    const reloaded = TestBed.inject(FigureProgressStore);
+    expect(reloaded.progress().hiddenShelfIds).toContain('fox');
+
+    // Choosing fox unhides it
+    reloaded.choose('fox');
+    expect(reloaded.progress().currentId).toBe('fox');
+    expect(reloaded.progress().hiddenShelfIds).not.toContain('fox');
+  });
 });

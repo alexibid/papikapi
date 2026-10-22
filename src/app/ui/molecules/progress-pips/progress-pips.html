@@ -1,12 +1,94 @@
-<div
-  class="m-progress-pips"
-  [attr.role]="ariaLabel() ? 'img' : null"
-  [attr.aria-label]="ariaLabel() || null"
-  [attr.aria-hidden]="ariaLabel() ? null : true"
->
-  @for (pip of pips(); track $index) {
-    <span class="m-progress-pips__pip" [class.m-progress-pips__pip--filled]="pip.filled">
-      <papikapi-sticker [name]="pip.paw" />
-    </span>
-  }
+<div class="m-progress-pips-shell">
+  <div
+    class="m-progress-pips"
+    [style.width]="stripWidth()"
+    [style.--papikapi-paper-fill]="stripColor()"
+    [attr.role]="ariaLabel() ? 'img' : null"
+    [attr.aria-label]="ariaLabel() || null"
+    [attr.aria-hidden]="ariaLabel() ? null : true"
+  >
+    <div class="m-progress-pips__strip">
+      <ng-template #harmonicaFold let-idx="index">
+        @if (idx < folds().length) {
+          @let fold = folds()[idx];
+          <div
+            class="m-progress-pips__fold m-progress-pips__pip"
+            [class.m-progress-pips__pip--filled]="fold.filled"
+            [class.m-progress-pips__fold--root]="idx === 0"
+            [class.m-progress-pips__fold--last]="idx === folds().length - 1"
+            [class.m-progress-pips__fold--even]="idx % 2 === 0"
+            [class.m-progress-pips__fold--odd]="idx % 2 === 1"
+            [class.m-progress-pips__fold--unfolded]="fold.filled"
+            [class.m-progress-pips__fold--folded]="!fold.filled"
+            [style.transform]="foldTransform(idx)"
+            [style.z-index]="idx + 1"
+          >
+            <div class="m-progress-pips__face">
+              <div
+                class="m-progress-pips__pleat"
+                [class.m-progress-pips__pleat--light]="idx >= effectiveFilled() && idx % 2 === 0"
+                [class.m-progress-pips__pleat--shade]="idx >= effectiveFilled() && idx % 2 === 1"
+                [class.m-progress-pips__pleat--open-light]="idx < effectiveFilled() && idx % 2 === 0"
+                [class.m-progress-pips__pleat--open-shade]="idx < effectiveFilled() && idx % 2 === 1"
+                aria-hidden="true"
+              ></div>
+            </div>
+
+            @for (burst of burstsFor(idx); track burst.burstId) {
+              <div class="m-progress-pips__confetti-origin" aria-hidden="true">
+                @for (piece of burst.pieces; track piece.id) {
+                  <span
+                    class="m-progress-pips__confetti m-progress-pips__confetti--{{ piece.shape }}"
+                    [style.--dx.px]="piece.x"
+                    [style.--dy.px]="piece.y"
+                    [style.--rx.deg]="piece.rotX"
+                    [style.--ry.deg]="piece.rotY"
+                    [style.--rz.deg]="piece.rotZ"
+                    [style.--sz.px]="piece.size"
+                    [style.--delay.ms]="piece.delayMs"
+                    [style.background-color]="piece.color"
+                  ></span>
+                }
+              </div>
+            }
+
+            <ng-container *ngTemplateOutlet="harmonicaFold; context: { index: idx + 1 }"></ng-container>
+          </div>
+        }
+      </ng-template>
+
+      <ng-container *ngTemplateOutlet="harmonicaFold; context: { index: 0 }"></ng-container>
+    </div>
+
+    <div class="m-progress-pips__peek-wrap">
+      <button
+        type="button"
+        class="m-progress-pips__peek-btn"
+        [ibidHandDrawn]="1"
+        (click)="openPeek()"
+        aria-label="Abrir harmónio com confetis"
+        title="Abrir harmónio com confetis"
+      >
+        <papikapi-pictogram name="confetti" />
+      </button>
+
+      @for (burst of buttonBursts(); track burst.burstId) {
+        <div class="m-progress-pips__btn-confetti-origin" aria-hidden="true">
+          @for (piece of burst.pieces; track piece.id) {
+            <span
+              class="m-progress-pips__confetti m-progress-pips__confetti--{{ piece.shape }}"
+              [style.--dx.px]="piece.x"
+              [style.--dy.px]="piece.y"
+              [style.--rx.deg]="piece.rotX"
+              [style.--ry.deg]="piece.rotY"
+              [style.--rz.deg]="piece.rotZ"
+              [style.--sz.px]="piece.size"
+              [style.--delay.ms]="piece.delayMs"
+              [style.background-color]="piece.color"
+            ></span>
+          }
+        </div>
+      }
+    </div>
+  </div>
 </div>

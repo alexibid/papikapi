@@ -199,4 +199,24 @@ describe('HomePage model selection and prompt flow', () => {
     expect(component['figureModel']()).toContain(`?v=${component['modelVersion']()}`);
     expect(initialSource).toContain(`?v=${initialVersion}`);
   });
+
+  it('removes shelf header and renders no visible text in the shelf', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.papikapi-child__shelf-header')).toBeNull();
+    expect(el.querySelector('.papikapi-child__shelf-track')).toBeNull();
+    const shelf = el.querySelector('.papikapi-child__shelf');
+    expect(shelf?.textContent?.trim()).toBe('');
+  });
+
+  it('toggles task status when task card is clicked', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const taskCards = el.querySelectorAll('papikapi-task-card');
+    expect(taskCards.length).toBeGreaterThan(0);
+
+    const initialDone = component['doneCount']();
+    (taskCards[2] as HTMLElement).click();
+    fixture.detectChanges();
+
+    expect(component['doneCount']()).not.toBe(initialDone);
+  });
 });

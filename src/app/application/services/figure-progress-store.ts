@@ -2,7 +2,17 @@ import { Injectable, signal } from '@angular/core';
 import { DEFAULT_FIGURE_ID, SHIPPED_FIGURE_IDS } from '@domain/data/shipped-figures';
 import { FigureProgress } from '@domain/models/figure-progress';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
-import { chooseFigure, mountCurrent, startProgress } from '@domain/services/figure-cycle';
+import {
+  allocateCreditToCurrent,
+  allocatePoint,
+  chooseFigure,
+  consolidatePoints,
+  figureAllocation,
+  mountCurrent,
+  reclaimPoint,
+  removeFigureFromShelf,
+  startProgress,
+} from '@domain/services/figure-cycle';
 
 const STORAGE_KEY = 'papikapi.figure-progress';
 const CUSTOM_FIGURES_KEY = 'papikapi.custom-figures';
@@ -43,17 +53,133 @@ export class FigureProgressStore {
   }
 
   markSeen(pieces: number): void {
-    if (pieces === this.current().seenPieces) return;
-    this.save({ ...this.current(), seenPieces: pieces });
+    const cur = this.current();
+    if (pieces === cur.seenPieces && cur.seenPiecesByFigure?.[cur.currentId] === pieces) return;
+    this.save({
+      ...cur,
+      seenPieces: pieces,
+      seenPiecesByFigure: {
+        ...(cur.seenPiecesByFigure ?? {}),
+        [cur.currentId]: pieces,
+      },
+    });
   }
 
-  choose(figureId: string, seenPieces: number): void {
+  allocation(figureId: string): number {
+    return figureAllocation(this.current(), figureId);
+  }
+
+  unassignedCredits(): number {
+    return this.current().unassignedCredit ?? 0;
+  }
+
+  consolidatingProgress(): number {
+    return this.current().consolidatingProgress ?? 0;
+  }
+
+  setUnassignedCredit(amount: number): void {
+    this.save({ ...this.current(), unassignedCredit: Math.max(0, amount) });
+  }
+
+  allocatePoint(targetFigureId: string): void {
+    this.save(allocatePoint(this.current(), targetFigureId));
+  }
+
+  reclaimPoint(sourceFigureId: string): void {
+    this.save(reclaimPoint(this.current(), sourceFigureId));
+  }
+
+  allocateCreditToCurrent(): void {
+    this.save(allocateCreditToCurrent(this.current()));
+  }
+
+  removeFigureFromShelf(figureId: string): void {
+    this.save(removeFigureFromShelf(this.current(), figureId));
+  }
+
+  addFigurePoints(figureId: string, count = 1): void {
+    const safeCount = Math.max(1, Math.round(count));
+    const cur = this.current();
+    const allocations = { ...(cur.allocations ?? {}) };
+    const curPts = allocations[figureId] ?? this.allocation(figureId);
+    allocations[figureId] = curPts + safeCount;
+    const hidden = (cur.hiddenShelfIds ?? []).filter((id) => id !== figureId);
+    const shelfIds = Array.from(new Set([...(cur.shelfIds ?? [cur.currentId]), figureId]));
+    this.save({
+      ...cur,
+      hiddenShelfIds: hidden,
+      shelfIds,
+      allocations,
+    });
+  }
+
+  removeFigurePoints(figureId: string, count = 1): void {
+    const safeCount = Math.max(1, Math.round(count));
+    const cur = this.current();
+    const allocations = { ...(cur.allocations ?? {}) };
+    const curPts = allocations[figureId] ?? this.allocation(figureId);
+    const nextPts = Math.max(0, curPts - safeCount);
+    allocations[figureId] = nextPts;
+    const nextMounted = nextPts <= 0
+      ? cur.mountedIds.filter((id) => id !== figureId)
+      : cur.mountedIds;
+    this.save({
+      ...cur,
+      mountedIds: nextMounted,
+      allocations,
+    });
+  }
+
+  syncTotalPoints(rawPoints: number): void {
+    const cur = this.current();
+    const { consolidated, consolidating } = consolidatePoints(rawPoints);
+    const allocations = { ...(cur.allocations ?? {}) };
+    const curPts = allocations[cur.currentId] ?? Math.max(0, cur.baselinePoints);
+    const sumAll =
+      Object.values(allocations).reduce((acc, p) => acc + Math.max(0, p), 0) +
+      (cur.unassignedCredit ?? 0);
+
+    if (consolidated === 0 && sumAll > 0) {
+      this.save({
+        ...cur,
+        allocations: { [cur.currentId]: 0 },
+        unassignedCredit: 0,
+        consolidatingProgress: consolidating,
+      });
+      return;
+    }
+
+    if (consolidated > sumAll) {
+      const diff = consolidated - sumAll;
+      allocations[cur.currentId] = curPts + diff;
+      this.save({
+        ...cur,
+        allocations,
+        consolidatingProgress: consolidating,
+      });
+    } else if (consolidated < sumAll) {
+      const diff = sumAll - consolidated;
+      allocations[cur.currentId] = Math.max(0, curPts - diff);
+      this.save({
+        ...cur,
+        allocations,
+        consolidatingProgress: consolidating,
+      });
+    } else if ((cur.consolidatingProgress ?? 0) !== consolidating) {
+      this.save({
+        ...cur,
+        consolidatingProgress: consolidating,
+      });
+    }
+  }
+
+  choose(figureId: string, seenPieces?: number): void {
     this.save(chooseFigure(this.current(), figureId, this.catalogue, seenPieces));
   }
 
   select(
     figureId: string,
-    options?: { readonly allowCustom?: boolean; readonly forceReload?: boolean }
+    options?: { readonly allowCustom?: boolean; readonly forceReload?: boolean; readonly keepMounted?: boolean }
   ): void {
     if (options?.allowCustom) {
       this.registerCustomFigure(figureId);
@@ -61,12 +187,32 @@ export class FigureProgressStore {
     if (!this.catalogue.includes(figureId)) return;
     const prev = this.current();
     if (prev.currentId === figureId && !options?.forceReload) return;
-    const mountedIds = prev.mountedIds.filter((id) => id !== figureId);
+    const mountedIds = options?.keepMounted
+      ? prev.mountedIds
+      : prev.mountedIds.filter((id) => id !== figureId);
+    const allocations = { ...(prev.allocations ?? {}) };
+    const byFigure = { ...(prev.seenPiecesByFigure ?? {}) };
+    const restoredPieces = options?.forceReload
+      ? PLINTH_PIECES
+      : (byFigure[figureId] ?? PLINTH_PIECES);
+    const hidden = (prev.hiddenShelfIds ?? []).filter((id) => id !== figureId);
+    const shelfIds = Array.from(new Set([...(prev.shelfIds ?? [prev.currentId]), figureId]));
+
     this.save({
       ...prev,
       currentId: figureId,
       mountedIds,
-      seenPieces: PLINTH_PIECES,
+      seenPieces: restoredPieces,
+      seenPiecesByFigure: {
+        ...byFigure,
+        [figureId]: restoredPieces,
+      },
+      allocations: {
+        ...allocations,
+        [figureId]: allocations[figureId] ?? 0,
+      },
+      hiddenShelfIds: hidden,
+      shelfIds,
     });
   }
 
@@ -90,7 +236,23 @@ export class FigureProgressStore {
         if (!SHIPPED_FIGURE_IDS.includes(stored.currentId)) {
           this.registerCustomFigure(stored.currentId);
         }
-        return stored;
+        const allocations = { ...(stored.allocations ?? {}) };
+        if (!(stored.currentId in allocations)) {
+          allocations[stored.currentId] = Math.max(0, stored.baselinePoints ?? 0);
+        }
+        const byFigure = { ...(stored.seenPiecesByFigure ?? {}) };
+        if (!(stored.currentId in byFigure)) {
+          byFigure[stored.currentId] = stored.seenPieces;
+        }
+        return {
+          ...stored,
+          allocations,
+          unassignedCredit: stored.unassignedCredit ?? 0,
+          consolidatingProgress: stored.consolidatingProgress ?? 0,
+          seenPiecesByFigure: byFigure,
+          hiddenShelfIds: Array.isArray(stored.hiddenShelfIds) ? stored.hiddenShelfIds : [],
+          shelfIds: Array.isArray(stored.shelfIds) ? stored.shelfIds : [stored.currentId],
+        };
       }
       return startProgress(DEFAULT_FIGURE_ID);
     } catch {

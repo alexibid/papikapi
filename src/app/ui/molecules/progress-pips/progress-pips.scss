@@ -1,26 +1,326 @@
 :host {
   display: block;
+  width: 100%;
+}
+
+.m-progress-pips-shell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
 }
 
 .m-progress-pips {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  min-height: 3.2rem;
-  padding: 0.3rem 1rem;
-  background: url('/scene/bar.webp') center / 100% 100% no-repeat;
-  filter: drop-shadow(0 1px 1px var(--papikapi-paper-contact))
-    drop-shadow(0 6px 10px var(--papikapi-paper-lift));
+  position: relative;
+  display: block;
+  height: 3.4rem;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: visible;
+  // Slow, graceful expansion of the continuous sheet
+  transition: width 2.4s cubic-bezier(0.25, 1, 0.5, 1);
 
-  &__pip {
-    display: block;
-    flex: 0 0 auto;
-    width: 1.9rem;
-    height: 1.9rem;
-    filter: grayscale(1) opacity(0.35);
+  &::before,
+  &::after {
+    display: none !important;
+  }
 
-    &--filled {
-      filter: none;
+  &__strip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    perspective-origin: left center;
+    transform-style: preserve-3d;
+    overflow: visible;
+    filter: drop-shadow(0 1px 1px var(--papikapi-paper-contact)) drop-shadow(0 4px 8px var(--papikapi-paper-lift));
+    border: none;
+    outline: none;
+  }
+
+  // Each fold is attached to the right edge (left: 100%) of its parent fold in a 3D chain
+  &__fold {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3.6rem;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform-origin: left center;
+    overflow: visible;
+    box-sizing: border-box;
+    // Slower, graceful 3D rotation unfolding ("mais lento a fazer unfold")
+    transition: transform 2.4s cubic-bezier(0.25, 1, 0.5, 1);
+
+    &:not(.m-progress-pips__fold--root) {
+      left: calc(100% - 0.5px); // overlap by subpixel to guarantee zero visible gap
     }
+  }
+
+  &__face {
+    position: absolute;
+    inset: 0;
+    background-color: var(--papikapi-paper-fill);
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: background-color 1.2s ease;
+
+    // Authentic Papikapi paper fiber and grain texture
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(
+          128deg,
+          rgba(255, 255, 255, 0.16) 0%,
+          rgba(255, 255, 255, 0.16) 34%,
+          transparent 34%,
+          transparent 62%,
+          rgba(86, 54, 38, 0.04) 62%,
+          rgba(86, 54, 38, 0.04) 100%
+        ),
+        linear-gradient(
+          52deg,
+          transparent 0%,
+          transparent 70%,
+          rgba(255, 255, 255, 0.09) 70%,
+          rgba(255, 255, 255, 0.09) 100%
+        );
+    }
+  }
+
+  // Continuous paper ribbon geometry:
+  // Internal seams between folds are solid continuous creases (0% to 100% straight edge)
+  // so folds connect with ZERO gaps, forming a single unbroken strip of folded paper.
+
+  // Middle folds: straight vertical crease on left AND right
+  &__fold:not(&__fold--root):not(&__fold--last) &__face {
+    clip-path: polygon(
+      0% 0%,
+      25% 0px, 50% 2px, 75% 0px,
+      100% 0%,
+      100% 100%,
+      75% 100%, 50% calc(100% - 2px), 25% 100%,
+      0% 100%
+    );
+  }
+
+  // First fold: cut start of the paper ribbon on the left, straight vertical crease on the right
+  &__fold--root:not(.m-progress-pips__fold--last) &__face {
+    clip-path: polygon(
+      2px 2px,
+      25% 0px, 50% 2px, 75% 0px,
+      100% 0%,
+      100% 100%,
+      75% 100%, 50% calc(100% - 2px), 25% 100%,
+      2px calc(100% - 2px),
+      0% 50%
+    );
+  }
+
+  // Last fold: straight vertical crease on the left, cut end of the paper ribbon on the right
+  &__fold--last:not(.m-progress-pips__fold--root) &__face {
+    clip-path: polygon(
+      0% 0%,
+      25% 0px, 50% 2px, 75% 0px,
+      calc(100% - 2px) 2px,
+      100% 50%,
+      calc(100% - 2px) calc(100% - 2px),
+      75% 100%, 50% calc(100% - 2px), 25% 100%,
+      0% 100%
+    );
+  }
+
+  // Single fold fallback
+  &__fold--root.m-progress-pips__fold--last &__face {
+    clip-path: var(--papikapi-cut-1);
+  }
+
+  &__pleat {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: opacity 2.4s ease, background 2.4s ease;
+
+    // Tightly closed state (78deg): sharp high-contrast highlight along angled fold
+    &--light {
+      opacity: 1;
+      background: linear-gradient(
+        118deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.15) 40%,
+        rgba(0, 0, 0, 0.12) 100%
+      );
+    }
+
+    // Tightly closed state (78deg): deep paper valley shadow along angled fold
+    &--shade {
+      opacity: 1;
+      background: linear-gradient(
+        118deg,
+        rgba(0, 0, 0, 0.35) 0%,
+        rgba(0, 0, 0, 0.15) 60%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
+    }
+
+    // Unfolded open state (14deg): remains slightly folded with subtle soft paper wave shading
+    &--open-light {
+      opacity: 1;
+      background: linear-gradient(
+        118deg,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(0, 0, 0, 0.04) 100%
+      );
+    }
+
+    &--open-shade {
+      opacity: 1;
+      background: linear-gradient(
+        118deg,
+        rgba(0, 0, 0, 0.12) 0%,
+        rgba(255, 255, 255, 0.08) 100%
+      );
+    }
+  }
+
+  &__confetti-origin,
+  &__btn-confetti-origin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  &__confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--sz, 8px);
+    height: var(--sz, 8px);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+    animation: paperConfettiFly 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation-delay: var(--delay, 0ms);
+
+    &--rect {
+      border-radius: 1px;
+    }
+
+    &--triangle {
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
+
+    &--strip {
+      height: calc(var(--sz, 8px) * 2.2);
+      width: calc(var(--sz, 8px) * 0.6);
+      border-radius: 1px;
+    }
+  }
+
+  // Positioned exactly at the top-right corner of the paper sheet ("no top right do canto da folha")
+  &__peek-wrap {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    z-index: 50;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Discrete corner badge button, exactly half the original size (1.7rem vs 3.4rem)
+  &__peek-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex: 0 0 1.7rem;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--color-ink);
+    --papikapi-paper-fill: var(--color-surface, #ffffff);
+    box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.16);
+    transition: transform 0.15s ease, filter 0.15s ease;
+
+    &:active {
+      transform: scale(0.9);
+    }
+
+    papikapi-pictogram {
+      display: block;
+      width: 1.05rem;
+      height: 1.05rem;
+    }
+  }
+}
+
+.m-progress-pips__btn-confetti-origin .m-progress-pips__confetti {
+  animation-name: paperConfettiFlyFromBtn;
+  animation-duration: 1.35s;
+}
+
+@keyframes paperConfettiFly {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dx) * 0.6), var(--dy), 30px)
+      rotateX(calc(var(--rx) * 0.5)) rotateY(calc(var(--ry) * 0.5)) rotateZ(calc(var(--rz) * 0.5))
+      scale(1.15);
+  }
+  75% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx), calc(var(--dy) + 50px), 0)
+      rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz))
+      scale(0.7);
+  }
+}
+
+@keyframes paperConfettiFlyFromBtn {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.35);
+  }
+  35% {
+    opacity: 1;
+    transform: translate3d(calc(var(--dx) * 0.7), var(--dy), 40px)
+      rotateX(calc(var(--rx) * 0.5)) rotateY(calc(var(--ry) * 0.5)) rotateZ(calc(var(--rz) * 0.5))
+      scale(1.2);
+  }
+  75% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx), calc(var(--dy) + 75px), 0)
+      rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz))
+      scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-progress-pips,
+  .m-progress-pips__fold,
+  .m-progress-pips__pleat {
+    transition: none !important;
+    transform: none !important;
+  }
+  .m-progress-pips__confetti {
+    display: none !important;
   }
 }

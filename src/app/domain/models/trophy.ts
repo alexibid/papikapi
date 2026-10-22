@@ -6,6 +6,8 @@ export interface Trophy {
   readonly state: TrophyState;
   readonly piecesBuilt: number;
   readonly piecesTotal: number;
+  readonly isChosen?: boolean;
+  readonly allocatedPoints?: number;
 }
 
 export interface Shelf {

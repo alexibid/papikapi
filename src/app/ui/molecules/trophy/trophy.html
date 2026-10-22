@@ -3,31 +3,85 @@
   [class.m-trophy--mounted]="trophy().state === 'mounted'"
   [class.m-trophy--queued]="queued()"
   [class.m-trophy--building]="building()"
+  [class.m-trophy--chosen]="isChosen()"
   [ibidHandDrawn]="2"
   [attr.role]="queued() ? null : 'img'"
   [attr.aria-label]="queued() ? null : ariaLabel() || null"
+  (click)="onCardClicked($event)"
 >
+  @if (canRemove()) {
+    <button
+      type="button"
+      class="m-trophy__remove-btn m-trophy__action-btn--remove"
+      [ibidHandDrawn]="1"
+      (click)="onRemove($event)"
+      [attr.aria-label]="i18n.translate('dismiss') || 'Remover'"
+      [attr.title]="i18n.translate('dismiss') || 'Remover'"
+    >
+      <papikapi-pictogram name="close" />
+    </button>
+  }
+
   <span class="m-trophy__figure" [ibidHandDrawn]="1">
-    <papikapi-figure-thumbnail [figureId]="trophy().figureId" />
+    <papikapi-figure-thumbnail [figureId]="trophy().figureId" [progress]="progressRatio()" />
   </span>
 
   @if (building()) {
-    <papikapi-progress-pips
-      class="m-trophy__pips"
-      [total]="trophy().piecesTotal"
-      [filled]="trophy().piecesBuilt"
-    />
-  } @else if (stateGlyph(); as glyph) {
-    <span class="m-trophy__state" [ibidHandDrawn]="1">
-      <papikapi-pictogram [name]="glyph" />
+    <span
+      class="m-trophy__state m-trophy__state--building"
+      [ibidHandDrawn]="1"
+      [attr.title]="i18n.translate('childTrophy_building')"
+    >
+      <papikapi-pictogram name="hourglass" />
+    </span>
+  } @else if (trophy().state === 'mounted') {
+    <span
+      class="m-trophy__state m-trophy__state--mounted"
+      [ibidHandDrawn]="1"
+      [attr.title]="i18n.translate('childTrophy_mounted')"
+    >
+      <papikapi-pictogram name="check" />
+    </span>
+  } @else {
+    <span
+      class="m-trophy__state m-trophy__state--queued"
+      [ibidHandDrawn]="1"
+      [attr.title]="i18n.translate('chooseModel')"
+    >
+      <papikapi-pictogram name="play" />
     </span>
   }
 
   @if (queued()) {
     <ibid-icon-button
       class="m-trophy__pick"
-      [ariaLabel]="ariaLabel()"
-      (clicked)="chosen.emit(trophy().figureId)"
+      [ariaLabel]="ariaLabel() || i18n.translate('chooseModel')"
+      (clicked)="onPickClicked($event)"
     />
   }
+
+  <div class="m-trophy__actions">
+    @if (canDecrement()) {
+      <button
+        type="button"
+        class="m-trophy__action-btn m-trophy__action-btn--minus"
+        [ibidHandDrawn]="1"
+        (click)="onMinus($event)"
+        [attr.aria-label]="'-'"
+      >
+        <papikapi-pictogram name="minus" />
+      </button>
+    }
+    @if (canIncrement()) {
+      <button
+        type="button"
+        class="m-trophy__action-btn m-trophy__action-btn--plus"
+        [ibidHandDrawn]="1"
+        (click)="onPlus($event)"
+        [attr.aria-label]="'+'"
+      >
+        <papikapi-pictogram name="plus" />
+      </button>
+    }
+  </div>
 </div>

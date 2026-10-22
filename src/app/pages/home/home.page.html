@@ -8,8 +8,8 @@
 
     <papikapi-progress-pips
       class="papikapi-child__progress"
-      [total]="tasks.length"
-      [filled]="doneCount()"
+      [total]="figurePipsTotal()"
+      [filled]="figurePipsFilled()"
       [ariaLabel]="i18n.translate('childProgress')"
     />
 
@@ -27,7 +27,7 @@
     <papikapi-assembly-stage
       [source]="figureSource()"
       [modelSource]="figureModel()"
-      [built]="builtPieces()"
+      [built]="activePieces()"
       [loading]="!!activeCreation()"
       (ready)="onStageReady($event)"
       (settled)="onStageSettled($event)"
@@ -110,19 +110,58 @@
   </div>
 
   <div class="papikapi-child__rail" [ibidHandDrawn]="4">
-    @for (task of tasks; track task.id) {
-      <papikapi-task-card [task]="task" [ariaLabel]="taskLabel(task)" />
+    @for (task of tasks(); track task.id) {
+      <papikapi-task-card
+        [task]="task"
+        [ariaLabel]="taskLabel(task)"
+        (click)="onTaskClicked(task)"
+      />
     }
   </div>
 
-  <section class="papikapi-child__shelf" [attr.aria-label]="i18n.translate('childShelf')">
-    <papikapi-progress-pips
-      class="papikapi-child__mounted"
-      [total]="mounted().total"
-      [filled]="mounted().mounted"
-      [ariaLabel]="i18n.translate('childShelfProgress')"
-    />
+  <div
+    class="papikapi-child__credit-bar"
+    role="region"
+    [attr.aria-label]="i18n.translate('childCreditBar')"
+    (click)="onCreditBarClicked()"
+  >
+    <div class="papikapi-child__credit-strip" [ibidHandDrawn]="1">
+      <span class="papikapi-child__credit-badge" [ibidHandDrawn]="1" aria-hidden="true">
+        <papikapi-pictogram name="cube" />
+        <span class="papikapi-child__credit-number">{{ unassignedCredits() }}</span>
+      </span>
 
+      <div class="papikapi-child__credit-pips">
+        @for (pip of creditPips(); track pip.id) {
+          <span class="papikapi-child__credit-pip papikapi-child__credit-pip--filled">
+            <span class="papikapi-child__credit-dot"></span>
+          </span>
+        }
+
+        @if (consolidatingProgress() > 0) {
+          <span
+            class="papikapi-child__credit-pip papikapi-child__credit-pip--consolidating"
+            [attr.title]="consolidatingProgress() + '/10'"
+            [attr.aria-label]="consolidatingProgress() + '/10'"
+          >
+            <svg class="papikapi-child__consolidating-ring" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="papikapi-child__ring-track" cx="12" cy="12" r="9" />
+              <circle
+                class="papikapi-child__ring-fill"
+                cx="12"
+                cy="12"
+                r="9"
+                [style.strokeDashoffset]="consolidatingDashOffset()"
+              />
+              <circle class="papikapi-child__ring-seed" cx="12" cy="12" r="3" />
+            </svg>
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <section class="papikapi-child__shelf" [attr.aria-label]="i18n.translate('childShelf')">
     @for (shelf of shelves(); track shelf.id) {
       <div class="papikapi-child__board">
         @for (trophy of shelf.trophies; track trophy.id) {
@@ -130,6 +169,9 @@
             [trophy]="trophy"
             [ariaLabel]="trophyLabel(trophy.state)"
             (chosen)="onFigureChosen($event)"
+            (increment)="onAllocatePoint($event)"
+            (decrement)="onReclaimPoint($event)"
+            (remove)="onRemoveTrophy($event)"
           />
         }
       </div>
