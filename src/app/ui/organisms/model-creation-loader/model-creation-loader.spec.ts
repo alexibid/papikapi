@@ -20,6 +20,7 @@ describe('ModelCreationLoaderComponent', () => {
     triggerGeneration: vi.fn().mockResolvedValue(true),
     triggerPick: vi.fn().mockResolvedValue(true),
     sheetUrl: vi.fn((name: string) => `http://localhost:4502/api/creator/sheet?name=${name}`),
+    getLastError: vi.fn().mockReturnValue(null),
   };
 
   beforeEach(async () => {
@@ -149,5 +150,65 @@ describe('ModelCreationLoaderComponent', () => {
     expect(component['iconName']()).toBe('hourglass');
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Na fila de espera do servidor');
+  });
+
+  it('displays custom failure message when progress arrives with state failed', () => {
+    progressListener?.({
+      stepId: 's1-step-1',
+      message: 'Falha na geração FLUX: RunPod serverless job timed out',
+      stepIndex: 0,
+      stepCount: 1,
+      expectedSeconds: 20,
+      elapsedInStepMs: 30000,
+      state: 'failed',
+    } as CreationProgress);
+
+    fixture.detectChanges();
+
+    expect(component['isFailed']()).toBe(true);
+    expect(component['iconName']()).toBe('close');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Falha na geração FLUX: RunPod serverless job timed out');
+  });
+
+  it('displays service error message when trigger fails', async () => {
+    mockCreationService.getLastError.mockReturnValue('Erro no servidor FLUX');
+    component['handleFailure']('Erro no servidor FLUX');
+    fixture.detectChanges();
+
+    expect(component['isFailed']()).toBe(true);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Erro no servidor FLUX');
+  });
+
+  it('opens and closes prompt modal when clicking prompt button and close', () => {
+    const promptBtn = fixture.nativeElement.querySelector('.papikapi-creation-loader__prompt-btn') as HTMLButtonElement;
+    expect(promptBtn).not.toBeNull();
+    expect(promptBtn.textContent).toContain('Ver prompt');
+
+    promptBtn.click();
+    fixture.detectChanges();
+
+    expect(component['isPromptModalOpen']()).toBe(true);
+    let modal = fixture.nativeElement.querySelector('.papikapi-creation-loader-modal') as HTMLElement;
+    expect(modal).not.toBeNull();
+    expect(modal.textContent).toContain('Prompt de Geração');
+    expect(modal.textContent).toContain('darth-cat');
+
+    // Switch to user tab
+    const tabs = fixture.nativeElement.querySelectorAll('.papikapi-creation-loader-modal__tab') as NodeListOf<HTMLButtonElement>;
+    expect(tabs.length).toBe(4);
+    tabs[1].click();
+    fixture.detectChanges();
+    expect(component['activePromptTab']()).toBe('user');
+    expect(modal.textContent).toContain('black tuxedo cat');
+
+    // Close modal
+    const closeBtn = fixture.nativeElement.querySelector('.papikapi-creation-loader-modal__close') as HTMLButtonElement;
+    closeBtn.click();
+    fixture.detectChanges();
+    expect(component['isPromptModalOpen']()).toBe(false);
+    modal = fixture.nativeElement.querySelector('.papikapi-creation-loader-modal') as HTMLElement;
+    expect(modal).toBeNull();
   });
 });

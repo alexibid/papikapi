@@ -9,23 +9,36 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HandDrawnDirective } from 'ibid-ui';
+import { ButtonComponent, HandDrawnDirective } from 'ibid-ui';
 import { I18nService } from '@ibid/services';
 import {
   CreationProgress,
   CreationProgressService,
 } from '@application/services/creation-progress.service';
+import {
+  MODEL_NEGATIVE_PROMPT,
+  MODEL_SYSTEM_PROMPT,
+  composeFullAiPrompt,
+} from '@domain/data/model-generation-prompts';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
+
+export type LoaderPromptTab = 'final' | 'user' | 'system' | 'negative';
 
 const STAGE_KEYS_BY_STEP: Readonly<Record<string, string>> = {
   's1-step-1': 'creationStageAlternatives',
   's1-step-2': 'creationStagePick',
   's2-step-1': 'creationStageCutout',
   's2-step-2': 'creationStageMesh',
+  's2-step-3': 'creationStageMesh',
   'stage-3': 'creationStagePlinth',
   's3-step-1': 'creationStagePlinth',
+  's3-step-2': 'creationStagePlinth',
+  's3-step-3': 'creationStagePlinth',
   'stage-4': 'creationStageSheets',
+  's4-step-1': 'creationStageSheets',
   's4-step-2': 'creationStageSheets',
+  'stage-5': 'creationStageFinalizing',
+  's5-step-1': 'creationStageFinalizing',
 };
 
 const STEP_NUMBERS_BY_ID: Readonly<Record<string, number>> = {
@@ -33,10 +46,16 @@ const STEP_NUMBERS_BY_ID: Readonly<Record<string, number>> = {
   's1-step-2': 2,
   's2-step-1': 3,
   's2-step-2': 3,
+  's2-step-3': 3,
   'stage-3': 4,
   's3-step-1': 4,
+  's3-step-2': 4,
+  's3-step-3': 4,
   'stage-4': 4,
+  's4-step-1': 4,
   's4-step-2': 4,
+  'stage-5': 4,
+  's5-step-1': 4,
 };
 
 const EXPECTED_GENERATION_SECONDS = 26;
@@ -44,7 +63,7 @@ const EXPECTED_GENERATION_SECONDS = 26;
 @Component({
   selector: 'papikapi-model-creation-loader',
   standalone: true,
-  imports: [CommonModule, HandDrawnDirective, PictogramComponent],
+  imports: [ButtonComponent, CommonModule, HandDrawnDirective, PictogramComponent],
   templateUrl: './model-creation-loader.html',
   styleUrl: './model-creation-loader.scss',
 })
@@ -70,6 +89,7 @@ export class ModelCreationLoaderComponent implements OnInit {
   protected readonly totalSteps = signal(2);
   protected readonly isDone = signal(false);
   protected readonly isFailed = signal(false);
+  protected readonly failureReason = signal<string | null>(null);
   protected readonly isQueued = signal(false);
 
   private timerId?: ReturnType<typeof setInterval>;
@@ -93,6 +113,58 @@ export class ModelCreationLoaderComponent implements OnInit {
     return this.stepNumber() % 2 === 0 ? 'cube' : 'sparkle';
   });
 
+  protected readonly isPromptModalOpen = signal(false);
+  protected readonly activePromptTab = signal<LoaderPromptTab>('final');
+  protected readonly promptCopied = signal(false);
+
+  protected readonly userPrompt = computed(() => this.prompt().trim() || '(sem prompt)');
+  protected readonly systemPrompt = computed(() => MODEL_SYSTEM_PROMPT);
+  protected readonly finalPrompt = computed(() => {
+    const user = this.userPrompt();
+    const system = this.systemPrompt();
+    return `${user}\n\n${system}`;
+  });
+  protected readonly fullAiPrompt = computed(() =>
+    composeFullAiPrompt(this.prompt(), this.images().length)
+  );
+  protected readonly negativePrompt = computed(() => MODEL_NEGATIVE_PROMPT);
+
+  protected readonly activePromptContent = computed(() => {
+    switch (this.activePromptTab()) {
+      case 'user':
+        return this.userPrompt();
+      case 'system':
+        return this.systemPrompt();
+      case 'negative':
+        return this.negativePrompt();
+      case 'final':
+      default:
+        return this.fullAiPrompt();
+    }
+  });
+
+  protected togglePromptModal(): void {
+    this.isPromptModalOpen.update((open) => !open);
+  }
+
+  protected closePromptModal(): void {
+    this.isPromptModalOpen.set(false);
+  }
+
+  protected setPromptTab(tab: LoaderPromptTab): void {
+    this.activePromptTab.set(tab);
+  }
+
+  protected async copyActivePrompt(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.activePromptContent());
+      this.promptCopied.set(true);
+      setTimeout(() => this.promptCopied.set(false), 2000);
+    } catch {
+      this.promptCopied.set(false);
+    }
+  }
+
   ngOnInit(): void {
     const name = this.modelName();
     const promptText = this.prompt();
@@ -109,8 +181,7 @@ export class ModelCreationLoaderComponent implements OnInit {
         })
         .then((ok) => {
           if (!ok) {
-            this.isFailed.set(true);
-            this.currentStageKey.set('creationStageFailed');
+            this.handleFailure(this.creationService.getLastError());
           }
         });
     } else {
@@ -125,8 +196,7 @@ export class ModelCreationLoaderComponent implements OnInit {
           })
           .then((ok) => {
             if (!ok) {
-              this.isFailed.set(true);
-              this.currentStageKey.set('creationStageFailed');
+              this.handleFailure(this.creationService.getLastError());
             }
           });
       }
@@ -197,8 +267,7 @@ export class ModelCreationLoaderComponent implements OnInit {
     }
 
     if (progress.state === 'failed') {
-      this.isFailed.set(true);
-      this.currentStageKey.set('creationStageFailed');
+      this.handleFailure(progress.message);
       return;
     }
 
@@ -259,6 +328,15 @@ export class ModelCreationLoaderComponent implements OnInit {
     this.dismissTimerId = setTimeout(() => {
       this.completed.emit(this.modelName());
     }, 2200);
+  }
+
+  private handleFailure(reason?: string | null): void {
+    this.isFailed.set(true);
+    this.clearTimers();
+    if (reason && reason.trim()) {
+      this.failureReason.set(reason.trim());
+    }
+    this.currentStageKey.set('creationStageFailed');
   }
 
   protected dismiss(): void {

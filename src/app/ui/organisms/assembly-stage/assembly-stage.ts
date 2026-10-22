@@ -62,6 +62,14 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
 
   protected readonly active = signal(false);
   protected readonly mode = signal<StageMode>('animated');
+
+  get stageMode(): StageMode {
+    return this.mode();
+  }
+  set stageMode(val: StageMode) {
+    this.mode.set(val);
+  }
+
   protected readonly replays = signal(0);
   protected readonly playAllRequests = signal(0);
 
@@ -112,7 +120,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
         return;
       }
       if (replayRequested) this.director.replay();
-      else this.director.advanceTo(built);
+      else if (!this.director.isDisassembling()) this.director.advanceTo(built);
     });
   }
 
@@ -190,11 +198,12 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       this.director = new BuildDirector(rig, this.viewport, this.built(), (built) =>
         this.settled.emit(built)
       );
+      this.ready.emit(this.director.pieceCount);
       if (this.loading()) {
         this.director.loopAssembly(850);
+      } else {
+        this.settled.emit(this.director.current);
       }
-      this.ready.emit(this.director.pieceCount);
-      this.settled.emit(this.director.current);
     } catch {
       this.discardFigure();
       this.failed.emit(url);

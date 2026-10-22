@@ -1,7 +1,29 @@
 @if (facets().length > 0) {
   <svg class="m-figure-thumbnail" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-    @for (facet of facets(); track $index) {
-      <polygon [attr.points]="facet.points" [attr.fill]="facet.fill" [attr.stroke]="facet.fill" />
+    <defs>
+      <clipPath [attr.id]="clipId">
+        <rect
+          x="0"
+          [attr.y]="clipY()"
+          width="100"
+          [attr.height]="clipHeight()"
+          class="m-figure-thumbnail__clip-rect"
+        />
+      </clipPath>
+    </defs>
+
+    <g class="m-figure-thumbnail__wireframe">
+      @for (facet of facets(); track $index) {
+        <polygon [attr.points]="facet.points" />
+      }
+    </g>
+
+    @if (progressClamped() > 0) {
+      <g class="m-figure-thumbnail__painted" [attr.clip-path]="'url(#' + clipId + ')'">
+        @for (facet of facets(); track $index) {
+          <polygon [attr.points]="facet.points" [attr.fill]="facet.fill" [attr.stroke]="facet.fill" />
+        }
+      </g>
     }
   </svg>
 } @else {

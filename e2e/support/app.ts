@@ -62,6 +62,14 @@ export const STAGE_MODE_ON = '.o-assembly-stage__mode--on';
 export const PROFILE = '.papikapi-profile';
 export const CHILD_GATE = '.papikapi-child__gate';
 export const GATE_KEY = '.papikapi-gate__key';
+export const SHELF = '.papikapi-child__shelf';
+export const TROPHY = 'papikapi-trophy';
+export const TROPHY_CARD = '.m-trophy';
+export const TROPHY_CHOSEN = '.m-trophy--chosen';
+export const TROPHY_PLUS = '.m-trophy__action-btn--plus';
+export const TROPHY_MINUS = '.m-trophy__action-btn--minus';
+export const CREDIT_BAR = '.papikapi-child__credit-bar';
+export const CREDIT_PIP = '.papikapi-child__credit-pip';
 
 export const SEEDED_ENTRIES = 59;
 

@@ -41,7 +41,7 @@ describe('the paper icon set', () => {
 
   it('names the icons the product needs', () => {
     const needed = ['toothbrush', 'bed', 'backpack', 'plate', 'check', 'hourglass', 'lock', 'sound',
-      'mute', 'avatar', 'trophy', 'close', 'cube', 'play', 'backspace', 'mascot'];
+      'mute', 'avatar', 'trophy', 'close', 'cube', 'play', 'backspace', 'mascot', 'arrow-left', 'plus', 'minus'];
 
     needed.forEach((name) => expect(isPictogramName(name)).toBe(true));
   });

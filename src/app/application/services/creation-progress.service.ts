@@ -41,11 +41,18 @@ export class CreationProgressService {
     return () => source.close();
   }
 
+  private lastErrorMessage: string | null = null;
+
+  getLastError(): string | null {
+    return this.lastErrorMessage;
+  }
+
   async triggerGeneration(payload: {
     readonly name: string;
     readonly prompt: string;
     readonly images: readonly string[];
   }): Promise<boolean> {
+    this.lastErrorMessage = null;
     if (typeof fetch !== 'function') {
       return false;
     }
@@ -56,8 +63,17 @@ export class CreationProgressService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!response.ok) {
+        try {
+          const body = (await response.json()) as { error?: string };
+          this.lastErrorMessage = body?.error ?? `HTTP ${response.status}: ${response.statusText}`;
+        } catch {
+          this.lastErrorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+      }
       return response.ok;
-    } catch {
+    } catch (err) {
+      this.lastErrorMessage = (err as Error).message;
       return false;
     }
   }
@@ -66,6 +82,7 @@ export class CreationProgressService {
     readonly name: string;
     readonly pick: number;
   }): Promise<boolean> {
+    this.lastErrorMessage = null;
     if (typeof fetch !== 'function') {
       return false;
     }
@@ -76,8 +93,17 @@ export class CreationProgressService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!response.ok) {
+        try {
+          const body = (await response.json()) as { error?: string };
+          this.lastErrorMessage = body?.error ?? `HTTP ${response.status}: ${response.statusText}`;
+        } catch {
+          this.lastErrorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+      }
       return response.ok;
-    } catch {
+    } catch (err) {
+      this.lastErrorMessage = (err as Error).message;
       return false;
     }
   }

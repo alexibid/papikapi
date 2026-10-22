@@ -24,7 +24,15 @@ function view(): BuildView {
 
 describe('BuildDirector', () => {
   beforeEach(() =>
-    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
+    vi.useFakeTimers({
+      toFake: [
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+        'performance',
+        'setTimeout',
+        'clearTimeout',
+      ],
+    })
   );
   afterEach(() => vi.useRealTimers());
 
@@ -134,5 +142,24 @@ describe('BuildDirector', () => {
     expect(director.current).toBe(PIECES);
     expect(shown.built[shown.built.length - 1]).toBe(PIECES);
     expect(onSettled).not.toHaveBeenCalled();
+  });
+
+  it('shows complete figure and disassembles pieces down to target built count', () => {
+    const onSettled = vi.fn();
+    const onDone = vi.fn();
+    const shown = figure();
+    const director = new BuildDirector(shown, view(), 2, onSettled);
+
+    director.disassembleTo(2, 50, onDone);
+    expect(shown.built).toContain(PIECES);
+    expect(director.isDisassembling()).toBe(true);
+
+    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(3000);
+
+    expect(director.current).toBe(2);
+    expect(onSettled).toHaveBeenCalledWith(2);
+    expect(onDone).toHaveBeenCalled();
+    expect(director.isDisassembling()).toBe(false);
   });
 });

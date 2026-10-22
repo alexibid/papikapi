@@ -2,7 +2,7 @@ import { CreationProgressService } from '@application/services/creation-progress
 
 type CreationProgressApi = Pick<
   CreationProgressService,
-  'connect' | 'triggerGeneration' | 'triggerPick' | 'checkInfo' | 'fetchCatalogue' | 'sheetUrl'
+  'connect' | 'triggerGeneration' | 'triggerPick' | 'checkInfo' | 'fetchCatalogue' | 'sheetUrl' | 'getLastError'
 >;
 
 export const creationProgressStub: CreationProgressApi = {
@@ -13,4 +13,5 @@ export const creationProgressStub: CreationProgressApi = {
   fetchCatalogue: () => Promise.resolve([]),
   sheetUrl: (modelName) =>
     `http://localhost:4502/api/creator/sheet?name=${encodeURIComponent(modelName)}`,
+  getLastError: () => null,
 };

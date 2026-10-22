@@ -9,6 +9,7 @@ export const FIGURE_NAMES: Readonly<Record<string, { pt: string; en: string }>> 
   clownfish: { pt: 'Peixe-palhaço', en: 'Clownfish' },
   cow: { pt: 'Vaca', en: 'Cow' },
   dalmatian: { pt: 'Dálmata', en: 'Dalmatian' },
+  darth: { pt: 'Darth', en: 'Darth' },
   dolphin: { pt: 'Golfinho', en: 'Dolphin' },
   elephant: { pt: 'Elefante', en: 'Elephant' },
   fawn: { pt: 'Cervinho', en: 'Fawn' },

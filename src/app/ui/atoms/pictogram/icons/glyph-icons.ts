@@ -128,6 +128,32 @@ const AVATAR: PaperIcon = faceted('sky', [
   ...fan([500, 340], AVATAR_HEAD).map((facet, index): TonedFacet => [AVATAR_TONES[index], facet]),
 ]);
 
+const ARROW_LEFT: PaperIcon = faceted('slate', [
+  ['500', points([160, 500], [480, 200], [540, 260], [280, 500])],
+  ['700', points([160, 500], [280, 500], [540, 740], [480, 800])],
+  ['400', points([280, 440], [820, 440], [820, 500], [280, 500])],
+  ['600', points([280, 500], [820, 500], [820, 560], [280, 560])],
+  ['800', points([820, 440], [880, 470], [880, 530], [820, 560])],
+]);
+
+const PLUS: PaperIcon = faceted('sky', [
+  ['300', points([160, 440], [840, 440], [840, 500], [160, 500])],
+  ['700', points([160, 500], [840, 500], [840, 560], [160, 560])],
+  ['200', points([440, 160], [500, 160], [500, 840], [440, 840])],
+  ['600', points([500, 160], [560, 160], [560, 840], [500, 840])],
+  ['400', points([500, 100], [560, 160], [440, 160])],
+  ['800', points([440, 840], [560, 840], [500, 900])],
+  ['500', points([100, 500], [160, 440], [160, 560])],
+  ['800', points([840, 440], [900, 500], [840, 560])],
+]);
+
+const MINUS: PaperIcon = faceted('amber', [
+  ['300', points([160, 440], [840, 440], [840, 500], [160, 500])],
+  ['700', points([160, 500], [840, 500], [840, 560], [160, 560])],
+  ['500', points([100, 500], [160, 440], [160, 560])],
+  ['800', points([840, 440], [900, 500], [840, 560])],
+]);
+
 export const GLYPH_ICONS = {
   check: CHECK,
   close: CLOSE,
@@ -139,4 +165,7 @@ export const GLYPH_ICONS = {
   sound: SOUND,
   mute: MUTE,
   avatar: AVATAR,
+  'arrow-left': ARROW_LEFT,
+  plus: PLUS,
+  minus: MINUS,
 } as const;

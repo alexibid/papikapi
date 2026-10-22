@@ -24,10 +24,25 @@
           </span>
           <span class="papikapi-creation-loader__percent">{{ percentLabel() }}</span>
         </div>
-        <p class="papikapi-creation-loader__stage-text">
-          {{ i18n.translate(currentStageKey()) }}
+        <p
+          class="papikapi-creation-loader__stage-text"
+          [title]="(isFailed() && failureReason()) ? failureReason()! : i18n.translate(currentStageKey())"
+        >
+          {{ isFailed() && failureReason() ? failureReason() : i18n.translate(currentStageKey()) }}
         </p>
       </div>
+
+      <button
+        type="button"
+        class="papikapi-creation-loader__prompt-btn"
+        [ibidHandDrawn]="1"
+        [attr.aria-label]="i18n.translate('creationViewPrompt')"
+        [title]="i18n.translate('creationViewPrompt')"
+        (click)="togglePromptModal()"
+      >
+        <papikapi-pictogram name="sparkle" />
+        <span class="papikapi-creation-loader__prompt-btn-text">{{ i18n.translate('creationViewPrompt') }}</span>
+      </button>
 
       <button
         type="button"
@@ -53,3 +68,119 @@
     </div>
   </div>
 </aside>
+
+@if (isPromptModalOpen()) {
+  <div
+    class="papikapi-creation-loader-modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="i18n.translate('creationPromptModalTitle')"
+  >
+    <button
+      type="button"
+      class="papikapi-creation-loader-modal__backdrop"
+      (click)="closePromptModal()"
+      (keydown.escape)="closePromptModal()"
+      [attr.aria-label]="i18n.translate('creationPromptClose')"
+    ></button>
+
+    <div class="papikapi-creation-loader-modal__card" [ibidHandDrawn]="3">
+      <header class="papikapi-creation-loader-modal__header">
+        <div class="papikapi-creation-loader-modal__header-titles">
+          <span class="papikapi-creation-loader-modal__badge" [ibidHandDrawn]="1">
+            <papikapi-pictogram name="sparkle" />
+          </span>
+          <div>
+            <h3 class="papikapi-creation-loader-modal__title">
+              {{ i18n.translate('creationPromptModalTitle') }}
+            </h3>
+            <span class="papikapi-creation-loader-modal__subtitle">
+              {{ modelName() }} · {{ i18n.translate('creationPromptModalSubtitle') }}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="papikapi-creation-loader-modal__close"
+          [ibidHandDrawn]="1"
+          [attr.aria-label]="i18n.translate('creationPromptClose')"
+          (click)="closePromptModal()"
+        >
+          <papikapi-pictogram name="close" />
+        </button>
+      </header>
+
+      <!-- Tabs -->
+      <nav class="papikapi-creation-loader-modal__tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="papikapi-creation-loader-modal__tab"
+          [class.papikapi-creation-loader-modal__tab--active]="activePromptTab() === 'final'"
+          [attr.aria-selected]="activePromptTab() === 'final'"
+          (click)="setPromptTab('final')"
+        >
+          {{ i18n.translate('creationPromptFinalLabel') }}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="papikapi-creation-loader-modal__tab"
+          [class.papikapi-creation-loader-modal__tab--active]="activePromptTab() === 'user'"
+          [attr.aria-selected]="activePromptTab() === 'user'"
+          (click)="setPromptTab('user')"
+        >
+          {{ i18n.translate('creationPromptUserLabel') }}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="papikapi-creation-loader-modal__tab"
+          [class.papikapi-creation-loader-modal__tab--active]="activePromptTab() === 'system'"
+          [attr.aria-selected]="activePromptTab() === 'system'"
+          (click)="setPromptTab('system')"
+        >
+          {{ i18n.translate('creationPromptSystemLabel') }}
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          class="papikapi-creation-loader-modal__tab"
+          [class.papikapi-creation-loader-modal__tab--active]="activePromptTab() === 'negative'"
+          [attr.aria-selected]="activePromptTab() === 'negative'"
+          (click)="setPromptTab('negative')"
+        >
+          {{ i18n.translate('creationPromptNegativeLabel') }}
+        </button>
+      </nav>
+
+      <!-- Content Area -->
+      <div class="papikapi-creation-loader-modal__content" [ibidHandDrawn]="1">
+        <pre class="papikapi-creation-loader-modal__pre">{{ activePromptContent() }}</pre>
+      </div>
+
+      <!-- Footer with Actions -->
+      <footer class="papikapi-creation-loader-modal__footer">
+        <ibid-button
+          variant="primary"
+          [intensity]="1"
+          (clicked)="copyActivePrompt()"
+        >
+          <span>{{ promptCopied() ? ('✓ ' + i18n.translate('creationPromptCopied')) : i18n.translate('creationPromptCopy') }}</span>
+        </ibid-button>
+
+        <ibid-button
+          variant="outlined"
+          [intensity]="1"
+          (clicked)="closePromptModal()"
+        >
+          <span>{{ i18n.translate('creationPromptClose') }}</span>
+        </ibid-button>
+      </footer>
+    </div>
+  </div>
+}

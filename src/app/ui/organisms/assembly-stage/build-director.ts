@@ -24,6 +24,7 @@ export class BuildDirector {
   private readonly animation = new BuildAnimation(BUILD_MS);
   private playingToEnd = false;
   private looping = false;
+  private disassembling = false;
   private loopTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
@@ -46,9 +47,67 @@ export class BuildDirector {
     return this.shown;
   }
 
+  isDisassembling(): boolean {
+    return this.disassembling;
+  }
+
+  disassembleTo(target: number, stepDurationMs?: number, onDone?: () => void): void {
+    const clampedTarget = this.clamp(target);
+    this.animation.stop();
+    this.playingToEnd = false;
+    this.looping = false;
+    if (this.loopTimer) {
+      clearTimeout(this.loopTimer);
+      this.loopTimer = undefined;
+    }
+
+    if (this.rig.pieceCount <= clampedTarget) {
+      this.disassembling = false;
+      this.settleAt(this.rig.pieceCount);
+      onDone?.();
+      return;
+    }
+
+    this.disassembling = true;
+    this.shown = this.rig.pieceCount;
+    this.rig.showBuilt(this.rig.pieceCount);
+    this.viewport.camera.frameSphere(this.rig.figureShot());
+    this.viewport.draw();
+
+    const piecesToRemove = this.rig.pieceCount - clampedTarget;
+    const duration =
+      stepDurationMs ??
+      Math.max(70, Math.min(180, Math.floor(1800 / Math.max(1, piecesToRemove))));
+
+    const step = (pieceIndex: number): void => {
+      if (!this.disassembling) return;
+      if (pieceIndex < clampedTarget) {
+        this.disassembling = false;
+        this.settleAt(clampedTarget);
+        this.onSettled(clampedTarget);
+        onDone?.();
+        return;
+      }
+
+      this.animatePieceReverse(pieceIndex, duration, () => {
+        if (!this.disassembling) return;
+        this.shown = pieceIndex;
+        this.rig.showBuilt(pieceIndex);
+        this.viewport.draw();
+        step(pieceIndex - 1);
+      });
+    };
+
+    this.loopTimer = setTimeout(() => {
+      if (!this.disassembling) return;
+      step(this.rig.pieceCount - 1);
+    }, 450);
+  }
+
   advanceTo(requested: number): void {
     const built = this.clamp(requested);
     this.playingToEnd = false;
+    this.disassembling = false;
     this.animation.stop();
     if (built > this.shown) {
       this.settleAt(built - 1);
@@ -130,6 +189,7 @@ export class BuildDirector {
 
   stopLoop(): void {
     this.looping = false;
+    this.disassembling = false;
     if (this.loopTimer) {
       clearTimeout(this.loopTimer);
       this.loopTimer = undefined;
@@ -140,6 +200,7 @@ export class BuildDirector {
   showComplete(): void {
     this.stopLoop();
     this.playingToEnd = false;
+    this.disassembling = false;
     this.animation.stop();
     this.rig.showBuilt(this.rig.pieceCount);
     this.viewport.camera.frameSphere(this.rig.figureShot());
@@ -149,6 +210,7 @@ export class BuildDirector {
   dispose(): void {
     this.stopLoop();
     this.playingToEnd = false;
+    this.disassembling = false;
     this.animation.stop();
   }
 
@@ -160,6 +222,17 @@ export class BuildDirector {
     this.animation.run(
       (build) => {
         this.rig.showBuilding(from, build);
+        this.viewport.renderNow();
+      },
+      onFinish,
+      durationMs
+    );
+  }
+
+  private animatePieceReverse(from: number, durationMs: number, onFinish: () => void): void {
+    this.animation.run(
+      (progress) => {
+        this.rig.showBuilding(from, 1 - progress);
         this.viewport.renderNow();
       },
       onFinish,

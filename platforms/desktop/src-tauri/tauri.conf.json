@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "papikapi",
-  "version": "0.1.8",
+  "version": "0.1.18",
   "identifier": "com.ibid.papikapi",
   "build": {
     "frontendDist": "../../../../../dist/papikapi/browser",
@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Papikapi",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "height": 768,
         "resizable": true,
         "fullscreen": false
       }
@@ -33,6 +33,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "macOS": {
+      "infoPlist": "Info.plist"
+    },
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }

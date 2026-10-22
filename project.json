@@ -24,12 +24,12 @@
             "output": "."
           },
           {
-            "glob": "t-rex/assembly.json",
+            "glob": "*/assembly.json",
             "input": "apps/papikapi-studio/public/models",
             "output": "/figures"
           },
           {
-            "glob": "t-rex/model.glb",
+            "glob": "*/model.glb",
             "input": "apps/papikapi-studio/public/models",
             "output": "/figures"
           },

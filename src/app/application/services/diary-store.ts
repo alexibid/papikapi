@@ -103,6 +103,22 @@ export class DiaryStore {
     this.proposalState.set(undefined);
   }
 
+  async addPoints(points = 5, domain: BehaviourDomainId = 'comportamento'): Promise<void> {
+    const proposal = await recordDiaryEntry(this.deps, {
+      childId: DEFAULT_CHILD_ID,
+      text: `+${points} pontos`,
+      at: Date.now(),
+    });
+    await confirmRecognitions(this.deps, {
+      childId: DEFAULT_CHILD_ID,
+      entryId: proposal.entry.id,
+      hits: [{ domain, points }],
+      source: 'parent',
+      at: Date.now(),
+    });
+    await this.refresh();
+  }
+
   domainsOf(entryId: string): readonly BehaviourDomainId[] {
     return this.recognitionsState()
       .filter((recognition) => recognition.entryId === entryId)

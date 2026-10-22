@@ -27,6 +27,26 @@ describe('CreationProgressService', () => {
     fetchSpy.mockRestore();
   });
 
+  it('captures error message when triggerGeneration fails', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: 'Falha na geração FLUX' }), {
+        status: 500,
+        statusText: 'Internal Server Error',
+      })
+    );
+
+    const ok = await service.triggerGeneration({
+      name: 'cat-darth',
+      prompt: 'a cute tuxedo cat',
+      images: [],
+    });
+
+    expect(ok).toBe(false);
+    expect(service.getLastError()).toBe('Falha na geração FLUX');
+
+    fetchSpy.mockRestore();
+  });
+
   it('connects to EventSource and dispatches progress updates', () => {
     let capturedListener: ((event: MessageEvent<string>) => void) | undefined;
     const closeSpy = vi.fn();

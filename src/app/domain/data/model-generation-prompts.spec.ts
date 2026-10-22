@@ -27,7 +27,8 @@ describe('model-generation-prompts', () => {
   describe('composeStudioPrompt', () => {
     it('creates studio prompt without photos with zero floor shadow', () => {
       const prompt = composeStudioPrompt('o meu gato Tobias', 0);
-      expect(prompt).toContain('a cute standing o meu gato Tobias');
+      expect(prompt).toContain('a cute o meu gato Tobias');
+      expect(prompt).toContain('standing naturally on all four paws');
       expect(prompt).toContain('zero floor shadow');
       expect(prompt).toContain('pure low-poly papercraft cardstock facets');
       expect(prompt).not.toContain('attached 3/4 reference photo');
@@ -45,7 +46,8 @@ describe('model-generation-prompts', () => {
 
     it('falls back to default subject when prompt is empty or blank', () => {
       const prompt = composeStudioPrompt('   ', 0);
-      expect(prompt).toContain('a cute standing o meu gato');
+      expect(prompt).toContain('a cute o meu gato');
+      expect(prompt).toContain('standing naturally on all four paws');
     });
   });
 
@@ -81,13 +83,15 @@ describe('model-generation-prompts', () => {
       expect(buildFullAiPrompt('girafa')).toContain('girafa');
     });
 
-    it('contains official studio presets with required properties', () => {
+    it('contains official studio presets with required properties and pure user prompts', () => {
       expect(STUDIO_MODEL_PRESETS.length).toBeGreaterThan(0);
       for (const preset of STUDIO_MODEL_PRESETS) {
         expect(preset.id).toBeTruthy();
         expect(preset.label).toBeTruthy();
         expect(preset.slug).toBeTruthy();
-        expect(preset.prompt).toContain('zero floor shadow');
+        expect(preset.prompt).toBeTruthy();
+        // User presets must never contain system prompt directives
+        expect(preset.prompt).not.toContain('zero floor shadow');
       }
     });
   });

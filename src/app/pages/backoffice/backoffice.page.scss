@@ -1,7 +1,40 @@
+ibid-icon-button {
+  --ibid-icon-button-size: 3.6rem;
+  --ibid-icon-button-padding: 0;
+  --papikapi-paper-fill: transparent;
+  --ibid-icon-button-color: var(--color-ink);
+}
+
 .papikapi-backoffice {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md, 1rem);
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm, 0.75rem);
+  }
+
+  &__avatar,
+  &__glyph {
+    display: block;
+    width: 3.6rem;
+    flex: 0 0 auto;
+  }
+
+  &__glyph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.4rem;
+    height: 3.4rem;
+  }
+
+  &__progress {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 
   &__head {
     display: flex;

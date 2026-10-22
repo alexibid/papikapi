@@ -5,7 +5,7 @@ const PITCH_LIMIT = 0.06;
 const ORBIT_SENSITIVITY = 0.008;
 const ZOOM_LIMITS = { min: 0.4, max: 4 } as const;
 const HOME = { yaw: Math.PI * 0.28, pitch: Math.PI * 0.33 } as const;
-const OPTICAL_CENTER_Y_SHIFT = 0.25;
+const OPTICAL_CENTER_Y_SHIFT = 0;
 
 export const HOME_YAW = HOME.yaw;
 

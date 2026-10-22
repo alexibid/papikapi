@@ -1,10 +1,33 @@
 <section class="papikapi-backoffice">
-  <header class="papikapi-backoffice__head">
+  <header class="papikapi-backoffice__bar">
+    <span class="papikapi-backoffice__avatar" role="img" [attr.aria-label]="i18n.translate('childAvatar')">
+      <papikapi-sticker name="avatar" />
+    </span>
+
+    <papikapi-progress-pips
+      class="papikapi-backoffice__progress"
+      [total]="tasks().length"
+      [filled]="doneCount()"
+      [ariaLabel]="i18n.translate('childProgress')"
+    />
+
+    <ibid-icon-button
+      class="papikapi-backoffice__back"
+      [ariaLabel]="i18n.translate('back')"
+      (clicked)="goBack()"
+    >
+      <span class="papikapi-backoffice__glyph">
+        <papikapi-pictogram name="arrow-left" />
+      </span>
+    </ibid-icon-button>
+  </header>
+
+  <div class="papikapi-backoffice__head">
     <h1 class="papikapi-backoffice__title">{{ i18n.translate('boTitle') }}</h1>
     <p class="papikapi-backoffice__child">
       {{ child.name }} · {{ child.age }} {{ i18n.translate('boYears') }} · {{ child.schoolYear }}
     </p>
-  </header>
+  </div>
 
   <a class="papikapi-backoffice__diary" routerLink="/diario" [ibidHandDrawn]="2">
     <span class="papikapi-backoffice__diary-title">{{ i18n.translate('boDiaryTitle') }}</span>

@@ -16,7 +16,7 @@ const MM_TO_SCENE = 0.001;
 const MIN_SHOT_SHARE = 0.22;
 const LABEL_HEIGHT_MM = 70;
 const LABEL_FADE_END = 0.2;
-const WIREFRAME_LINE_WIDTH = 3.5;
+const WIREFRAME_LINE_WIDTH = 2.33;
 
 export class AssemblyRig {
   readonly root = new Group();
