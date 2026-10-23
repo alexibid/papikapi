@@ -1,17 +1,22 @@
-<section class="papikapi-diary">
+<section class="papikapi-diary" ibidFormOrchestrator #orchestrator="ibidFormOrchestrator">
   <h1 class="papikapi-diary__title">{{ i18n.translate('diaryTitle') }}</h1>
 
-  <ibid-textarea
-    class="papikapi-diary__field"
-    [value]="draft()"
-    [rows]="3"
-    [placeholder]="i18n.translate('diaryPlaceholder')"
-    [ariaLabel]="i18n.translate('diaryLabel')"
-    (valueChange)="draft.set($event)"
-  />
+  <ibid-form-field [required]="true">
+    <ibid-textarea
+      class="papikapi-diary__field"
+      [required]="true"
+      [value]="draft()"
+      [rows]="3"
+      [placeholder]="i18n.translate('diaryPlaceholder')"
+      [ariaLabel]="i18n.translate('diaryLabel')"
+      (valueChange)="draft.set($event)"
+    />
+  </ibid-form-field>
 
   <div class="papikapi-diary__actions">
-    <ibid-button (clicked)="save()">{{ i18n.translate('diarySave') }}</ibid-button>
+    <ibid-button [disabled]="!draft().trim()" (clicked)="save()">
+      {{ i18n.translate('diarySave') }}
+    </ibid-button>
   </div>
 
   @if (store.proposal(); as proposal) {

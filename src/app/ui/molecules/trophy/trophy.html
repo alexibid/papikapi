@@ -5,15 +5,21 @@
   [class.m-trophy--building]="building()"
   [class.m-trophy--chosen]="isChosen()"
   [ibidHandDrawn]="2"
+  [ibidTactile]="'secondary'"
+  tabindex="0"
   [attr.role]="queued() ? null : 'img'"
   [attr.aria-label]="queued() ? null : ariaLabel() || null"
   (click)="onCardClicked($event)"
+  (keydown.enter)="onPickClicked()"
+  (keydown.space)="onPickClicked()"
 >
   @if (canRemove()) {
     <button
       type="button"
       class="m-trophy__remove-btn m-trophy__action-btn--remove"
       [ibidHandDrawn]="1"
+      [ibidTactile]="'danger'"
+      ibidFocusState
       (click)="onRemove($event)"
       [attr.aria-label]="i18n.translate('dismiss') || 'Remover'"
       [attr.title]="i18n.translate('dismiss') || 'Remover'"
@@ -66,6 +72,8 @@
         type="button"
         class="m-trophy__action-btn m-trophy__action-btn--minus"
         [ibidHandDrawn]="1"
+        [ibidTactile]="'keypad'"
+        ibidFocusState
         (click)="onMinus($event)"
         [attr.aria-label]="'-'"
       >
@@ -77,6 +85,8 @@
         type="button"
         class="m-trophy__action-btn m-trophy__action-btn--plus"
         [ibidHandDrawn]="1"
+        [ibidTactile]="'keypad'"
+        ibidFocusState
         (click)="onPlus($event)"
         [attr.aria-label]="'+'"
       >

@@ -4,6 +4,12 @@
   --header-nav-offset: 57px;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body.papikapi {
   --papikapi-muted: #5a5249;
 }

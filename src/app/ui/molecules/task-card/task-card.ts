@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { HandDrawnDirective } from 'ibid-ui';
+import { FocusStateDirective, HandDrawnDirective, TactileDirective } from 'ibid-ui';
 import { RoutinePictogram, RoutineTask } from '@domain/models/routine-task';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { PictogramName } from '@ui/atoms/pictogram/paper-icons';
@@ -22,7 +22,13 @@ const TASK_STICKERS: Readonly<Partial<Record<RoutinePictogram, StickerName>>> = 
 @Component({
   selector: 'papikapi-task-card',
   standalone: true,
-  imports: [HandDrawnDirective, PictogramComponent, StickerComponent],
+  imports: [
+    FocusStateDirective,
+    HandDrawnDirective,
+    PictogramComponent,
+    StickerComponent,
+    TactileDirective,
+  ],
   templateUrl: './task-card.html',
   styleUrl: './task-card.scss',
 })

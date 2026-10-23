@@ -12,8 +12,9 @@ describe('ProgressPipsComponent', () => {
     return fixture;
   }
 
-  it('draws one fold per step', () => {
+  it('always draws 4 folds regardless of total piece count and unfolds by completion percentage', () => {
     expect(render(4, 0).nativeElement.querySelectorAll('.m-progress-pips__fold')).toHaveLength(4);
+    expect(render(37, 18).nativeElement.querySelectorAll('.m-progress-pips__fold')).toHaveLength(4);
   });
 
   it('fills only the folds already reached', () => {
@@ -46,16 +47,18 @@ describe('ProgressPipsComponent', () => {
     expect(element.querySelectorAll('.m-progress-pips__pip--filled')).toHaveLength(2);
   });
 
-  it('transitions paper color across vermelho, laranja, amarelo-lima, and verde', () => {
+  it('transitions paper color across vermelho, laranja, amarelo, and turns verde only at 90% or above', () => {
     const redFixture = render(4, 0);
     expect(redFixture.componentInstance['stripColor']()).toContain('hsl(4,');
 
     const orangeFixture = render(4, 1);
-    expect(orangeFixture.componentInstance['stripColor']()).toContain('hsl(26,');
+    expect(orangeFixture.componentInstance['stripColor']()).toContain('hsl(20,');
 
-    const limeFixture = render(4, 3);
-    expect(limeFixture.componentInstance['stripColor']()).toContain('hsl(84,');
+    // 75% progress is warm golden yellow, NOT green
+    const yellowFixture = render(4, 3);
+    expect(yellowFixture.componentInstance['stripColor']()).toContain('hsl(53,');
 
+    // 100% progress is vivid origami green
     const greenFixture = render(4, 4);
     expect(greenFixture.componentInstance['stripColor']()).toContain('hsl(142,');
   });

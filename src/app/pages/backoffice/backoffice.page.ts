@@ -19,6 +19,7 @@ import {
 import { WeekdayId } from '@domain/models/backoffice';
 import { RhythmStore } from '@application/services/rhythm-store';
 import { RoutineProgressStore } from '@application/services/routine-progress-store';
+import { ChildPointsStore } from '@application/services/child-points-store';
 import { gradeAverage } from '@domain/services/grade-average';
 import { pointsPerPiece } from '@domain/services/pieces-built';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
@@ -53,6 +54,7 @@ export class BackofficePage {
   protected readonly agenda = DEMO_AGENDA;
   protected readonly grades = DEMO_GRADES;
   protected readonly rhythm = inject(RhythmStore);
+  protected readonly childPoints = inject(ChildPointsStore);
   private readonly routineStore = inject(RoutineProgressStore);
   protected readonly tasks = this.routineStore.tasks;
   protected readonly doneCount = this.routineStore.doneCount;

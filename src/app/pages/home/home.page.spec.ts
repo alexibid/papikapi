@@ -219,4 +219,13 @@ describe('HomePage model selection and prompt flow', () => {
 
     expect(component['doneCount']()).not.toBe(initialDone);
   });
+
+  it('marks isCurrentComplete true when built pieces reach total or figure is mounted', () => {
+    expect(component.isCurrentComplete()).toBe(false);
+
+    // Set test pieces to total pieces for the figure (35 for t-rex)
+    component.testPieces = 35;
+    fixture.detectChanges();
+    expect(component.isCurrentComplete()).toBe(true);
+  });
 });

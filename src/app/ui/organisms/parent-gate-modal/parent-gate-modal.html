@@ -12,6 +12,8 @@
       type="button"
       class="papikapi-gate-modal__close"
       [ibidHandDrawn]="1"
+      [ibidTactile]="'subtle'"
+      ibidFocusState
       [attr.aria-label]="i18n.translate('gateClose')"
       (click)="close()"
     >
@@ -40,6 +42,7 @@
         <ibid-button
           class="papikapi-gate-modal__key"
           variant="outlined"
+          tactileRole="keypad"
           [intensity]="2"
           (clicked)="press(digit)"
         >
@@ -49,6 +52,7 @@
       <ibid-button
         class="papikapi-gate-modal__key papikapi-gate-modal__key--erase"
         variant="highlight"
+        tactileRole="danger"
         [intensity]="2"
         [ariaLabel]="i18n.translate('gateErase')"
         (clicked)="erase()"

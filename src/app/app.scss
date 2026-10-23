@@ -18,7 +18,10 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   min-height: 100dvh;
+  overflow-x: clip;
   padding: calc(var(--header-nav-offset, 57px) + var(--spacing-sm, 0.75rem))
     var(--spacing-md, 1rem) var(--spacing-md, 1rem);
 }

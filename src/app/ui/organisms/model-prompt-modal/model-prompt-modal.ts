@@ -2,14 +2,22 @@ import {
   afterNextRender,
   Component,
   computed,
-  ElementRef,
   inject,
   output,
   signal,
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonComponent, HandDrawnDirective } from 'ibid-ui';
+import {
+  ButtonComponent,
+  FocusStateDirective,
+  FormFieldComponent,
+  FormOrchestratorDirective,
+  HandDrawnDirective,
+  TactileDirective,
+  TextareaComponent,
+  TextInputComponent,
+} from 'ibid-ui';
 import { I18nService } from '@ibid/services';
 import {
   MODEL_NEGATIVE_PROMPT,
@@ -25,27 +33,35 @@ export type PromptTab = 'studio' | 'user' | 'system' | 'negative' | 'full' | 'co
 @Component({
   selector: 'papikapi-model-prompt-modal',
   standalone: true,
-  imports: [ButtonComponent, FormsModule, HandDrawnDirective, PictogramComponent],
+  imports: [
+    ButtonComponent,
+    FocusStateDirective,
+    FormFieldComponent,
+    FormOrchestratorDirective,
+    FormsModule,
+    HandDrawnDirective,
+    PictogramComponent,
+    TactileDirective,
+    TextareaComponent,
+    TextInputComponent,
+  ],
   templateUrl: './model-prompt-modal.html',
   styleUrl: './model-prompt-modal.scss',
 })
 export class ModelPromptModalComponent {
   protected readonly i18n = inject(I18nService);
 
-  private readonly modelNameField =
-    viewChild.required<ElementRef<HTMLInputElement>>('modelNameField');
+  private readonly modelNameField = viewChild<TextInputComponent>('modelNameField');
 
   readonly dismissed = output<void>();
   readonly modelCreated = output<{ name: string; prompt: string; images: readonly string[] }>();
 
   readonly promptText = signal('');
-  // Backwards compatibility alias for tests
   readonly subject = this.promptText;
-
   readonly modelName = signal('');
 
   constructor() {
-    afterNextRender(() => this.modelNameField().nativeElement.focus());
+    afterNextRender(() => this.modelNameField()?.focus());
   }
 
   readonly derivedFolderSlug = computed(() => {
@@ -68,7 +84,7 @@ export class ModelPromptModalComponent {
   readonly activeTab = signal<PromptTab>('studio');
 
   readonly userPrompt = computed(() =>
-    composeStudioPrompt(this.promptText(), this.photos().length),
+    composeStudioPrompt(this.promptText(), this.photos().length)
   );
 
   readonly currentContent = computed(() => {
@@ -83,11 +99,11 @@ export class ModelPromptModalComponent {
   });
 
   protected onFileSelect(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
+    const inputEl = event.target as HTMLInputElement;
+    if (!inputEl.files || inputEl.files.length === 0) return;
 
     const remainingSlots = 3 - this.photos().length;
-    const selectedFiles = Array.from(input.files).slice(0, remainingSlots);
+    const selectedFiles = Array.from(inputEl.files).slice(0, remainingSlots);
 
     for (const file of selectedFiles) {
       const reader = new FileReader();
@@ -106,7 +122,7 @@ export class ModelPromptModalComponent {
       };
       reader.readAsDataURL(file);
     }
-    input.value = '';
+    inputEl.value = '';
   }
 
   protected removePhoto(id: string): void {
@@ -128,7 +144,7 @@ export class ModelPromptModalComponent {
       const fullPrompt = composeStudioPrompt(prompt, images.length);
       await navigator.clipboard.writeText(fullPrompt);
     } catch {
-      // Clipboard fallback
+      void 0;
     }
 
     this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));

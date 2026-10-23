@@ -1,5 +1,10 @@
 import { Component, computed, inject, input, output } from '@angular/core';
-import { HandDrawnDirective, IconButtonComponent } from 'ibid-ui';
+import {
+  FocusStateDirective,
+  HandDrawnDirective,
+  IconButtonComponent,
+  TactileDirective,
+} from 'ibid-ui';
 import { I18nService } from '@ibid/services';
 import { Trophy } from '@domain/models/trophy';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
@@ -17,9 +22,11 @@ const STATE_GLYPH: Readonly<Record<Trophy['state'], PictogramName | null>> = {
   standalone: true,
   imports: [
     FigureThumbnailComponent,
+    FocusStateDirective,
     HandDrawnDirective,
     IconButtonComponent,
     PictogramComponent,
+    TactileDirective,
   ],
   templateUrl: './trophy.html',
   styleUrl: './trophy.scss',
@@ -27,6 +34,7 @@ const STATE_GLYPH: Readonly<Record<Trophy['state'], PictogramName | null>> = {
 export class TrophyComponent {
   protected readonly i18n = inject(I18nService);
   readonly trophy = input.required<Trophy>();
+  readonly unassignedCredits = input(0);
   readonly ariaLabel = input('');
   readonly chosen = output<string>();
   readonly increment = output<string>();

@@ -7,7 +7,7 @@
     (keydown.escape)="close()"
   ></button>
 
-  <div class="papikapi-prompt-modal__card" [ibidHandDrawn]="3">
+  <div class="papikapi-prompt-modal__card" [ibidHandDrawn]="3" ibidFormOrchestrator>
     <header class="papikapi-prompt-modal__header">
       <div class="papikapi-prompt-modal__header-titles">
         <span class="papikapi-prompt-modal__icon" [ibidHandDrawn]="1">
@@ -23,6 +23,8 @@
         type="button"
         class="papikapi-prompt-modal__close"
         [ibidHandDrawn]="1"
+        [ibidTactile]="'subtle'"
+        ibidFocusState
         [attr.aria-label]="i18n.translate('gateClose')"
         (click)="close()"
       >
@@ -42,48 +44,37 @@
       </div>
     }
 
-    <!-- Campo do Nome da figura (gera o slug e a pasta) -->
     <div class="papikapi-prompt-modal__field">
-      <label class="papikapi-prompt-modal__label" for="modelNameInput">
-        {{ i18n.translate('modelNameLabel') }}
-      </label>
-      <div class="papikapi-prompt-modal__input-wrap" [ibidHandDrawn]="1">
-        <input
-          id="modelNameInput"
-          type="text"
-          class="papikapi-prompt-modal__input"
-          [placeholder]="i18n.translate('modelNamePlaceholder')"
-          [ngModel]="modelName()"
-          (ngModelChange)="modelName.set($event)"
+      <ibid-form-field [label]="i18n.translate('modelNameLabel')">
+        <ibid-text-input
           #modelNameField
+          id="modelNameInput"
+          [placeholder]="i18n.translate('modelNamePlaceholder')"
+          [value]="modelName()"
+          (valueChange)="modelName.set($event)"
         />
-      </div>
+      </ibid-form-field>
       <p class="papikapi-prompt-modal__field-hint">
         📁 {{ i18n.translate('modelNameFolderHint') }}: <code>{{ derivedFolderSlug() }}</code>
       </p>
     </div>
 
-    <!-- Campo de texto do prompt -->
     <div class="papikapi-prompt-modal__field">
-      <label class="papikapi-prompt-modal__label" for="promptTextInput">
-        {{ i18n.translate('promptInputLabel') }}
-      </label>
-      <div class="papikapi-prompt-modal__input-wrap" [ibidHandDrawn]="1">
-        <textarea
+      <ibid-form-field [label]="i18n.translate('promptInputLabel')" [required]="true">
+        <ibid-textarea
           id="promptTextInput"
-          class="papikapi-prompt-modal__textarea"
+          [required]="true"
           [placeholder]="i18n.translate('promptInputPlaceholder')"
-          [ngModel]="promptText()"
-          (ngModelChange)="promptText.set($event)"
-          rows="3"
-        ></textarea>
-      </div>
+          [value]="promptText()"
+          (valueChange)="promptText.set($event)"
+          [rows]="3"
+        />
+      </ibid-form-field>
       <p class="papikapi-prompt-modal__field-hint">
         💡 {{ i18n.translate('promptDetailsHint') }}
       </p>
     </div>
 
-    <!-- Botão para adicionar imagens com previews e dica 3/4 -->
     <div class="papikapi-prompt-modal__photos-section">
       <div class="papikapi-prompt-modal__photos-row">
         @for (photo of photos(); track photo.id) {
@@ -92,6 +83,7 @@
             <button
               type="button"
               class="papikapi-prompt-modal__photo-remove"
+              [ibidTactile]="'danger'"
               [attr.aria-label]="i18n.translate('gateClose')"
               (click)="removePhoto(photo.id)"
             >
@@ -101,7 +93,11 @@
         }
 
         @if (photos().length < 3) {
-          <label class="papikapi-prompt-modal__add-photo-btn" [ibidHandDrawn]="1">
+          <label
+            class="papikapi-prompt-modal__add-photo-btn"
+            [ibidHandDrawn]="1"
+            [ibidTactile]="'secondary'"
+          >
             <input
               type="file"
               accept="image/*"
@@ -120,12 +116,12 @@
       </p>
     </div>
 
-    <!-- Botão a dizer CRIAR -->
     <footer class="papikapi-prompt-modal__footer">
       <ibid-button
         variant="primary"
         [intensity]="2"
         [disabled]="!promptText().trim() || isCreating()"
+        [busy]="isCreating()"
         (clicked)="createModel()"
       >
         <span class="papikapi-prompt-modal__create-btn-content">

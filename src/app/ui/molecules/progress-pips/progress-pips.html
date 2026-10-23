@@ -26,10 +26,10 @@
             <div class="m-progress-pips__face">
               <div
                 class="m-progress-pips__pleat"
-                [class.m-progress-pips__pleat--light]="idx >= effectiveFilled() && idx % 2 === 0"
-                [class.m-progress-pips__pleat--shade]="idx >= effectiveFilled() && idx % 2 === 1"
-                [class.m-progress-pips__pleat--open-light]="idx < effectiveFilled() && idx % 2 === 0"
-                [class.m-progress-pips__pleat--open-shade]="idx < effectiveFilled() && idx % 2 === 1"
+                [class.m-progress-pips__pleat--light]="!fold.filled && idx % 2 === 0"
+                [class.m-progress-pips__pleat--shade]="!fold.filled && idx % 2 === 1"
+                [class.m-progress-pips__pleat--open-light]="fold.filled && idx % 2 === 0"
+                [class.m-progress-pips__pleat--open-shade]="fold.filled && idx % 2 === 1"
                 aria-hidden="true"
               ></div>
             </div>

@@ -13,6 +13,12 @@
   padding: 0.6rem 0.35rem;
   color: var(--color-ink);
   min-height: 9.8rem;
+  outline: none !important;
+
+  &:focus,
+  &:focus-visible {
+    outline: none !important;
+  }
 
   &--mounted {
     --papikapi-paper-fill: var(--papikapi-green-bg);

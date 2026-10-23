@@ -115,6 +115,29 @@ describe('arrangeShelves', () => {
     expect(switchedShelf.trophies[0].isChosen).toBe(false);
     expect(switchedShelf.trophies[2].isChosen).toBe(true);
   });
+
+  it('keeps each figure own piecesTotal on the shelf when switching to a figure with fewer pieces', () => {
+    const customCatalogue = ['ankylosaurus', 'pug', 'brachiosaurus'];
+    const progress = {
+      ...startProgress('brachiosaurus'),
+      mountedIds: ['ankylosaurus'],
+      shelfIds: ['ankylosaurus', 'pug', 'brachiosaurus'],
+      allocations: { ankylosaurus: 60, pug: 50, brachiosaurus: 0 },
+    };
+
+    const [shelf] = arrangeShelves(progress, customCatalogue, 1, 20);
+    const [anky, pug, brach] = shelf.trophies;
+
+    expect(anky.piecesTotal).toBe(60);
+    expect(anky.piecesBuilt).toBe(60);
+
+    expect(pug.piecesTotal).toBe(36);
+    expect(pug.piecesBuilt).toBe(26);
+    expect(pug.state).toBe('building');
+
+    expect(brach.piecesTotal).toBe(20);
+    expect(brach.piecesBuilt).toBe(0);
+  });
 });
 
 describe('chooseFigure', () => {
@@ -151,7 +174,7 @@ describe('consolidatePoints', () => {
 });
 
 describe('allocatePoint & reclaimPoint on all figures', () => {
-  it('allocates credit to the active figure when credit is available', () => {
+  it('allocates credit to the target figure when credit is available', () => {
     const progress = {
       ...startProgress('t-rex'),
       unassignedCredit: 2,
@@ -162,62 +185,50 @@ describe('allocatePoint & reclaimPoint on all figures', () => {
     expect(next.allocations?.['t-rex']).toBe(2);
   });
 
-  it('transfers points from donor figure to active figure when credit is 0', () => {
+  it('does not allocate points when credit is 0', () => {
     const progress = {
       ...startProgress('t-rex'),
       unassignedCredit: 0,
       allocations: { 't-rex': 1, 'fox': 3 },
     };
     const next = allocatePoint(progress, 't-rex');
-    expect(next.allocations?.['fox']).toBe(2);
-    expect(next.allocations?.['t-rex']).toBe(2);
+    expect(next).toBe(progress);
   });
 
-  it('reclaims points from the active figure back to unassigned credit', () => {
+  it('never allocates points to an already mounted figure', () => {
     const progress = {
       ...startProgress('t-rex'),
-      unassignedCredit: 0,
-      allocations: { 't-rex': 4 },
+      mountedIds: ['fox'],
+      unassignedCredit: 5,
+      allocations: { 't-rex': 1, 'fox': 10 },
     };
-    const next = reclaimPoint(progress, 't-rex');
-    expect(next.unassignedCredit).toBe(1);
-    expect(next.allocations?.['t-rex']).toBe(3);
+    const next = allocatePoint(progress, 'fox');
+    expect(next).toBe(progress);
   });
 
-  it('transfers points from other figures to the active figure on reclaim', () => {
+  it('reclaims points from any uncompleted figure back to unassigned credit without sending to active figure', () => {
     const progress = {
       ...startProgress('t-rex'),
       unassignedCredit: 0,
       allocations: { 't-rex': 2, 'fox': 3 },
     };
     const next = reclaimPoint(progress, 'fox');
+    expect(next.unassignedCredit).toBe(1);
     expect(next.allocations?.['fox']).toBe(2);
-    expect(next.allocations?.['t-rex']).toBe(3);
+    expect(next.allocations?.['t-rex']).toBe(2);
   });
 
-  it('reclaims points from a mounted figure, removing it from mountedIds if points reach 0', () => {
+  it('never reclaims points from a mounted figure', () => {
     const progress = {
       ...startProgress('t-rex'),
       mountedIds: ['fox'],
       unassignedCredit: 0,
-      allocations: { 't-rex': 2, 'fox': 1 },
+      allocations: { 't-rex': 2, 'fox': 5 },
     };
     const next = reclaimPoint(progress, 'fox');
-    expect(next.allocations?.['fox']).toBe(0);
-    expect(next.allocations?.['t-rex']).toBe(3);
-    expect(next.mountedIds).not.toContain('fox');
-  });
-
-  it('transfers points from a mounted figure to active figure when active + is clicked', () => {
-    const progress = {
-      ...startProgress('t-rex'),
-      mountedIds: ['fox'],
-      unassignedCredit: 0,
-      allocations: { 't-rex': 2, 'fox': 1 },
-    };
-    const next = allocatePoint(progress, 't-rex');
-    expect(next.allocations?.['fox']).toBe(0);
-    expect(next.allocations?.['t-rex']).toBe(3);
-    expect(next.mountedIds).not.toContain('fox');
+    expect(next).toBe(progress);
+    expect(next.mountedIds).toContain('fox');
+    expect(next.allocations?.['fox']).toBe(5);
+    expect(next.unassignedCredit).toBe(0);
   });
 });

@@ -121,9 +121,12 @@ describe('FigureProgressStore', () => {
     expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(15);
     expect(store.progress().seenPieces).toBe(6);
 
-    // Transfer 3 points to ankylosaurus
+    // Transfer 3 points to ankylosaurus via credit
+    store.reclaimPoint(DEFAULT_FIGURE_ID);
     store.allocatePoint('ankylosaurus');
+    store.reclaimPoint(DEFAULT_FIGURE_ID);
     store.allocatePoint('ankylosaurus');
+    store.reclaimPoint(DEFAULT_FIGURE_ID);
     store.allocatePoint('ankylosaurus');
 
     expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);

@@ -117,14 +117,17 @@ export class BuildDirector {
     this.rest(built);
   }
 
-  replay(): void {
+  replay(onDone?: () => void): void {
     if (this.rig.pieceCount <= PLINTH_PIECES) return;
     this.playingToEnd = false;
     this.animation.stop();
     const resting = this.shown;
     const target = Math.max(resting, PLINTH_PIECES + 1);
     this.settleAt(target - 1);
-    this.animate(target - 1, () => this.settleAt(resting));
+    this.animate(target - 1, () => {
+      this.settleAt(resting);
+      onDone?.();
+    });
   }
 
   playToEnd(stepDurationMs = 1200, onDone?: () => void): void {

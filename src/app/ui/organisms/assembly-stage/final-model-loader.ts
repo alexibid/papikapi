@@ -15,13 +15,6 @@ export const FINAL_MODEL_LOADER = new InjectionToken<FinalModelLoader>('FINAL_MO
 
     return async (url) => {
       const asset = parseFigureUrl(url);
-      if (asset && isDevMode()) {
-        try {
-          return await load(studioFigureUrl(asset));
-        } catch {
-          // Fall back to bundled or assets
-        }
-      }
       try {
         return await load(url);
       } catch (bundledError) {

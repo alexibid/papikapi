@@ -49,6 +49,7 @@ describe('User Journey: Figure Progression & Points Economy', () => {
 
     // Award 10 consolidated points to default figure and allocate 1 point to ankylosaurus so shelf has multiple active figures
     progressStore.syncTotalPoints(110);
+    progressStore.reclaimPoint('t-rex');
     progressStore.allocatePoint('ankylosaurus');
     fixture.detectChanges();
   });
@@ -157,19 +158,27 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       // When second figure has > 0 points, remove button is not displayed
       expect(otherTrophyEl.querySelector('.m-trophy__remove-btn')).toBeNull();
 
-      // 1. Click + on other trophy: transfers 1 point from chosen figure to other figure
+      // 1. Transfer 1 point from chosen figure to other figure via credit pool
+      chosenMinusBtn.click();
+      fixture.detectChanges();
+      expect(progressStore.allocation(firstId)).toBe(9);
+      expect(progressStore.unassignedCredits()).toBe(1);
+
       otherPlusBtn.click();
       fixture.detectChanges();
-
       expect(progressStore.allocation(secondId)).toBe(2);
-      expect(progressStore.allocation(firstId)).toBe(9);
+      expect(progressStore.unassignedCredits()).toBe(0);
 
-      // 2. Click + on chosen figure: transfers point back from other figure
+      // 2. Transfer point back from other figure via credit pool
+      otherMinusBtn.click();
+      fixture.detectChanges();
+      expect(progressStore.allocation(secondId)).toBe(1);
+      expect(progressStore.unassignedCredits()).toBe(1);
+
       chosenPlusBtn.click();
       fixture.detectChanges();
-
-      expect(progressStore.allocation(secondId)).toBe(1);
       expect(progressStore.allocation(firstId)).toBe(10);
+      expect(progressStore.unassignedCredits()).toBe(0);
 
       // 3. Click - on chosen figure: reclaims point to unassigned credit bank
       chosenMinusBtn.click();
@@ -178,11 +187,12 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       expect(progressStore.allocation(firstId)).toBe(9);
       expect(progressStore.unassignedCredits()).toBe(1);
 
-      // 4. Click - on other trophy until 0 points
+      // 4. Click - on other trophy until 0 points: reclaims to unassigned credit
       otherMinusBtn.click();
       fixture.detectChanges();
       expect(progressStore.allocation(secondId)).toBe(0);
-      expect(progressStore.allocation(firstId)).toBe(10);
+      expect(progressStore.allocation(firstId)).toBe(9);
+      expect(progressStore.unassignedCredits()).toBe(2);
 
       // When figure hits 0 points, the - button disappears and the remove button appears!
       expect(otherTrophyEl.querySelector('.m-trophy__action-btn--minus')).toBeNull();
@@ -261,8 +271,9 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       const initialSecondPts = progressStore.allocation(secondId);
       const initialFirstPts = progressStore.allocation(DEFAULT_FIGURE_ID);
 
-      // Allocate 5 points to secondId
+      // Allocate 5 points to secondId via credit transfer
       for (let i = 0; i < 5; i++) {
+        progressStore.reclaimPoint(DEFAULT_FIGURE_ID);
         progressStore.allocatePoint(secondId);
       }
       fixture.detectChanges();
@@ -290,20 +301,96 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       expect(progressStore.allocation(DEFAULT_FIGURE_ID)).toBe(initialFirstPts - 5);
       expect(progressStore.allocation(secondId)).toBe(initialSecondPts + 5);
     });
+
+    it('preserves exact incomplete progress and +/- buttons on pug (36 pieces) when selecting brachiosaurus (20 pieces)', () => {
+      progressStore.select('pug');
+      progressStore.addFigurePoints('pug', 50);
+      progressStore.select('brachiosaurus');
+      progressStore.select('pug');
+      component['onStageReady'](36);
+      fixture.detectChanges();
+
+      const findTrophyModel = (id: string) =>
+        component['shelves']()
+          .flatMap((s) => s.trophies)
+          .find((t) => t.figureId === id);
+
+      const findTrophyEl = (id: string): HTMLElement | undefined => {
+        const els = Array.from(fixture.nativeElement.querySelectorAll('papikapi-trophy')) as HTMLElement[];
+        return els.find((el) => {
+          const idx = els.indexOf(el);
+          const allTrophies = component['shelves']().flatMap((s) => s.trophies);
+          return allTrophies[idx]?.figureId === id;
+        });
+      };
+
+      const pugBefore = findTrophyModel('pug');
+      expect(pugBefore).toBeDefined();
+      expect(pugBefore?.piecesTotal).toBe(36);
+      expect(pugBefore?.piecesBuilt).toBe(26);
+      expect(pugBefore?.piecesBuilt).toBeLessThan(pugBefore?.piecesTotal ?? 0);
+
+      const pugElBefore = findTrophyEl('pug')!;
+      expect(pugElBefore.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
+      expect(pugElBefore.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
+
+      // Now click brachiosaurus (20 total pieces, 0 points)
+      const brachEl = findTrophyEl('brachiosaurus')!;
+      ((brachEl.querySelector('.m-trophy__figure') ?? brachEl) as HTMLElement).click();
+      component['onStageReady'](20);
+      fixture.detectChanges();
+
+      expect(progressStore.progress().currentId).toBe('brachiosaurus');
+
+      // Pug MUST still have piecesTotal = 36 and piecesBuilt = 26 (NOT completed!)
+      const pugAfter = findTrophyModel('pug');
+      expect(pugAfter?.piecesTotal).toBe(36);
+      expect(pugAfter?.piecesBuilt).toBe(26);
+      expect(pugAfter?.state).toBe('building');
+
+      const pugElAfter = findTrophyEl('pug')!;
+      expect(pugElAfter.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
+      expect(pugElAfter.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
+
+      // Brachiosaurus with 0 points must have 0 piecesBuilt on its shelf thumbnail
+      const brachAfter = findTrophyModel('brachiosaurus');
+      expect(brachAfter?.piecesTotal).toBe(20);
+      expect(brachAfter?.allocatedPoints).toBe(0);
+      expect(brachAfter?.piecesBuilt).toBe(0);
+
+      // Even if a custom figure had stage pieceCount = 50 and 35 pieces built, deselecting it preserves 50
+      progressStore.select('darth', { allowCustom: true });
+      progressStore.addFigurePoints('darth', 68);
+      component['onStageReady'](50);
+      fixture.detectChanges();
+
+      expect(findTrophyModel('darth')?.piecesTotal).toBe(50);
+
+      ((brachEl.querySelector('.m-trophy__figure') ?? brachEl) as HTMLElement).click();
+      component['onStageReady'](20);
+      fixture.detectChanges();
+
+      expect(findTrophyModel('darth')?.piecesTotal).toBe(50);
+      const darthEl = findTrophyEl('darth')!;
+      expect(darthEl.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
+      expect(darthEl.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
+    });
   });
 
   describe('Journey 6: Active figure completion progress pips (papikapi-progress-pips)', () => {
-    it('binds progress pips to the completion percentage of the active figure (0 to 10 scale)', () => {
+    it('binds progress pips to the assembly completion percentage of the active figure with 4 folds', () => {
       const pipsEl = fixture.nativeElement.querySelector('papikapi-progress-pips');
       expect(pipsEl).not.toBeNull();
-      expect(component.figurePipsTotal()).toBe(10);
+      expect(component.figurePipsTotal()).toBeGreaterThan(0);
 
-      // Default figure has 10 points allocated -> figurePipsFilled > 0
+      const allFolds = pipsEl.querySelectorAll('.m-progress-pips__fold');
+      expect(allFolds.length).toBe(4);
+
       expect(component.figurePipsFilled()).toBeGreaterThan(0);
       const activeFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
-      expect(activeFolds.length).toBe(component.figurePipsFilled());
+      expect(activeFolds.length).toBeGreaterThan(0);
+      expect(activeFolds.length).toBeLessThanOrEqual(4);
 
-      // Switch to a fresh figure with 0 points allocated
       component['onFigureChosen']('plane');
       fixture.detectChanges();
 
@@ -314,7 +401,7 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       const emptyFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
       expect(emptyFolds.length).toBe(0);
 
-      // Allocate points to the active figure -> progress pips increase!
+      progressStore.setUnassignedCredit(1);
       component['onAllocatePoint']('plane');
       fixture.detectChanges();
 
@@ -322,22 +409,20 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       expect(component.figurePipsFilled()).toBeGreaterThan(0);
 
       const updatedFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
-      expect(updatedFolds.length).toBe(component.figurePipsFilled());
+      expect(updatedFolds.length).toBeGreaterThan(0);
 
-      // When figure is completed (or mounted), pips reach 100% (10 pips) and + button disappears
       progressStore.select(DEFAULT_FIGURE_ID, { keepMounted: false });
       progressStore.mountCurrent(200);
       progressStore.select(DEFAULT_FIGURE_ID, { keepMounted: true });
       fixture.detectChanges();
 
-      expect(component.figurePipsFilled()).toBe(10);
+      expect(component.figurePipsFilled()).toBe(component.figurePipsTotal());
       const fullFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
-      expect(fullFolds.length).toBe(10);
+      expect(fullFolds.length).toBe(4);
 
       const trophies = fixture.nativeElement.querySelectorAll('papikapi-trophy');
       const mountedTrophy = trophies[0] as HTMLElement;
       expect(mountedTrophy.querySelector('.m-trophy--mounted')).not.toBeNull();
-      // On complete / mounted figures, all action buttons disappear
       expect(mountedTrophy.querySelector('.m-trophy__action-btn--plus')).toBeNull();
       expect(mountedTrophy.querySelector('.m-trophy__action-btn--minus')).toBeNull();
     });

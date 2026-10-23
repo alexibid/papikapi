@@ -51,6 +51,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   readonly modelSource = input('');
   readonly built = input(PLINTH_PIECES);
   readonly loading = input(false);
+  readonly complete = input(false);
   readonly ariaLabel = input('');
   readonly releaseLabel = input('');
   readonly completeLabel = input('');
@@ -94,6 +95,10 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       if (this.viewport) void this.load(url);
     });
     effect(() => {
+      const isComplete = this.complete();
+      this.mode.set(isComplete ? 'complete' : 'animated');
+    });
+    effect(() => {
       const built = this.built();
       const mode = this.mode();
       const replays = this.replays();
@@ -119,8 +124,19 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
         this.director.playToEnd(1200, () => this.mode.set('complete'));
         return;
       }
-      if (replayRequested) this.director.replay();
-      else if (!this.director.isDisassembling()) this.director.advanceTo(built);
+      if (replayRequested) {
+        const director = this.director;
+        director.replay(() => {
+          if (
+            this.complete() ||
+            (this.built() >= director.pieceCount && director.pieceCount > PLINTH_PIECES)
+          ) {
+            this.mode.set('complete');
+          }
+        });
+      } else if (!this.director.isDisassembling()) {
+        this.director.advanceTo(built);
+      }
     });
   }
 
@@ -187,7 +203,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   }
 
   private async load(url: string): Promise<void> {
-    this.mode.set('animated');
+    this.mode.set(this.complete() ? 'complete' : 'animated');
     this.discardFigure();
     if (!url || !this.viewport) return;
     try {
@@ -195,11 +211,22 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
       rig.resize(this.viewport.width, this.viewport.height);
       this.viewport.scene.add(rig.root);
       this.rig = rig;
-      this.director = new BuildDirector(rig, this.viewport, this.built(), (built) =>
-        this.settled.emit(built)
-      );
+      void this.ensureFinalModel();
+      this.director = new BuildDirector(rig, this.viewport, this.built(), (built) => {
+        if (built >= rig.pieceCount && rig.pieceCount > PLINTH_PIECES) {
+          this.mode.set('complete');
+        }
+        this.settled.emit(built);
+      });
       this.ready.emit(this.director.pieceCount);
-      if (this.loading()) {
+      const isComplete =
+        this.complete() ||
+        (this.built() >= this.director.pieceCount && this.director.pieceCount > PLINTH_PIECES);
+      if (isComplete) {
+        this.mode.set('complete');
+        this.director.showComplete();
+        void this.revealFinalModel();
+      } else if (this.loading()) {
         this.director.loopAssembly(850);
       } else {
         this.settled.emit(this.director.current);

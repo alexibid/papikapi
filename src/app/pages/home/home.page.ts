@@ -10,8 +10,14 @@ import {
   untracked,
 } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { HandDrawnDirective, IconButtonComponent } from 'ibid-ui';
+import {
+  FocusStateDirective,
+  HandDrawnDirective,
+  IconButtonComponent,
+  TactileDirective,
+} from 'ibid-ui';
 import { I18nService } from '@ibid/services';
+import { PapikapiSensoryFeedbackAdapter } from '@ui/interaction/papikapi-sensory-feedback.adapter';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { RoutineTask } from '@domain/models/routine-task';
 import { arrangeShelves } from '@domain/services/figure-cycle';
@@ -52,6 +58,7 @@ const CELEBRATION_MS = 2800;
   standalone: true,
   imports: [
     AssemblyStageComponent,
+    FocusStateDirective,
     HandDrawnDirective,
     IconButtonComponent,
     ModelAlternativesModalComponent,
@@ -64,6 +71,7 @@ const CELEBRATION_MS = 2800;
     ProgressPipsComponent,
     RouterModule,
     SceneryComponent,
+    TactileDirective,
     TaskCardComponent,
     TrophyComponent,
   ],
@@ -73,6 +81,7 @@ const CELEBRATION_MS = 2800;
 export class HomePage implements DoCheck {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(DiaryStore);
+  private readonly sensory = inject(PapikapiSensoryFeedbackAdapter);
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
   private readonly creation = inject(CreationProgressService);
@@ -83,7 +92,7 @@ export class HomePage implements DoCheck {
   private celebration?: number;
   protected readonly tasks = this.routineStore.tasks;
   protected readonly doneCount = this.routineStore.doneCount;
-  protected readonly soundOn = signal(true);
+  protected readonly soundOn = this.sensory.soundEnabled;
   protected readonly modelPickerOpen = signal(false);
   protected readonly gateOpen = signal(false);
   protected readonly promptOpen = signal(false);
@@ -101,6 +110,19 @@ export class HomePage implements DoCheck {
   } | null>(null);
 
   protected readonly currentModelId = computed(() => this.progress.progress().currentId);
+
+  readonly isCurrentMounted = computed(() =>
+    this.progress.progress().mountedIds.includes(this.currentModelId())
+  );
+
+  readonly isCurrentComplete = computed(() => {
+    const curId = this.currentModelId();
+    if (this.progress.progress().mountedIds.includes(curId)) {
+      return true;
+    }
+    const total = this.pieceTotal() || this.defaultPiecesFor(curId);
+    return total > PLINTH_PIECES && this.activePieces() >= total;
+  });
 
   protected readonly modelVersion = signal(Date.now());
 
@@ -126,22 +148,26 @@ export class HomePage implements DoCheck {
     return `${circumference * (1 - ratio)}px`;
   });
 
-  readonly figurePipsTotal = computed(() => 10);
+  readonly figurePipsTotal = computed(() => {
+    const curId = this.currentModelId();
+    const total = this.pieceTotal() || this.defaultPiecesFor(curId);
+    return Math.max(1, total - PLINTH_PIECES);
+  });
 
   readonly figurePipsFilled = computed(() => {
     const curId = this.currentModelId();
+    const totalFigPieces = this.figurePipsTotal();
     if (this.progress.progress().mountedIds.includes(curId)) {
-      return 10;
+      return totalFigPieces;
     }
     const allocated = this.progress.allocation(curId);
-    if (allocated <= 0) return 0;
-    const total = this.pieceTotal() || this.defaultPiecesFor(curId);
-    const totalFigPieces = Math.max(1, total - PLINTH_PIECES);
+    if (this.overridePieces() < 0 && allocated <= 0) return 0;
     const built = this.activePieces();
     const builtFigPieces = Math.max(0, built - PLINTH_PIECES);
-    if (built >= total || builtFigPieces >= totalFigPieces) return 10;
-    const ratio = Math.min(1, Math.max(0, builtFigPieces / totalFigPieces));
-    return Math.min(10, Math.max(1, Math.round(ratio * 10)));
+    if (built >= (this.pieceTotal() || this.defaultPiecesFor(curId)) || builtFigPieces >= totalFigPieces) {
+      return totalFigPieces;
+    }
+    return Math.min(totalFigPieces, Math.max(1, builtFigPieces));
   });
 
   protected readonly creditPips = computed(() =>
@@ -152,8 +178,14 @@ export class HomePage implements DoCheck {
   );
 
   protected defaultPiecesFor(figureId: string): number {
-    return SHIPPED_FIGURE_PIECE_COUNTS[figureId] ?? DEFAULT_FIGURE_PIECES;
+    return (
+      this.pieceTotalByFigure()[figureId] ??
+      SHIPPED_FIGURE_PIECE_COUNTS[figureId] ??
+      DEFAULT_FIGURE_PIECES
+    );
   }
+
+  protected readonly pieceTotalByFigure = signal<Readonly<Record<string, number>>>({});
 
   protected readonly earnedPieces = computed(() => {
     const curId = this.progress.progress().currentId;
@@ -170,6 +202,10 @@ export class HomePage implements DoCheck {
   readonly activePieces = computed(() => {
     const override = this.overridePieces();
     if (override >= 0) return override;
+    const curId = this.currentModelId();
+    if (this.progress.progress().mountedIds.includes(curId)) {
+      return this.pieceTotal() || this.defaultPiecesFor(curId);
+    }
     return this.builtPieces();
   });
 
@@ -214,6 +250,7 @@ export class HomePage implements DoCheck {
       this.activePieces(),
       this.pieceTotal() || this.defaultPiecesFor(this.currentModelId()),
       this.rhythm.rhythm(),
+      this.pieceTotalByFigure(),
     )
   );
 
@@ -339,6 +376,10 @@ export class HomePage implements DoCheck {
 
   protected onStageReady(pieceCount: number): void {
     this.pieceTotal.set(pieceCount);
+    const curId = this.currentModelId();
+    if (pieceCount > 0) {
+      this.pieceTotalByFigure.update((map) => ({ ...map, [curId]: pieceCount }));
+    }
   }
 
   protected onStageFailed(): void {
@@ -361,6 +402,7 @@ export class HomePage implements DoCheck {
   }
 
   protected onCreditBarClicked(): void {
+    if (this.unassignedCredits() <= 0 || this.isCurrentComplete()) return;
     this.progress.allocateCreditToCurrent();
     const curId = this.currentModelId();
     const allocated = this.progress.allocation(curId);
@@ -547,7 +589,7 @@ export class HomePage implements DoCheck {
   }
 
   protected toggleSound(): void {
-    this.soundOn.update((on) => !on);
+    this.sensory.toggleSound();
   }
 
   protected onTaskClicked(task: RoutineTask): void {

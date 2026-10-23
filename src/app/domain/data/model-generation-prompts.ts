@@ -123,7 +123,7 @@ export function classifySubject(subject: string): SubjectClassification {
   else if (isLiving) category = 'creature';
 
   const stanceClause = isQuadruped
-    ? 'standing on all four legs with belly elevated above the ground plane, quadruped posture with exactly four distinct legs and four paws flat on the ground plane, smooth continuous back with exactly one single tail attached at the base of the spine (zero duplicate tails, never two tails, zero dorsal protrusions), full body profile in eye-level three-quarter view showing front and side, zero extra limbs, never sitting, never seated on hind legs, never bipedal'
+    ? 'standing naturally on all four paws flat on the ground plane, exactly four distinct legs and four paws, belly elevated above the ground plane, smooth continuous back with exactly one single tail attached at the base of the spine (zero duplicate tails, never two tails, zero dorsal protrusions), full body profile in eye-level three-quarter view showing front and side, zero extra limbs, never sitting, never seated on hind legs, never bipedal'
     : isBipedCreature
       ? 'standing naturally upright and balanced with exactly two feet flat on the ground plane, exactly two legs, zero extra limbs'
       : isAquatic

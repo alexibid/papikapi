@@ -54,11 +54,37 @@ describe('AssemblyStageComponent', () => {
       expect(modeButtons(render())).toHaveLength(3);
     });
 
-    it('starts in the animated mode', () => {
+    it('starts in the animated mode by default', () => {
       const element = render();
 
       expect(element.querySelector('.o-assembly-stage--complete')).toBeNull();
       expect(element.querySelectorAll('.o-assembly-stage__mode--on')).toHaveLength(1);
+    });
+
+    it('initializes in complete mode when complete input is true', () => {
+      fixture = TestBed.createComponent(AssemblyStageComponent);
+      fixture.componentRef.setInput('source', '/figures/t-rex/assembly.json');
+      fixture.componentRef.setInput('complete', true);
+      fixture.detectChanges();
+
+      const element = fixture.nativeElement as HTMLElement;
+      expect(element.querySelector('.o-assembly-stage--complete')).not.toBeNull();
+      expect(element.querySelector('.o-assembly-stage__mode--on')).toBe(
+        element.querySelectorAll('.o-assembly-stage__mode')[0]
+      );
+    });
+
+    it('reacts to complete input switching dynamically', () => {
+      const element = render();
+      expect(element.querySelector('.o-assembly-stage--complete')).toBeNull();
+
+      fixture.componentRef.setInput('complete', true);
+      fixture.detectChanges();
+      expect(element.querySelector('.o-assembly-stage--complete')).not.toBeNull();
+
+      fixture.componentRef.setInput('complete', false);
+      fixture.detectChanges();
+      expect(element.querySelector('.o-assembly-stage--complete')).toBeNull();
     });
 
     it('switches to the complete figure and back to the animation', () => {

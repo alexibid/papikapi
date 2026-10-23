@@ -1,4 +1,6 @@
 import { Injectable, inject } from '@angular/core';
+import { Observable, from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { BehaviourDomainId, BranchLevels } from '@domain/models/behaviour-domain';
 import { Badge, TreeState, createTreeState } from '@domain/models/tree-state';
 import { TreeRepository } from '@domain/repositories/tree.repository';
@@ -13,6 +15,13 @@ export class RxdbTreeRepository implements TreeRepository {
     const collection = await this.collection();
     const document = await collection.findOne(childId).exec();
     return document ? toTreeState(document.toJSON()) : createTreeState(childId);
+  }
+
+  observeByChild(childId: string): Observable<TreeState> {
+    return from(this.collection()).pipe(
+      switchMap((collection) => collection.findOne(childId).$),
+      map((document) => (document ? toTreeState(document.toJSON()) : createTreeState(childId)))
+    );
   }
 
   async save(state: TreeState): Promise<void> {

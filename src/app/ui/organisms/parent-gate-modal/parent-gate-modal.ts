@@ -1,5 +1,10 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
-import { ButtonComponent, HandDrawnDirective } from 'ibid-ui';
+import {
+  ButtonComponent,
+  FocusStateDirective,
+  HandDrawnDirective,
+  TactileDirective,
+} from 'ibid-ui';
 import { I18nService } from '@ibid/services';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
@@ -9,7 +14,13 @@ const KEYPAD_DIGITS: readonly string[] = ['1', '2', '3', '4', '5', '6', '7', '8'
 @Component({
   selector: 'papikapi-parent-gate-modal',
   standalone: true,
-  imports: [ButtonComponent, HandDrawnDirective, PictogramComponent],
+  imports: [
+    ButtonComponent,
+    FocusStateDirective,
+    HandDrawnDirective,
+    PictogramComponent,
+    TactileDirective,
+  ],
   templateUrl: './parent-gate-modal.html',
   styleUrl: './parent-gate-modal.scss',
 })

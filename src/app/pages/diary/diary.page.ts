@@ -1,6 +1,13 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { I18nService } from '@ibid/services';
-import { ButtonComponent, ChipComponent, HandDrawnDirective, TextareaComponent } from 'ibid-ui';
+import {
+  ButtonComponent,
+  ChipComponent,
+  FormFieldComponent,
+  FormOrchestratorDirective,
+  HandDrawnDirective,
+  TextareaComponent,
+} from 'ibid-ui';
 import { BEHAVIOUR_DOMAIN_CATALOGUE, behaviourDomainOf } from '@domain/data/behaviour-domains';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { DOMAIN_PICTOGRAMS } from '@ui/atoms/pictogram/domain-pictograms';
@@ -14,13 +21,22 @@ const MANUAL_POINTS = 2;
 @Component({
   selector: 'papikapi-diary-page',
   standalone: true,
-  imports: [ButtonComponent, ChipComponent, HandDrawnDirective, PictogramComponent, TextareaComponent],
+  imports: [
+    ButtonComponent,
+    ChipComponent,
+    FormFieldComponent,
+    FormOrchestratorDirective,
+    HandDrawnDirective,
+    PictogramComponent,
+    TextareaComponent,
+  ],
   templateUrl: './diary.page.html',
   styleUrl: './diary.page.scss',
 })
 export class DiaryPage {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(DiaryStore);
+  protected readonly orchestrator = viewChild<FormOrchestratorDirective>('orchestrator');
   protected readonly domains = BEHAVIOUR_DOMAIN_CATALOGUE;
   protected readonly draft = signal('');
 
@@ -35,9 +51,14 @@ export class DiaryPage {
   }
 
   protected async save(): Promise<void> {
+    const orchestrator = this.orchestrator();
+    if (orchestrator && !orchestrator.validateAndNotify()) {
+      return;
+    }
     const text = this.draft();
     this.draft.set('');
     this.edited.set(undefined);
+    orchestrator?.resetAttention();
     await this.store.record(text);
   }
 

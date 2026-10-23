@@ -15,8 +15,11 @@ import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 interface Fold {
   readonly index: number;
   readonly filled: boolean;
+  readonly openRatio: number;
   readonly isBase: boolean;
 }
+
+const FOLD_COUNT = 4;
 
 interface ConfettiPiece {
   readonly id: number;
@@ -93,62 +96,74 @@ export class ProgressPipsComponent {
     return this.isPeeking() ? this.total() : this.filled();
   });
 
-  protected readonly folds = computed((): readonly Fold[] => {
-    const f = this.effectiveFilled();
-    return Array.from({ length: this.total() }, (_, position) => ({
-      index: position,
-      filled: position < f,
-      isBase: position === 0,
-    }));
-  });
-
   protected readonly progressRatio = computed(() => {
     const t = this.total();
     if (t <= 0) return 0;
     return Math.max(0, Math.min(1, this.effectiveFilled() / t));
   });
 
-  // Color scale: Vermelho -> Laranja -> Amarelo -> Amarelo-Lima -> Verde quando completo
+  protected readonly unfoldedFolds = computed(() => this.progressRatio() * FOLD_COUNT);
+
+  protected readonly folds = computed((): readonly Fold[] => {
+    const openFolds = this.unfoldedFolds();
+    return Array.from({ length: FOLD_COUNT }, (_, position) => {
+      const openRatio = Math.max(0, Math.min(1, openFolds - position));
+      return {
+        index: position,
+        filled: openRatio > 0,
+        openRatio,
+        isBase: position === 0,
+      };
+    });
+  });
+
   protected readonly stripColor = computed(() => {
     const r = this.progressRatio();
-    if (r <= 0) return 'hsl(4, 88%, 52%)'; // Vermelho
-    if (r >= 1) return 'hsl(142, 74%, 42%)'; // Verde quando completo
-    if (r <= 0.25) {
-      const p = r / 0.25;
+    if (r <= 0) return 'hsl(4, 88%, 52%)';
+    if (r >= 1) return 'hsl(142, 74%, 42%)';
+    if (r < 0.35) {
+      const p = r / 0.35;
       const h = Math.round(4 + p * (26 - 4));
-      return `hsl(${h}, 90%, 52%)`; // Vermelho a Laranja
+      return `hsl(${h}, 90%, 52%)`;
     }
-    if (r <= 0.5) {
-      const p = (r - 0.25) / 0.25;
-      const h = Math.round(26 + p * (54 - 26));
-      return `hsl(${h}, 92%, 50%)`; // Laranja a Amarelo
+    if (r < 0.70) {
+      const p = (r - 0.35) / 0.35;
+      const h = Math.round(26 + p * (50 - 26));
+      return `hsl(${h}, 92%, 50%)`;
     }
-    if (r <= 0.75) {
-      const p = (r - 0.5) / 0.25;
-      const h = Math.round(54 + p * (84 - 54));
-      return `hsl(${h}, 86%, 47%)`; // Amarelo a Amarelo-Lima
+    if (r < 0.90) {
+      const p = (r - 0.70) / 0.20;
+      const h = Math.round(50 + p * (60 - 50));
+      return `hsl(${h}, 88%, 48%)`;
     }
-    const p = (r - 0.75) / 0.25;
-    const h = Math.round(84 + p * (142 - 84));
-    return `hsl(${h}, 78%, 43%)`; // Amarelo-Lima a Verde
+    const p = (r - 0.90) / 0.10;
+    const h = Math.round(60 + p * (142 - 60));
+    return `hsl(${h}, 78%, 43%)`;
   });
 
   protected readonly stripHue = computed(() => {
     const r = this.progressRatio();
-    return Math.round(4 + r * (142 - 4));
+    if (r < 0.90) {
+      return Math.round(4 + (r / 0.90) * (60 - 4));
+    }
+    const p = (r - 0.90) / 0.10;
+    return Math.round(60 + p * (142 - 60));
   });
 
   readonly stripWidth = computed(() => {
-    const filled = this.effectiveFilled();
-    const remaining = Math.max(0, this.total() - filled);
-    const w = filled * 3.49 + remaining * 0.75;
+    const openFolds = this.unfoldedFolds();
+    const remaining = Math.max(0, FOLD_COUNT - openFolds);
+    const w = openFolds * 3.49 + remaining * 0.75;
     return `${w.toFixed(2)}rem`;
   });
 
+  private foldOpenRatio(index: number): number {
+    return Math.max(0, Math.min(1, this.unfoldedFolds() - index));
+  }
+
   private worldAngle(index: number): number {
-    const filled = this.effectiveFilled();
-    const isOpen = index < filled;
-    const mag = isOpen ? 14 : 78;
+    const openRatio = this.foldOpenRatio(index);
+    const mag = 78 - openRatio * (78 - 14);
     return index % 2 === 0 ? -mag : mag;
   }
 
@@ -161,12 +176,11 @@ export class ProgressPipsComponent {
 
   foldTransform(index: number): string {
     const yAngle = this.foldAngle(index);
-    const filled = this.effectiveFilled();
-    const isOpen = index < filled;
-    // Angled axes for organic tactile hand-folded look ("eixos mais angulados com alguma organicidade")
-    // Alternating z-tilt and x-pitch so the cumulative deviation sums to zero ("sem fazer sair a barra do seu aspecto linear")
-    const zTilt = isOpen ? (index % 2 === 0 ? 0.9 : -0.9) : (index % 2 === 0 ? 2.4 : -2.4);
-    const xPitch = isOpen ? (index % 2 === 0 ? 0.6 : -0.6) : (index % 2 === 0 ? 1.8 : -1.8);
+    const openRatio = this.foldOpenRatio(index);
+    const zMag = 2.4 - openRatio * (2.4 - 0.9);
+    const xMag = 1.8 - openRatio * (1.8 - 0.6);
+    const zTilt = index % 2 === 0 ? zMag : -zMag;
+    const xPitch = index % 2 === 0 ? xMag : -xMag;
     return `rotateY(${yAngle}deg) rotateZ(${zTilt}deg) rotateX(${xPitch}deg)`;
   }
 
@@ -181,7 +195,7 @@ export class ProgressPipsComponent {
     });
 
     effect(() => {
-      const current = this.effectiveFilled();
+      const current = Math.ceil(this.unfoldedFolds());
       const prev = this.previousFilled;
       this.previousFilled = current;
 
