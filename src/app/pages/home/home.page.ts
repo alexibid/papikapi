@@ -112,14 +112,12 @@ export class HomePage implements DoCheck {
   protected readonly currentModelId = computed(() => this.progress.progress().currentId);
 
   readonly isCurrentMounted = computed(() =>
-    this.progress.progress().mountedIds.includes(this.currentModelId())
+    this.progress.progress().mountedIds.includes(this.currentModelId()) &&
+    this.isCurrentComplete()
   );
 
   readonly isCurrentComplete = computed(() => {
     const curId = this.currentModelId();
-    if (this.progress.progress().mountedIds.includes(curId)) {
-      return true;
-    }
     const total = this.pieceTotal() || this.defaultPiecesFor(curId);
     return total > PLINTH_PIECES && this.activePieces() >= total;
   });
@@ -156,18 +154,16 @@ export class HomePage implements DoCheck {
 
   readonly figurePipsFilled = computed(() => {
     const curId = this.currentModelId();
+    const total = this.pieceTotal() || this.defaultPiecesFor(curId);
     const totalFigPieces = this.figurePipsTotal();
-    if (this.progress.progress().mountedIds.includes(curId)) {
+    const built = this.activePieces();
+    if (built >= total && total > PLINTH_PIECES) {
       return totalFigPieces;
     }
     const allocated = this.progress.allocation(curId);
     if (this.overridePieces() < 0 && allocated <= 0) return 0;
-    const built = this.activePieces();
     const builtFigPieces = Math.max(0, built - PLINTH_PIECES);
-    if (built >= (this.pieceTotal() || this.defaultPiecesFor(curId)) || builtFigPieces >= totalFigPieces) {
-      return totalFigPieces;
-    }
-    return Math.min(totalFigPieces, Math.max(1, builtFigPieces));
+    return Math.min(Math.max(0, totalFigPieces - 1), Math.max(1, builtFigPieces));
   });
 
   protected readonly creditPips = computed(() =>

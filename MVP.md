@@ -2,7 +2,7 @@
 
 **Product Name:** Papikapi *(working name)*
 **Version:** 0.1.0 (pre-MVP)
-**Target Platform:** Mobile web
+**Target Platform:** Mobile App (Capacitor iOS & Android) / Desktop App (Tauri macOS) — App-First & Voice-First
 
 Scope and acceptance for the first shippable version. The full vision, the functional
 requirements and the roadmap live in [`PRD.md`](PRD.md); this document does not repeat them.

@@ -106,12 +106,14 @@ export class ProgressPipsComponent {
 
   protected readonly folds = computed((): readonly Fold[] => {
     const openFolds = this.unfoldedFolds();
+    const isComplete = this.progressRatio() >= 1;
     return Array.from({ length: FOLD_COUNT }, (_, position) => {
       const openRatio = Math.max(0, Math.min(1, openFolds - position));
+      const isLastFold = position === FOLD_COUNT - 1;
       return {
         index: position,
-        filled: openRatio > 0,
-        openRatio,
+        filled: isLastFold ? isComplete : openRatio > 0,
+        openRatio: isLastFold && !isComplete ? Math.min(0.65, openRatio) : openRatio,
         isBase: position === 0,
       };
     });

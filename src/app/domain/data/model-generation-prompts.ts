@@ -158,11 +158,23 @@ export function classifySubject(subject: string): SubjectClassification {
   };
 }
 
+export function normalizeCuteSubject(subject: string): string {
+  let clean = subject.trim();
+  clean = clean.replace(/\b(a\s+)?(cute\s+)+(cute\b)/gi, 'cute');
+  if (!/\bcute\b/i.test(clean)) {
+    clean = `cute ${clean}`;
+  }
+  if (!/^a\s+/i.test(clean)) {
+    clean = `a ${clean}`;
+  }
+  return clean.replace(/\s{2,}/g, ' ').replace(/^a\s+a\s+/i, 'a ');
+}
+
 export function composeStudioPrompt(subject: string, photoCount = 0): string {
   const cleanSubject = subject.trim() || 'o meu gato';
   const info = classifySubject(cleanSubject);
 
-  const subjectLabel = /^a\s+cute\s+/i.test(cleanSubject) ? cleanSubject : `a cute ${cleanSubject}`;
+  const subjectLabel = normalizeCuteSubject(cleanSubject);
 
   if (photoCount === 0) {
     const clauses = [
@@ -192,7 +204,7 @@ export function composeStudioPrompt(subject: string, photoCount = 0): string {
 }
 
 export function composeFullAiPrompt(subject: string, photoCount = 0): string {
-  const cleanSubject = subject.trim() || 'o meu gato';
+  const cleanSubject = normalizeCuteSubject(subject.trim() || 'o meu gato');
   if (photoCount === 0) {
     return `low-poly faceted 3D papercraft model of ${cleanSubject}. Seen in an EYE-LEVEL THREE-QUARTER VIEW, camera at the height of the subject's body, with all feet resting on one flat horizontal ground plane.
 
@@ -206,8 +218,7 @@ STUDIO INVARIANTS (MANDATORY):
 - 100% CLOSED GEOMETRIC VOLUMES: All primary forms are closed solid low-poly polyhedra suitable for papercraft folding.
 - FLAT 2D UV TEXTURE DECALS: Fine surface details (spots, stripes, teeth decals) are 100% flat 2D decals printed directly on facet surfaces, never protruding 3D physical spikes.
 - CLEAN CARDSTOCK CHEEKS (MANDATORY): Cheeks and muzzle are completely smooth bare cardstock without facial markings (prohibited for papercraft folding).
-- EYES: Exactly two large cute expressive round eyes with circular white catchlights painted flat onto head facets.
-- 3x2 MATRIX (6 ALTERNATIVES): 3 columns x 2 rows (Chibi -> Youthful -> Signature Adult). Pick #3 is the Papikapi Studio default.`;
+- EYES: Exactly two large cute expressive round eyes with circular white catchlights painted flat onto head facets.`;
   }
 
   return `low-poly faceted 3D papercraft model of ${cleanSubject}. Seen in an EYE-LEVEL THREE-QUARTER VIEW, camera at the height of the subject's body, with all feet resting on one flat horizontal ground plane.

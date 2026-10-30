@@ -139,7 +139,7 @@ export class ModelCreationLoaderComponent implements OnInit {
         return this.negativePrompt();
       case 'final':
       default:
-        return this.fullAiPrompt();
+        return this.finalPrompt();
     }
   });
 

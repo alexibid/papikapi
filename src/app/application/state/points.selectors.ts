@@ -54,18 +54,15 @@ export const selectFigurePipsFilled = createSelector(
   selectFigurePipsTotal,
   (s, active, totalPips) => {
     const curId = s.currentFigureId;
-    if (s.mountedFigureIds.includes(curId)) {
+    const total = s.pieceTotalByFigure[curId] ?? SHIPPED_FIGURE_PIECE_COUNTS[curId] ?? DEFAULT_FIGURE_PIECES;
+    if (active >= total && total > PLINTH_PIECES) {
       return 4;
     }
     const allocated = s.allocations[curId] ?? 0;
     if (s.overridePieces < 0 && allocated <= 0) return 0;
     const builtFigPieces = Math.max(0, active - PLINTH_PIECES);
-    const total = s.pieceTotalByFigure[curId] ?? SHIPPED_FIGURE_PIECE_COUNTS[curId] ?? DEFAULT_FIGURE_PIECES;
-    if (active >= total || builtFigPieces >= totalPips) {
-      return 4;
-    }
     const ratio = Math.min(1, Math.max(0, builtFigPieces / totalPips));
-    return Math.round(ratio * 4 * 100) / 100;
+    return Math.min(3.9, Math.round(ratio * 4 * 100) / 100);
   }
 );
 

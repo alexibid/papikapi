@@ -17,15 +17,20 @@ import {
   TactileDirective,
   TextareaComponent,
   TextInputComponent,
+  VoiceDictationComponent,
 } from 'ibid-ui';
-import { I18nService } from '@ibid/services';
+import {
+  I18nService,
+  SpeechRecognitionService,
+  SpeechRecognitionState,
+} from '@ibid/services';
 import {
   MODEL_NEGATIVE_PROMPT,
   MODEL_SYSTEM_PROMPT,
   ReferencePhoto,
   composeStudioPrompt,
-  slugify,
 } from '@domain/data/model-generation-prompts';
+import { VoicePromptTranslatorService } from '@application/services/voice-prompt-translator.service';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
 export type PromptTab = 'studio' | 'user' | 'system' | 'negative' | 'full' | 'command';
@@ -44,12 +49,15 @@ export type PromptTab = 'studio' | 'user' | 'system' | 'negative' | 'full' | 'co
     TactileDirective,
     TextareaComponent,
     TextInputComponent,
+    VoiceDictationComponent,
   ],
   templateUrl: './model-prompt-modal.html',
   styleUrl: './model-prompt-modal.scss',
 })
 export class ModelPromptModalComponent {
   protected readonly i18n = inject(I18nService);
+  protected readonly speech = inject(SpeechRecognitionService);
+  protected readonly promptTranslator = inject(VoicePromptTranslatorService);
 
   private readonly modelNameField = viewChild<TextInputComponent>('modelNameField');
 
@@ -59,6 +67,9 @@ export class ModelPromptModalComponent {
   readonly promptText = signal('');
   readonly subject = this.promptText;
   readonly modelName = signal('');
+  readonly isWritingVoice = signal(false);
+  readonly voiceNotice = signal('');
+  private basePromptBeforeDictation = '';
 
   constructor() {
     afterNextRender(() => this.modelNameField()?.focus());
@@ -66,11 +77,8 @@ export class ModelPromptModalComponent {
 
   readonly derivedFolderSlug = computed(() => {
     const custom = this.modelName().trim();
-    if (custom) {
-      return slugify(custom).slice(0, 32).replace(/-+$/, '') || 'papikapi-model';
-    }
-    const base = this.promptText().trim();
-    return slugify(base).slice(0, 24).replace(/-+$/, '') || 'papikapi-model';
+    const source = custom || this.promptText().trim();
+    return this.promptTranslator.deriveEnglishSlug(source) || 'papikapi-model';
   });
 
   readonly photos = signal<readonly ReferencePhoto[]>([]);
@@ -130,26 +138,61 @@ export class ModelPromptModalComponent {
   }
 
   protected async createModel(): Promise<void> {
-    const prompt = this.promptText().trim();
-    if (!prompt || this.isCreating()) return;
+    const rawPrompt = this.promptText().trim();
+    if (!rawPrompt || this.isCreating()) return;
 
     this.isCreating.set(true);
     this.errorMessage.set('');
     this.statusMessage.set('');
 
-    const name = this.derivedFolderSlug();
+    const rawCustomName = this.modelName().trim();
     const images = this.photos().map((p) => p.dataUrl);
 
     try {
-      const fullPrompt = composeStudioPrompt(prompt, images.length);
-      await navigator.clipboard.writeText(fullPrompt);
-    } catch {
-      void 0;
-    }
+      // Translation is done upon submission/sending
+      const [translated, customSlug] = await Promise.all([
+        this.promptTranslator.translateAndStructure(rawPrompt),
+        rawCustomName
+          ? this.promptTranslator.translateNameToSlug(rawCustomName)
+          : Promise.resolve(''),
+      ]);
 
-    this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
-    this.modelCreated.emit({ name, prompt, images });
-    this.close();
+      const englishPrompt = translated.englishPrompt || rawPrompt;
+      const name =
+        customSlug ||
+        translated.suggestedSlug ||
+        this.promptTranslator.deriveEnglishSlug(rawPrompt) ||
+        'papikapi-model';
+
+      const fullPrompt = composeStudioPrompt(englishPrompt, images.length);
+      try {
+        await navigator.clipboard.writeText(fullPrompt);
+      } catch {
+        // Clipboard write may fail in headless test environments
+      }
+
+      this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
+      this.modelCreated.emit({ name, prompt: englishPrompt, images });
+      this.close();
+    } catch {
+      // Graceful fallback if translation fails
+      const fallbackName =
+        this.promptTranslator.deriveEnglishSlug(rawCustomName || rawPrompt) || 'papikapi-model';
+      const fallbackPrompt = composeStudioPrompt(
+        this.promptTranslator.enrichIconicSubject(rawPrompt),
+        images.length
+      );
+      try {
+        await navigator.clipboard.writeText(fallbackPrompt);
+      } catch {
+        // Safe ignore
+      }
+      this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
+      this.modelCreated.emit({ name: fallbackName, prompt: fallbackPrompt, images });
+      this.close();
+    } finally {
+      this.isCreating.set(false);
+    }
   }
 
   protected async copyCurrent(): Promise<void> {
@@ -159,6 +202,65 @@ export class ModelPromptModalComponent {
       window.setTimeout(() => this.copied.set(false), 2000);
     } catch {
       this.copied.set(false);
+    }
+  }
+
+  protected onVoiceStateChange(state: SpeechRecognitionState): void {
+    if (state === 'recording' && !this.basePromptBeforeDictation && this.promptText().trim()) {
+      this.basePromptBeforeDictation = this.promptText().trim();
+    } else if (state === 'idle') {
+      this.basePromptBeforeDictation = '';
+    }
+  }
+
+  protected onVoiceStream(streamedText: string): void {
+    if (!streamedText) return;
+    const fullText = this.basePromptBeforeDictation
+      ? `${this.basePromptBeforeDictation} ${streamedText}`.trim()
+      : streamedText;
+
+    this.promptText.set(fullText);
+  }
+
+  protected onPromptTextManualChange(manualText: string): void {
+    this.promptText.set(manualText);
+    this.basePromptBeforeDictation = '';
+    if (this.speech.state() === 'paused' || this.speech.state() === 'recording') {
+      this.speech.updateTranscript(manualText);
+    }
+  }
+
+  protected onVoiceAccepted(dictatedText: string): void {
+    this.basePromptBeforeDictation = '';
+    const text = dictatedText.trim() || this.promptText().trim();
+    if (!text) return;
+    this.promptText.set(text);
+    this.voiceNotice.set(text);
+  }
+
+  protected async toggleVoiceDictation(): Promise<void> {
+    if (this.speech.isListening()) {
+      this.speech.stopListening();
+      return;
+    }
+
+    this.errorMessage.set('');
+    this.voiceNotice.set('');
+
+    try {
+      const rawText = await this.speech.startListening({ lang: 'pt-PT' });
+      if (!rawText) return;
+
+      this.isWritingVoice.set(true);
+      // Write to prompt in the spoken/chosen language
+      this.promptText.set(rawText);
+      this.voiceNotice.set(rawText);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message !== 'no-speech') {
+        this.errorMessage.set(err.message);
+      }
+    } finally {
+      this.isWritingVoice.set(false);
     }
   }
 

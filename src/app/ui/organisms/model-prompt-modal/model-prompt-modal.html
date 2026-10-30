@@ -60,13 +60,27 @@
     </div>
 
     <div class="papikapi-prompt-modal__field">
-      <ibid-form-field [label]="i18n.translate('promptInputLabel')" [required]="true">
+      <label class="papikapi-prompt-modal__field-label" for="promptTextInput">
+        {{ i18n.translate('promptInputLabel') }}
+      </label>
+
+      <ibid-voice-dictation
+        [lang]="'pt-PT'"
+        [timeoutSeconds]="60"
+        [targetValue]="promptText()"
+        [disabled]="isCreating()"
+        (transcriptChange)="onVoiceStream($event)"
+        (stateChange)="onVoiceStateChange($event)"
+        (accepted)="onVoiceAccepted($event)"
+      />
+
+      <ibid-form-field [required]="true">
         <ibid-textarea
           id="promptTextInput"
           [required]="true"
           [placeholder]="i18n.translate('promptInputPlaceholder')"
           [value]="promptText()"
-          (valueChange)="promptText.set($event)"
+          (valueChange)="onPromptTextManualChange($event)"
           [rows]="3"
         />
       </ibid-form-field>

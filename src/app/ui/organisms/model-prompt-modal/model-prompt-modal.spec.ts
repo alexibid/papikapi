@@ -105,6 +105,13 @@ describe('ModelPromptModalComponent', () => {
     ]);
     fixture.detectChanges();
 
+    const translator = component['promptTranslator'];
+    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
+      originalText: 'o meu gato Tobias, preto e branco',
+      englishPrompt: 'a cute tuxedo cat Tobias, black and white',
+      suggestedSlug: 'tuxedo-cat-tobias',
+    });
+
     let createdEvent: CreatedModel | null = null;
     component.modelCreated.subscribe((val) => {
       createdEvent = val;
@@ -113,8 +120,8 @@ describe('ModelPromptModalComponent', () => {
     await component['createModel']();
 
     expect(createdEvent).not.toBeNull();
-    expect(createdEvent!['prompt']).toBe('o meu gato Tobias, preto e branco');
-    expect(createdEvent!['name']).toBe('o-meu-gato-tobias-preto');
+    expect(createdEvent!['prompt']).toBe('a cute tuxedo cat Tobias, black and white');
+    expect(createdEvent!['name']).toBe('tuxedo-cat-tobias');
     expect(createdEvent!['images']).toEqual(['data:image/jpeg;base64,abc123']);
     expect(component.statusMessage()).toBeTruthy();
   });
@@ -141,6 +148,13 @@ describe('ModelPromptModalComponent', () => {
     component.promptText.set('dragão azul');
     fixture.detectChanges();
 
+    const translator = component['promptTranslator'];
+    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
+      originalText: 'dragão azul',
+      englishPrompt: 'a cute blue dragon',
+      suggestedSlug: 'blue-dragon',
+    });
+
     let writtenText = '';
     const originalClipboard = navigator.clipboard;
     Object.assign(navigator, {
@@ -160,7 +174,7 @@ describe('ModelPromptModalComponent', () => {
       await component['createModel']();
 
       expect(createdEvent).not.toBeNull();
-      expect(writtenText).toContain('dragão azul');
+      expect(writtenText).toContain('a cute blue dragon');
       expect(component.statusMessage()).toBeTruthy();
     } finally {
       Object.assign(navigator, { clipboard: originalClipboard });
@@ -196,5 +210,70 @@ describe('ModelPromptModalComponent', () => {
 
     component['close']();
     expect(closed).toBe(true);
+  });
+
+  it('updates prompt text and model slug when onVoiceAccepted is emitted', () => {
+    component['onVoiceAccepted']('gato preto e branco com asas');
+
+    expect(component.promptText()).toBe('gato preto e branco com asas');
+    expect(component.voiceNotice()).toBe('gato preto e branco com asas');
+    expect(component.derivedFolderSlug()).toBe('cat-black-white');
+  });
+
+  it('streams speech recognition directly into promptText in real time', () => {
+    component['onVoiceStream']('um peluche do Snoopy');
+
+    expect(component.promptText()).toBe('um peluche do Snoopy');
+    expect(component.derivedFolderSlug()).toBe('snoopy-plush');
+  });
+
+  it('syncs manual textarea edits with speech transcript when paused', () => {
+    const speech = component['speech'];
+    speech.state.set('paused');
+    const updateSpy = vi.spyOn(speech, 'updateTranscript');
+
+    component['onPromptTextManualChange']('Snoopy peluche branco e preto');
+
+    expect(component.promptText()).toBe('Snoopy peluche branco e preto');
+    expect(updateSpy).toHaveBeenCalledWith('Snoopy peluche branco e preto');
+  });
+
+  it('preserves manual edits when onVoiceAccepted is emitted', () => {
+    component.promptText.set('manual edit text');
+    component['onVoiceAccepted']('');
+
+    expect(component.promptText()).toBe('manual edit text');
+  });
+
+  it('translates prompt to English upon submit in createModel', async () => {
+    component.promptText.set('dragão bebé verde');
+    const translator = component['promptTranslator'];
+    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
+      originalText: 'dragão bebé verde',
+      englishPrompt: 'a cute baby dragon green',
+      suggestedSlug: 'baby-dragon-green',
+    });
+
+    let createdEvent: CreatedModel | undefined;
+    component.modelCreated.subscribe((val) => {
+      createdEvent = val;
+    });
+
+    const originalClipboard = navigator.clipboard;
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: async () => {},
+      },
+    });
+
+    try {
+      await component['createModel']();
+      const event = createdEvent as CreatedModel;
+      expect(event).toBeDefined();
+      // The emitted model prompt should be in English
+      expect(event.prompt).toBe('a cute baby dragon green');
+    } finally {
+      Object.assign(navigator, { clipboard: originalClipboard });
+    }
   });
 });

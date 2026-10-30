@@ -7,6 +7,7 @@ import {
   buildStudioPrompt,
   composeFullAiPrompt,
   composeStudioPrompt,
+  normalizeCuteSubject,
   slugify,
 } from './model-generation-prompts';
 
@@ -21,6 +22,15 @@ describe('model-generation-prompts', () => {
     it('falls back to custom-model when input produces empty string', () => {
       expect(slugify('   ')).toBe('custom-model');
       expect(slugify('???')).toBe('custom-model');
+    });
+  });
+
+  describe('normalizeCuteSubject', () => {
+    it('normalizes "cute cute" and prevents duplicate prefixes', () => {
+      expect(normalizeCuteSubject('cute white dog')).toBe('a cute white dog');
+      expect(normalizeCuteSubject('a cute cute white dog')).toBe('a cute white dog');
+      expect(normalizeCuteSubject('white dog')).toBe('a cute white dog');
+      expect(normalizeCuteSubject('a cute white dog')).toBe('a cute white dog');
     });
   });
 
