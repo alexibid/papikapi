@@ -18,6 +18,7 @@ import {
 import { I18nService } from '@ibid/services';
 import { PapikapiSensoryFeedbackAdapter } from '@ui/interaction/papikapi-sensory-feedback.adapter';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
+import { ChildProfile } from '@domain/models/child-profile';
 import { RoutineTask } from '@domain/models/routine-task';
 import { arrangeShelves } from '@domain/services/figure-cycle';
 import { totalPoints } from '@domain/services/growth-engine';
@@ -33,6 +34,7 @@ import {
 import { parseArgs } from '@application/services/dev-bridge';
 import { FigureAssetsService } from '@application/services/figure-assets.service';
 import { DiaryStore } from '@application/services/diary-store';
+import { ClassroomStore } from '@application/services/classroom-store';
 import { CreationProgressService } from '@application/services/creation-progress.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { RhythmStore } from '@application/services/rhythm-store';
@@ -44,6 +46,7 @@ import { ModelPromptModalComponent } from '@ui/organisms/model-prompt-modal/mode
 import { ParentGateModalComponent } from '@ui/organisms/parent-gate-modal/parent-gate-modal';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { StickerComponent } from '@ui/atoms/sticker/sticker';
+import { ChildSwitcherComponent } from '@ui/molecules/child-switcher/child-switcher';
 import { ProgressPipsComponent } from '@ui/molecules/progress-pips/progress-pips';
 import { TaskCardComponent } from '@ui/molecules/task-card/task-card';
 import { TrophyComponent } from '@ui/molecules/trophy/trophy';
@@ -57,6 +60,7 @@ const CELEBRATION_MS = 2800;
   standalone: true,
   imports: [
     AssemblyStageComponent,
+    ChildSwitcherComponent,
     FocusStateDirective,
     HandDrawnDirective,
     IconButtonComponent,
@@ -80,6 +84,7 @@ const CELEBRATION_MS = 2800;
 export class HomePage implements DoCheck {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(DiaryStore);
+  protected readonly classroom = inject(ClassroomStore);
   private readonly sensory = inject(PapikapiSensoryFeedbackAdapter);
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
@@ -584,6 +589,10 @@ export class HomePage implements DoCheck {
 
   protected toggleSound(): void {
     this.sensory.toggleSound();
+  }
+
+  protected onChildSelected(child: ChildProfile): void {
+    this.classroom.selectChild(child.id);
   }
 
   protected onTaskClicked(task: RoutineTask): void {

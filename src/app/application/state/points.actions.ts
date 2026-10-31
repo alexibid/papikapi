@@ -24,6 +24,7 @@ export const PointsActions = createActionGroup({
     'Mark Figure Seen': props<{ figureId: string; pieces: number }>(),
     'Register Custom Figures': props<{ ids: readonly string[] }>(),
     'Add Points To Diary': props<{ points: number; domain?: BehaviourDomainId }>(),
+    'Load Child': props<{ childId: string }>(),
     'Reset': emptyProps(),
   },
 });

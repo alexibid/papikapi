@@ -1,0 +1,36 @@
+@if (isOpen()) {
+  <div class="m-child-switcher__layer">
+    <ibid-scrim [dismissLabel]="closeLabel()" (dismissed)="close()" />
+
+    <div
+      class="m-child-switcher__drawer"
+      role="dialog"
+      tabindex="-1"
+      [attr.aria-label]="switchLabel()"
+      [ibidHandDrawn]="3"
+      (keydown.escape)="close()"
+    >
+      <header class="m-child-switcher__header">
+        <h2 class="m-child-switcher__title">{{ switchLabel() }}</h2>
+      </header>
+
+      <div class="m-child-switcher__grid">
+        @for (child of children(); track child.id) {
+          <ibid-button
+            class="m-child-switcher__card"
+            [class.m-child-switcher__card--active]="child.id === activeChildId()"
+            [variant]="child.id === activeChildId() ? 'primary' : 'outlined'"
+            [intensity]="2"
+            tactileRole="toggle"
+            (clicked)="selectChild(child)"
+          >
+            <span class="m-child-switcher__face m-child-switcher__face--stacked">
+              <papikapi-child-bust class="m-child-switcher__bust" [child]="child" />
+              <span class="m-child-switcher__name">{{ child.name }}</span>
+            </span>
+          </ibid-button>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,3 +1,4 @@
+import { DEFAULT_CHILD_ID } from '@application/config/child';
 import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
 import { FigureProgress } from '@domain/models/figure-progress';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
@@ -5,7 +6,13 @@ import { PLINTH_PIECES } from '@domain/models/rhythm';
 export const STORAGE_KEY = 'papikapi.figure-progress';
 export const CUSTOM_FIGURES_KEY = 'papikapi.custom-figures';
 
+// The default child keeps the legacy key so existing installs need no migration.
+export function figureProgressKey(childId: string): string {
+  return childId === DEFAULT_CHILD_ID ? STORAGE_KEY : `${STORAGE_KEY}.${childId}`;
+}
+
 export interface PointsState {
+  readonly childId: string;
   readonly rawPoints: number;
   readonly consolidatedPoints: number;
   readonly consolidatingProgress: number;
@@ -33,10 +40,10 @@ export function isProgress(value: unknown): value is FigureProgress {
   );
 }
 
-export function restoreFromStorage(): Partial<PointsState> {
+export function restoreFromStorage(childId: string = DEFAULT_CHILD_ID): Partial<PointsState> {
   if (typeof localStorage === 'undefined') return {};
   try {
-    const rawStored = localStorage.getItem(STORAGE_KEY);
+    const rawStored = localStorage.getItem(figureProgressKey(childId));
     const rawCustom = localStorage.getItem(CUSTOM_FIGURES_KEY);
     const parsedCustom = rawCustom ? JSON.parse(rawCustom) : [];
     const customFigures = Array.isArray(parsedCustom)
@@ -94,17 +101,18 @@ export function saveStateToStorage(state: PointsState): void {
       shelfIds: state.shelfFigureIds,
       hiddenShelfIds: state.hiddenShelfFigureIds,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(figureProgressKey(state.childId), JSON.stringify(progress));
     localStorage.setItem(CUSTOM_FIGURES_KEY, JSON.stringify(state.customFigures));
   } catch {
     return;
   }
 }
 
-export function getInitialPointsState(): PointsState {
-  const initialSaved = restoreFromStorage();
+export function getInitialPointsState(childId: string = DEFAULT_CHILD_ID): PointsState {
+  const initialSaved = restoreFromStorage(childId);
   const currentFigureId = initialSaved.currentFigureId ?? DEFAULT_FIGURE_ID;
   return {
+    childId,
     rawPoints: initialSaved.rawPoints ?? 0,
     consolidatedPoints: initialSaved.consolidatedPoints ?? 0,
     consolidatingProgress: initialSaved.consolidatingProgress ?? 0,

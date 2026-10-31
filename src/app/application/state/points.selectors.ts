@@ -8,6 +8,7 @@ import { PointsState } from './points.state';
 
 export const selectPointsFeature = createFeatureSelector<PointsState>('points');
 
+export const selectChildId = createSelector(selectPointsFeature, (s) => s.childId);
 export const selectRawPoints = createSelector(selectPointsFeature, (s) => s.rawPoints);
 export const selectConsolidatedPoints = createSelector(selectPointsFeature, (s) => s.consolidatedPoints);
 export const selectConsolidatingProgress = createSelector(selectPointsFeature, (s) => s.consolidatingProgress);
