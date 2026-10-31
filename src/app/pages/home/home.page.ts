@@ -5,7 +5,6 @@ import {
   computed,
   effect,
   inject,
-  isDevMode,
   signal,
   untracked,
 } from '@angular/core';
@@ -505,7 +504,6 @@ export class HomePage implements DoCheck {
   }
 
   private async studioPdfUrl(figureId: string): Promise<string | null> {
-    if (!isDevMode()) return null;
     const url = `http://localhost:4500/models/${figureId}/sheets.pdf?v=${this.modelVersion()}`;
     try {
       return isStaticAsset(await fetch(url, { method: 'HEAD' })) ? url : null;

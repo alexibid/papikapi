@@ -25,17 +25,17 @@
           },
           {
             "glob": "*/assembly.json",
-            "input": "apps/papikapi-studio/public/models",
+            "input": "apps/papikapi-api/public/models",
             "output": "/figures"
           },
           {
             "glob": "*/model.glb",
-            "input": "apps/papikapi-studio/public/models",
+            "input": "apps/papikapi-api/public/models",
             "output": "/figures"
           },
           {
             "glob": "t-rex/sheets.pdf",
-            "input": "apps/papikapi-studio/public/models",
+            "input": "apps/papikapi-api/public/models",
             "output": "/figures"
           }
         ]

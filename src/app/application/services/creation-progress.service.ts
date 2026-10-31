@@ -1,4 +1,4 @@
-import { Injectable, inject, isDevMode } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FigureAssetsService } from './figure-assets.service';
 
 export type CreationProgressState = 'running' | 'done' | 'failed';
@@ -139,14 +139,18 @@ export class CreationProgressService {
       return [];
     }
 
+    // Try papikapi-api database models endpoint first
     try {
-      const ids = await this.assets.catalogueIds();
-      if (ids.length > 0) return ids;
+      const response = await fetch('http://localhost:4505/api/v1/models', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          return data.map((item: { id: string }) => item.id).filter(Boolean);
+        }
+      }
     } catch {
-      // Fall back to the local studio catalogue
+      // Fall back to alternative ports or published assets
     }
-
-    if (!isDevMode()) return [];
 
     try {
       const response = await fetch('http://localhost:4500/models/index.json', { cache: 'no-store' });
@@ -171,6 +175,13 @@ export class CreationProgressService {
           return data.models.map((item: { id: string }) => item.id).filter(Boolean);
         }
       }
+    } catch {
+      // Fall back to remote CDN
+    }
+
+    try {
+      const ids = await this.assets.catalogueIds();
+      if (ids.length > 0) return ids;
     } catch {
       // Offline fallback
     }
