@@ -118,4 +118,50 @@ ibid-icon-button {
   &__list {
     flex-direction: column;
   }
+
+  &__classroom {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+    gap: var(--spacing-md, 1rem);
+  }
+
+  &__kid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.5rem;
+    color: var(--color-ink);
+    --papikapi-paper-fill: var(--papikapi-sheet);
+
+    &--active {
+      transform: rotate(-1.5deg);
+      --papikapi-paper-fill: var(--papikapi-butter-bg);
+    }
+  }
+
+  &__kid-bust {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  &__kid-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__kid-points {
+    padding: 0.15rem 0.55rem;
+    font-size: 0.75rem;
+    --papikapi-paper-fill: var(--color-surface);
+  }
+
+  &__new-kid {
+    display: block;
+    height: auto;
+    min-height: 9rem;
+  }
 }

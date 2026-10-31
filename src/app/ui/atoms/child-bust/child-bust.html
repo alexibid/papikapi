@@ -1,0 +1,12 @@
+<span
+  class="a-child-bust"
+  [ibidHandDrawn]="2"
+  [style.--papikapi-paper-fill]="child().paperColor"
+  aria-hidden="true"
+>
+  @if (child().avatarBustUrl) {
+    <img class="a-child-bust__image" [src]="child().avatarBustUrl" alt="" />
+  } @else {
+    <papikapi-sticker name="avatar" />
+  }
+</span>

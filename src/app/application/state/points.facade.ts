@@ -1,5 +1,6 @@
-import { Injectable, InjectionToken, Signal, computed, inject, signal } from '@angular/core';
+import { Injectable, InjectionToken, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
+import { ChildProfilesStore } from '@application/services/child-profiles-store';
 import { DEFAULT_FIGURE_PIECES, SHIPPED_FIGURE_IDS, SHIPPED_FIGURE_PIECE_COUNTS } from '@domain/data/shipped-figures';
 import { BehaviourDomainId } from '@domain/models/behaviour-domain';
 import { FigureProgress } from '@domain/models/figure-progress';
@@ -14,6 +15,7 @@ import {
   selectAllocations,
   selectAsFigureProgress,
   selectCatalogue,
+  selectChildId,
   selectConsolidatedPoints,
   selectConsolidatingDashOffset,
   selectConsolidatingProgress,
@@ -33,6 +35,7 @@ import {
 import { PointsState, getInitialPointsState } from './points.state';
 
 export interface ChildPointsFacade {
+  readonly childId: Signal<string>;
   readonly rawPoints: Signal<number>;
   readonly consolidatedPoints: Signal<number>;
   readonly consolidatingProgress: Signal<number>;
@@ -80,7 +83,19 @@ export interface ChildPointsFacade {
 @Injectable({ providedIn: 'root' })
 export class ChildPointsFacadeImpl implements ChildPointsFacade {
   private readonly store = inject(Store, { optional: true });
+  private readonly childProfiles = inject(ChildProfilesStore);
   private readonly fallbackState = signal<PointsState>(getInitialPointsState());
+
+  readonly childId = this.store
+    ? this.store.selectSignal(selectChildId)
+    : computed(() => this.fallbackState().childId);
+
+  constructor() {
+    effect(() => {
+      const childId = this.childProfiles.activeChildId();
+      untracked(() => this.loadChild(childId));
+    });
+  }
 
   readonly rawPoints = this.store
     ? this.store.selectSignal(selectRawPoints)
@@ -230,6 +245,10 @@ export class ChildPointsFacadeImpl implements ChildPointsFacade {
     } else {
       this.fallbackState.update((state) => pointsReducer(state, action));
     }
+  }
+
+  private loadChild(childId: string): void {
+    if (childId !== this.childId()) this.dispatch(PointsActions.loadChild({ childId }));
   }
 
   allocationFor(figureId: string): number {

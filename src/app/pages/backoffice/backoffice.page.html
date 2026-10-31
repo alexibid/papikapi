@@ -29,6 +29,28 @@
     </p>
   </div>
 
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boClassroom') }}</h2>
+    <div class="papikapi-backoffice__classroom">
+      @for (kid of classroom.children(); track kid.id) {
+        <article
+          class="papikapi-backoffice__kid"
+          [class.papikapi-backoffice__kid--active]="kid.id === classroom.activeChildId()"
+          [ibidHandDrawn]="2"
+        >
+          <papikapi-child-bust class="papikapi-backoffice__kid-bust" [child]="kid" />
+          <span class="papikapi-backoffice__kid-name">{{ kid.name }}</span>
+          <span class="papikapi-backoffice__kid-points" [ibidHandDrawn]="1">
+            {{ classroom.pointsOf(kid.id) }} {{ i18n.translate('boClassroomPoints') }}
+          </span>
+        </article>
+      }
+      <ibid-button class="papikapi-backoffice__new-kid" variant="outlined" [intensity]="2">
+        {{ i18n.translate('boClassroomNewChild') }}
+      </ibid-button>
+    </div>
+  </ibid-card>
+
   <a class="papikapi-backoffice__diary" routerLink="/diario" [ibidHandDrawn]="2">
     <span class="papikapi-backoffice__diary-title">{{ i18n.translate('boDiaryTitle') }}</span>
     <span class="papikapi-backoffice__diary-hint">{{ i18n.translate('boDiaryHint') }}</span>

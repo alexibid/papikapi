@@ -3,6 +3,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_CHILD_ID } from '@application/config/child';
+import { ChildProfilesStore } from '@application/services/child-profiles-store';
 import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
 import { createTreeState } from '@domain/models/tree-state';
 import { PapikapiDatabaseService } from '@infrastructure/rxdb/papikapi-database.service';
@@ -10,6 +11,7 @@ import { RxdbTreeRepository } from '@infrastructure/rxdb/rxdb-tree.repository';
 import { PointsEffects } from './points.effects';
 import { CHILD_POINTS_FACADE, ChildPointsFacade } from './points.facade';
 import { pointsReducer } from './points.reducer';
+import { STORAGE_KEY, figureProgressKey } from './points.state';
 
 describe('NgRx Points State & RxDB Integration', () => {
   let facade: ChildPointsFacade;
@@ -118,5 +120,69 @@ describe('NgRx Points State & RxDB Integration', () => {
     expect(facade.unassignedCredits()).toBe(mountedCredits);
     facade.removeFigurePoints(DEFAULT_FIGURE_ID, 10);
     expect(facade.unassignedCredits()).toBe(mountedCredits);
+  });
+  describe('multiple children', () => {
+    let profiles: ChildProfilesStore;
+
+    function switchTo(childId: string): void {
+      profiles.selectChild(childId);
+      TestBed.tick();
+    }
+
+    beforeEach(() => {
+      profiles = TestBed.inject(ChildProfilesStore);
+      TestBed.tick();
+    });
+
+    it('keeps the legacy storage key for the default child', () => {
+      expect(figureProgressKey(DEFAULT_CHILD_ID)).toBe(STORAGE_KEY);
+      expect(figureProgressKey('maria')).toBe(`${STORAGE_KEY}.maria`);
+    });
+
+    it('persists the default child under the legacy key', () => {
+      facade.chooseFigure('pug');
+
+      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"pug"');
+    });
+
+    it('loads a fresh progression for a newly selected child', () => {
+      facade.chooseFigure('pug');
+      facade.addFigurePoints('pug', 3);
+      const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
+
+      switchTo(maria.id);
+
+      expect(facade.childId()).toBe(maria.id);
+      expect(facade.currentFigureId()).toBe(DEFAULT_FIGURE_ID);
+      expect(facade.allocationFor('pug')).toBe(0);
+    });
+
+    it('restores each child progression when switching back and forth', () => {
+      facade.chooseFigure('pug');
+      const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
+
+      switchTo(maria.id);
+      facade.chooseFigure('brachiosaurus');
+      expect(localStorage.getItem(figureProgressKey(maria.id))).toContain('"currentId":"brachiosaurus"');
+
+      switchTo(DEFAULT_CHILD_ID);
+      expect(facade.currentFigureId()).toBe('pug');
+
+      switchTo(maria.id);
+      expect(facade.currentFigureId()).toBe('brachiosaurus');
+    });
+
+    it('resets only the active child progression', () => {
+      facade.chooseFigure('pug');
+      const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
+      switchTo(maria.id);
+      facade.chooseFigure('brachiosaurus');
+
+      facade.reset();
+
+      expect(localStorage.getItem(figureProgressKey(maria.id))).toBeNull();
+      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"pug"');
+      expect(facade.childId()).toBe(maria.id);
+    });
   });
 });

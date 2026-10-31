@@ -37,6 +37,19 @@ describe('BackofficePage', () => {
     expect(backBtn).not.toBeNull();
   });
 
+  it('should list every classroom child with bust, name and points, plus a new child button', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const kids = Array.from(el.querySelectorAll('.papikapi-backoffice__kid'));
+
+    expect(kids.length).toBeGreaterThan(0);
+    kids.forEach((kid) => {
+      expect(kid.querySelector('papikapi-child-bust')).not.toBeNull();
+      expect(kid.querySelector('.papikapi-backoffice__kid-name')?.textContent?.trim()).not.toBe('');
+      expect(kid.querySelector('.papikapi-backoffice__kid-points')?.textContent).toMatch(/\d+ pontos/);
+    });
+    expect(el.querySelector('.papikapi-backoffice__new-kid')?.textContent).toContain('+ Nova Criança');
+  });
+
   it('navigates back to home screen when back button is clicked', () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
     const backBtn = fixture.nativeElement.querySelector(

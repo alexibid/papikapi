@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import {
+  ButtonComponent,
   CardComponent,
   HandDrawnDirective,
   IconButtonComponent,
@@ -20,8 +21,10 @@ import { WeekdayId } from '@domain/models/backoffice';
 import { RhythmStore } from '@application/services/rhythm-store';
 import { RoutineProgressStore } from '@application/services/routine-progress-store';
 import { ChildPointsStore } from '@application/services/child-points-store';
+import { ClassroomStore } from '@application/services/classroom-store';
 import { gradeAverage } from '@domain/services/grade-average';
 import { pointsPerPiece } from '@domain/services/pieces-built';
+import { ChildBustComponent } from '@ui/atoms/child-bust/child-bust';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { StickerComponent } from '@ui/atoms/sticker/sticker';
 import { ProgressPipsComponent } from '@ui/molecules/progress-pips/progress-pips';
@@ -33,7 +36,9 @@ import { GradeTileComponent } from '@ui/molecules/grade-tile/grade-tile';
   standalone: true,
   imports: [
     AgendaItemComponent,
+    ButtonComponent,
     CardComponent,
+    ChildBustComponent,
     GradeTileComponent,
     HandDrawnDirective,
     IconButtonComponent,
@@ -55,6 +60,7 @@ export class BackofficePage {
   protected readonly grades = DEMO_GRADES;
   protected readonly rhythm = inject(RhythmStore);
   protected readonly childPoints = inject(ChildPointsStore);
+  protected readonly classroom = inject(ClassroomStore);
   private readonly routineStore = inject(RoutineProgressStore);
   protected readonly tasks = this.routineStore.tasks;
   protected readonly doneCount = this.routineStore.doneCount;

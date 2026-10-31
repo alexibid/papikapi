@@ -2,9 +2,23 @@
   <h1 class="papikapi-child__title">{{ i18n.translate('childPageTitle') }}</h1>
 
   <header class="papikapi-child__bar">
-    <span class="papikapi-child__avatar" role="img" [attr.aria-label]="i18n.translate('childAvatar')">
+    <button
+      type="button"
+      class="papikapi-child__avatar"
+      [attr.aria-label]="i18n.translate('childAvatar')"
+      (click)="childSwitcher.open()"
+    >
       <papikapi-sticker name="avatar" />
-    </span>
+    </button>
+
+    <papikapi-child-switcher
+      #childSwitcher
+      [children]="classroom.children()"
+      [activeChildId]="classroom.activeChildId()"
+      [switchLabel]="i18n.translate('childSwitch')"
+      [closeLabel]="i18n.translate('childSwitchClose')"
+      (childSelected)="onChildSelected($event)"
+    />
 
     <papikapi-progress-pips
       class="papikapi-child__progress"

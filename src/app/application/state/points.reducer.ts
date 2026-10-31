@@ -12,7 +12,13 @@ import {
   removeFigureFromShelf,
 } from '@domain/services/figure-cycle';
 import { PointsActions } from './points.actions';
-import { PointsState, getInitialPointsState, saveStateToStorage } from './points.state';
+import {
+  CUSTOM_FIGURES_KEY,
+  PointsState,
+  figureProgressKey,
+  getInitialPointsState,
+  saveStateToStorage,
+} from './points.state';
 
 function stateToProgress(state: PointsState): FigureProgress {
   const curId = state.currentFigureId;
@@ -271,12 +277,17 @@ export const pointsReducer = createReducer(
     });
   }),
 
-  on(PointsActions.reset, () => {
+  on(PointsActions.loadChild, (state, { childId }) =>
+    childId === state.childId ? state : getInitialPointsState(childId)
+  ),
+
+  on(PointsActions.reset, (state) => {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('papikapi.figure-progress');
-      localStorage.removeItem('papikapi.custom-figures');
+      localStorage.removeItem(figureProgressKey(state.childId));
+      localStorage.removeItem(CUSTOM_FIGURES_KEY);
     }
     return {
+      childId: state.childId,
       rawPoints: 0,
       consolidatedPoints: 0,
       consolidatingProgress: 0,

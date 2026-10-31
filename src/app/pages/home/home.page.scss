@@ -1,7 +1,7 @@
 :host {
   display: block;
   max-width: 100%;
-  overflow-x: clip;
+  overflow: visible;
 }
 
 ibid-icon-button {
@@ -33,14 +33,35 @@ ibid-icon-button {
     gap: var(--spacing-sm, 0.75rem);
   }
 
-  &__avatar,
-  &__glyph {
+  &__avatar {
     display: block;
     width: 3.6rem;
+    height: 3.6rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
     flex: 0 0 auto;
+    transition: transform 0.15s ease;
+
+    &:hover {
+      transform: scale(1.08);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-ink);
+      outline-offset: 2px;
+      border-radius: 9999px;
+    }
   }
 
   &__glyph {
+    display: block;
+    flex: 0 0 auto;
     width: 3.4rem;
 
     &--muted {
