@@ -41,6 +41,7 @@ const WHEEL_ZOOM_IN = 1.1;
   ],
   host: {
     '(window:scroll)': 'deactivate()',
+    '(document:pointerdown)': 'onDocumentPointerDown($event)',
     '[class.is-active]': 'active()',
   },
   templateUrl: './assembly-stage.html',
@@ -77,6 +78,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   private readonly plans = inject(AssemblyPlanService);
   private readonly createRenderer = inject(RENDERER_FACTORY);
   private readonly loadFinalModel = inject(FINAL_MODEL_LOADER);
+  private readonly elementRef = inject(ElementRef);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('webglCanvas');
   private readonly containerRef = viewChild.required<ElementRef<HTMLElement>>('container');
 
@@ -155,10 +157,17 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
     this.viewport?.dispose();
   }
 
+  protected onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.active()) return;
+    const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
+    if (!clickedInside) {
+      this.deactivate();
+    }
+  }
+
   protected onPointerDown(event: PointerEvent): void {
     if (!this.active()) {
       this.active.set(true);
-      return;
     }
     this.dragging = true;
     this.lastPointer = { x: event.clientX, y: event.clientY };
