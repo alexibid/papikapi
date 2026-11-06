@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { I18N_CONFIG_TOKEN, SpeechRecognitionService, TranslationService } from '@ibid/services';
+import { isFigureId } from '@ibid/utils';
+import { FigureCreationRequest } from '@domain/models/figure-creation';
 import { PAPIKAPI_I18N_CONFIG } from '../../i18n.config';
 import { ModelPromptModalComponent } from '../../ui/organisms/model-prompt-modal/model-prompt-modal';
 
@@ -95,7 +97,7 @@ describe('User Journey: Voice-to-Prompt Figure Creation Flow (Generic OCP Dictat
 
     // The prompt box now contains the accepted Portuguese text
     expect(component.promptText()).toBe(spokenText);
-    expect(component.derivedFolderSlug()).toBe('cat-black-white');
+    expect(component.displayNamePreview()).toBe('Gato preto e branco');
 
     // -------------------------------------------------------------
     // Step 5: User reviews and manually edits in Portuguese
@@ -113,7 +115,7 @@ describe('User Journey: Voice-to-Prompt Figure Creation Flow (Generic OCP Dictat
       'bicolor black and white cat with gold wings and green eyes'
     );
 
-    let emittedEvent: { name: string; prompt: string; images: readonly string[] } | undefined;
+    let emittedEvent: FigureCreationRequest | undefined;
     component.modelCreated.subscribe((payload) => {
       emittedEvent = payload;
     });
@@ -132,16 +134,17 @@ describe('User Journey: Voice-to-Prompt Figure Creation Flow (Generic OCP Dictat
       await component['createModel']();
       fixture.detectChanges();
 
-      const event = emittedEvent as { name: string; prompt: string; images: readonly string[] };
+      const event = emittedEvent as FigureCreationRequest;
       expect(event).toBeDefined();
-      expect(event.name).toBe('bicolor-black-and-white-cat');
+      expect(isFigureId(event.figureId)).toBe(true);
+      expect(event.displayName).toEqual({ pt: 'Gato preto e branco', en: 'Bicolor black and white cat' });
       expect(event.prompt).toContain('bicolor black and white');
       expect(event.prompt).toContain('cat');
       expect(event.prompt).toContain('wings');
       expect(event.prompt).toContain('gold');
       expect(event.prompt).toContain('eyes');
       expect(event.prompt).toContain('green');
-      expect(event.prompt.startsWith('a cute')).toBe(true);
+      expect(event.prompt).toBe('bicolor black and white cat with gold wings and green eyes');
 
       // Full studio prompt copied to clipboard with studio 3D/papercraft invariants
       expect(clipboardText).toContain(event.prompt);
@@ -155,6 +158,6 @@ describe('User Journey: Voice-to-Prompt Figure Creation Flow (Generic OCP Dictat
   it('updates prompt directly when onVoiceAccepted is triggered', () => {
     component['onVoiceAccepted']('dragão bebé verde com barriga dourada');
     expect(component.promptText()).toBe('dragão bebé verde com barriga dourada');
-    expect(component.derivedFolderSlug()).toBe('dragon-baby-green');
+    expect(component.displayNamePreview()).toBe('Dragão bebé verde');
   });
 });

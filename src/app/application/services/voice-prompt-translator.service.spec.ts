@@ -12,84 +12,76 @@ describe('VoicePromptTranslatorService', () => {
     translationService = TestBed.inject(TranslationService);
   });
 
-  it('translates Portuguese input to English studio prompt via TranslationService', async () => {
+  it('should send the translated prompt exactly as the user said it, without adding cute', async () => {
     vi.spyOn(translationService, 'translate').mockResolvedValue('bicolor black and white cat with wings');
 
-    const result = await service.translateAndStructure('gato preto e branco com asas');
+    const result = await service.describeFigure({ prompt: 'gato preto e branco com asas', customName: '' });
 
-    expect(result.originalText).toBe('gato preto e branco com asas');
-    expect(result.englishPrompt).toBe('a cute bicolor black and white cat with wings');
-    expect(result.suggestedSlug).toBe('bicolor-black-and-white-cat');
+    expect(result.englishPrompt).toBe('bicolor black and white cat with wings');
   });
 
-  it('preserves existing cute prefix without duplicating it', async () => {
-    vi.spyOn(translationService, 'translate').mockResolvedValue('a cute baby dragon');
+  it('should keep cute in the prompt when the user asked for it', async () => {
+    vi.spyOn(translationService, 'translate').mockResolvedValue('a very cute lion');
 
-    const result = await service.translateAndStructure('um dragão bebé fofo');
+    const result = await service.describeFigure({ prompt: 'um leão muito fofo', customName: '' });
 
-    expect(result.englishPrompt).toBe('a cute baby dragon');
-    expect(result.suggestedSlug).toBe('baby-dragon');
+    expect(result.englishPrompt).toBe('a very cute lion');
   });
 
-  it('never produces duplicate "a cute cute" when input already contains cute', async () => {
-    vi.spyOn(translationService, 'translate').mockResolvedValue('cute white dog in plush');
+  it('should drop articles, possessives, cute and adverbs from the display names', async () => {
+    vi.spyOn(translationService, 'translate').mockResolvedValue('my very cute pink pig');
 
-    const result = await service.translateAndStructure('cão branco peluche bonito');
+    const result = await service.describeFigure({ prompt: 'o meu porco cor-de-rosa muito fofo', customName: '' });
 
-    expect(result.englishPrompt).toBe('a cute white dog in plush');
-    expect(result.englishPrompt).not.toContain('cute cute');
+    expect(result.displayName).toEqual({ pt: 'Porco cor-de-rosa', en: 'Pink pig' });
   });
 
-  it('enriches iconic Snoopy character with canonical physical traits and produces snoopy-plush slug', async () => {
-    vi.spyOn(translationService, 'translate').mockResolvedValue('white dog Snoopy in plush');
+  it('should name the figure after the custom name when the user typed one', async () => {
+    vi.spyOn(translationService, 'translate').mockImplementation(async (text: string) =>
+      text === 'o meu gato Tobias' ? 'my cat Tobias' : 'a bicolor cat with a white blaze'
+    );
 
-    const result = await service.translateAndStructure('um peluche do Snoopy cão branco');
-
-    expect(result.englishPrompt).toContain('Snoopy');
-    expect(result.englishPrompt).toContain('white body');
-    expect(result.englishPrompt).toContain('long black floppy ears');
-    expect(result.englishPrompt).toContain('round black nose tip');
-    expect(result.englishPrompt).toContain('small red collar');
-    expect(result.suggestedSlug).toBe('snoopy-plush');
-  });
-
-  it('handles empty input gracefully', async () => {
-    const result = await service.translateAndStructure('');
-    expect(result.englishPrompt).toBe('');
-    expect(result.suggestedSlug).toBe('');
-    expect(result.originalText).toBe('');
-  });
-
-  it('derives English slug even if translation service fails (offline dictionary fallback)', async () => {
-    vi.spyOn(translationService, 'translate').mockRejectedValue(new Error('Network offline'));
-
-    const result = await service.translateAndStructure('leão dourado');
-
-    expect(result.originalText).toBe('leão dourado');
-    expect(result.englishPrompt).toBe('a cute leão dourado');
-    expect(result.suggestedSlug).toBe('lion-gold');
-  });
-
-  it('derives English slugs for Portuguese phrases via deriveEnglishSlug', () => {
-    expect(service.deriveEnglishSlug('um peluche do Snoopy')).toBe('snoopy-plush');
-    expect(service.deriveEnglishSlug('Snoopy')).toBe('snoopy');
-    expect(service.deriveEnglishSlug('dragão bebé verde')).toBe('dragon-baby-green');
-    expect(service.deriveEnglishSlug('cão')).toBe('dog');
-    expect(service.deriveEnglishSlug('Cat Darth')).toBe('cat-darth');
-    expect(service.deriveEnglishSlug('')).toBe('');
-  });
-
-  it('translates custom model name to English slug via translateNameToSlug', async () => {
-    vi.spyOn(translationService, 'translate').mockImplementation(async (text: string) => {
-      if (text === 'Gato Preto') return 'Black Cat';
-      if (text === 'Peluche do Snoopy') return 'Snoopy Plush';
-      return text;
+    const result = await service.describeFigure({
+      prompt: 'um gato bicolor com uma mancha branca',
+      customName: 'o meu gato Tobias',
     });
 
-    const slug1 = await service.translateNameToSlug('Gato Preto');
-    expect(slug1).toBe('black-cat');
+    expect(result.displayName).toEqual({ pt: 'Gato Tobias', en: 'Cat Tobias' });
+  });
 
-    const slug2 = await service.translateNameToSlug('Peluche do Snoopy');
-    expect(slug2).toBe('snoopy-plush');
+  it('should enrich the iconic Snoopy character and keep the name short', async () => {
+    vi.spyOn(translationService, 'translate').mockResolvedValue('Snoopy plush');
+
+    const result = await service.describeFigure({ prompt: 'um peluche do Snoopy', customName: '' });
+
+    expect(result.englishPrompt).toContain('long black floppy ears');
+    expect(result.englishPrompt).toContain('small red collar');
+    expect(result.displayName.en).toBe('Snoopy plush');
+  });
+
+  it('should enrich Pac-Man with its yellow body', () => {
+    expect(service.enrichIconicSubject('pacman')).toContain('bright solid yellow spherical body');
+  });
+
+  it('should keep the original text when the translation service fails', async () => {
+    vi.spyOn(translationService, 'translate').mockRejectedValue(new Error('Network offline'));
+
+    const result = await service.describeFigure({ prompt: 'leão dourado', customName: '' });
+
+    expect(result.englishPrompt).toBe('leão dourado');
+    expect(result.displayName).toEqual({ pt: 'Leão dourado', en: 'Leão dourado' });
+  });
+
+  it('should keep the original text when the translation comes back empty', async () => {
+    vi.spyOn(translationService, 'translate').mockResolvedValue('');
+
+    const result = await service.describeFigure({ prompt: 'zebra', customName: '' });
+
+    expect(result.englishPrompt).toBe('zebra');
+  });
+
+  it('should preview the portuguese display name while the user types', () => {
+    expect(service.previewDisplayName({ prompt: 'um leão muito fofo', customName: '' })).toBe('Leão');
+    expect(service.previewDisplayName({ prompt: 'um leão', customName: 'o meu Simba' })).toBe('Simba');
   });
 });

@@ -68,4 +68,31 @@ describe('FigureThumbnailComponent', () => {
     expect(element.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
     expect(element.textContent?.trim()).toBe('');
   });
+
+  it('renders preview image when preferImage is true', async () => {
+    const fixture = TestBed.createComponent(FigureThumbnailComponent);
+    fixture.componentRef.setInput('figureId', 'j26braly');
+    fixture.componentRef.setInput('preferImage', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const img = fixture.nativeElement.querySelector('img.m-figure-thumbnail__img');
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute('src')).toBe('/figures/j26braly/preview-three-quarter.webp');
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it('translates legacy figure IDs to canonical hash IDs for image previews', async () => {
+    const fixture = TestBed.createComponent(FigureThumbnailComponent);
+    fixture.componentRef.setInput('figureId', 'plane');
+    fixture.componentRef.setInput('preferImage', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const img = fixture.nativeElement.querySelector('img.m-figure-thumbnail__img');
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute('src')).toBe('/figures/ayv4jctc/preview-three-quarter.webp');
+  });
 });

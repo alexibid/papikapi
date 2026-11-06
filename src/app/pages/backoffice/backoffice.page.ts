@@ -22,6 +22,7 @@ import { RhythmStore } from '@application/services/rhythm-store';
 import { RoutineProgressStore } from '@application/services/routine-progress-store';
 import { ChildPointsStore } from '@application/services/child-points-store';
 import { ClassroomStore } from '@application/services/classroom-store';
+import { HouseholdStore } from '@application/services/household-store';
 import { gradeAverage } from '@domain/services/grade-average';
 import { pointsPerPiece } from '@domain/services/pieces-built';
 import { ChildBustComponent } from '@ui/atoms/child-bust/child-bust';
@@ -61,12 +62,18 @@ export class BackofficePage {
   protected readonly rhythm = inject(RhythmStore);
   protected readonly childPoints = inject(ChildPointsStore);
   protected readonly classroom = inject(ClassroomStore);
+  protected readonly householdStore = inject(HouseholdStore);
   private readonly routineStore = inject(RoutineProgressStore);
   protected readonly tasks = this.routineStore.tasks;
   protected readonly doneCount = this.routineStore.doneCount;
   protected readonly pointsPerPiece = computed(() => pointsPerPiece(this.rhythm.rhythm()));
   protected readonly average = gradeAverage(DEMO_GRADES);
   protected readonly selectedDay = signal<WeekdayId>('tue');
+  protected readonly activeChild = computed(
+    () =>
+      this.classroom.children().find((c) => c.id === this.classroom.activeChildId()) ??
+      this.classroom.children()[0]
+  );
 
   protected readonly dayOptions = computed<readonly SegmentOption[]>(() =>
     WEEKDAYS.map((day) => ({ value: day, label: this.i18n.translate(`boDay_${day}`) }))

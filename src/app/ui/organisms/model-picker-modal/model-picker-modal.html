@@ -53,7 +53,7 @@
             [attr.aria-pressed]="item.isCurrent"
           >
             <span class="papikapi-picker-modal__thumb" [ibidHandDrawn]="1">
-              <papikapi-figure-thumbnail [figureId]="item.id" />
+              <papikapi-figure-thumbnail [figureId]="item.id" [preferImage]="true" />
             </span>
 
             <span class="papikapi-picker-modal__name">{{ item.name }}</span>

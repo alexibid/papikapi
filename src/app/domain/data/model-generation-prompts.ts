@@ -17,28 +17,28 @@ export const STUDIO_MODEL_PRESETS: readonly StudioModelPreset[] = [
     label: 'Dragão Bebé',
     slug: 'baby-dragon',
     prompt:
-      'a cute standing baby dragon, pure emerald-green facets with gold belly, small geometric wings, closed snout, exactly two large round eyes with white catchlights',
+      'a standing baby dragon, pure emerald-green facets with gold belly, small geometric wings, closed snout, exactly two large round eyes with white catchlights',
   },
   {
     id: 't-rex',
     label: 'T-Rex',
     slug: 't-rex',
     prompt:
-      'a cute green tyrannosaurus rex, pure lime-green facets with pale yellow belly facets, closed solid wedge jaw with sharp white sawtooth teeth painted flat along the jawline as a 2D UV texture decal with no open mouth cavity and no 3D teeth, small green arms, exactly two round eyes with white catchlights',
+      'a green tyrannosaurus rex, pure lime-green facets with pale yellow belly facets, closed solid wedge jaw with sharp white sawtooth teeth painted flat along the jawline as a 2D UV texture decal with no open mouth cavity and no 3D teeth, small green arms, exactly two round eyes with white catchlights',
   },
   {
     id: 'golden-puppy',
     label: 'Cãozinho Golden',
     slug: 'golden-puppy',
     prompt:
-      'a cute sitting golden retriever puppy, pure warm butterscotch-yellow facets with cream chest facet, floppy ears, closed black nose facet, exactly two dark eyes with white catchlights',
+      'a sitting golden retriever puppy, pure warm butterscotch-yellow facets with cream chest facet, floppy ears, closed black nose facet, exactly two dark eyes with white catchlights',
   },
   {
     id: 'bicolor-cat',
     label: 'Gato Bicolor',
     slug: 'bicolor-cat',
     prompt:
-      'a cute standing bicolor black and white cat, black fur covering the top of the head and ears, asymmetrical vertical white blaze on the nose bridge extending between the eyes towards its left eye, solid white muzzle and cheeks with a distinct black nose tip, distinct closed mouth line, white chin with a small black spot beneath the lower lip, large solid white chest bib extending down the belly, jet-black back and body, exactly one black tail, white socks on all four paws, pale yellow-green eyes with round white catchlights',
+      'a standing bicolor black and white cat, black fur covering the top of the head and ears, asymmetrical vertical white blaze on the nose bridge extending between the eyes towards its left eye, solid white muzzle and cheeks with a distinct black nose tip, distinct closed mouth line, white chin with a small black spot beneath the lower lip, large solid white chest bib extending down the belly, jet-black back and body, exactly one black tail, white socks on all four paws, pale yellow-green eyes with round white catchlights',
   },
 ];
 
@@ -158,23 +158,11 @@ export function classifySubject(subject: string): SubjectClassification {
   };
 }
 
-export function normalizeCuteSubject(subject: string): string {
-  let clean = subject.trim();
-  clean = clean.replace(/\b(a\s+)?(cute\s+)+(cute\b)/gi, 'cute');
-  if (!/\bcute\b/i.test(clean)) {
-    clean = `cute ${clean}`;
-  }
-  if (!/^a\s+/i.test(clean)) {
-    clean = `a ${clean}`;
-  }
-  return clean.replace(/\s{2,}/g, ' ').replace(/^a\s+a\s+/i, 'a ');
-}
-
 export function composeStudioPrompt(subject: string, photoCount = 0): string {
   const cleanSubject = subject.trim() || 'o meu gato';
   const info = classifySubject(cleanSubject);
 
-  const subjectLabel = normalizeCuteSubject(cleanSubject);
+  const subjectLabel = cleanSubject;
 
   if (photoCount === 0) {
     const clauses = [
@@ -204,7 +192,7 @@ export function composeStudioPrompt(subject: string, photoCount = 0): string {
 }
 
 export function composeFullAiPrompt(subject: string, photoCount = 0): string {
-  const cleanSubject = normalizeCuteSubject(subject.trim() || 'o meu gato');
+  const cleanSubject = subject.trim() || 'o meu gato';
   if (photoCount === 0) {
     return `low-poly faceted 3D papercraft model of ${cleanSubject}. Seen in an EYE-LEVEL THREE-QUARTER VIEW, camera at the height of the subject's body, with all feet resting on one flat horizontal ground plane.
 

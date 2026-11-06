@@ -30,6 +30,8 @@ import {
   ReferencePhoto,
   composeStudioPrompt,
 } from '@domain/data/model-generation-prompts';
+import { generateFigureId } from '@ibid/utils';
+import { FigureCreationRequest } from '@domain/models/figure-creation';
 import { VoicePromptTranslatorService } from '@application/services/voice-prompt-translator.service';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
@@ -62,7 +64,7 @@ export class ModelPromptModalComponent {
   private readonly modelNameField = viewChild<TextInputComponent>('modelNameField');
 
   readonly dismissed = output<void>();
-  readonly modelCreated = output<{ name: string; prompt: string; images: readonly string[] }>();
+  readonly modelCreated = output<FigureCreationRequest>();
 
   readonly promptText = signal('');
   readonly subject = this.promptText;
@@ -75,11 +77,9 @@ export class ModelPromptModalComponent {
     afterNextRender(() => this.modelNameField()?.focus());
   }
 
-  readonly derivedFolderSlug = computed(() => {
-    const custom = this.modelName().trim();
-    const source = custom || this.promptText().trim();
-    return this.promptTranslator.deriveEnglishSlug(source) || 'papikapi-model';
-  });
+  readonly displayNamePreview = computed(() =>
+    this.promptTranslator.previewDisplayName({ prompt: this.promptText(), customName: this.modelName() })
+  );
 
   readonly photos = signal<readonly ReferencePhoto[]>([]);
   readonly isCreating = signal(false);
@@ -145,53 +145,29 @@ export class ModelPromptModalComponent {
     this.errorMessage.set('');
     this.statusMessage.set('');
 
-    const rawCustomName = this.modelName().trim();
     const images = this.photos().map((p) => p.dataUrl);
+    const description = await this.promptTranslator.describeFigure({
+      prompt: rawPrompt,
+      customName: this.modelName(),
+    });
+    await this.copyToClipboard(composeStudioPrompt(description.englishPrompt, images.length));
 
+    this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
+    this.modelCreated.emit({
+      figureId: generateFigureId(),
+      displayName: description.displayName,
+      prompt: description.englishPrompt,
+      images,
+    });
+    this.isCreating.set(false);
+    this.close();
+  }
+
+  private async copyToClipboard(text: string): Promise<void> {
     try {
-      // Translation is done upon submission/sending
-      const [translated, customSlug] = await Promise.all([
-        this.promptTranslator.translateAndStructure(rawPrompt),
-        rawCustomName
-          ? this.promptTranslator.translateNameToSlug(rawCustomName)
-          : Promise.resolve(''),
-      ]);
-
-      const englishPrompt = translated.englishPrompt || rawPrompt;
-      const name =
-        customSlug ||
-        translated.suggestedSlug ||
-        this.promptTranslator.deriveEnglishSlug(rawPrompt) ||
-        'papikapi-model';
-
-      const fullPrompt = composeStudioPrompt(englishPrompt, images.length);
-      try {
-        await navigator.clipboard.writeText(fullPrompt);
-      } catch {
-        // Clipboard write may fail in headless test environments
-      }
-
-      this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
-      this.modelCreated.emit({ name, prompt: englishPrompt, images });
-      this.close();
+      await navigator.clipboard.writeText(text);
     } catch {
-      // Graceful fallback if translation fails
-      const fallbackName =
-        this.promptTranslator.deriveEnglishSlug(rawCustomName || rawPrompt) || 'papikapi-model';
-      const fallbackPrompt = composeStudioPrompt(
-        this.promptTranslator.enrichIconicSubject(rawPrompt),
-        images.length
-      );
-      try {
-        await navigator.clipboard.writeText(fallbackPrompt);
-      } catch {
-        // Safe ignore
-      }
-      this.statusMessage.set(this.i18n.translate('modelCreatedSuccess'));
-      this.modelCreated.emit({ name: fallbackName, prompt: fallbackPrompt, images });
-      this.close();
-    } finally {
-      this.isCreating.set(false);
+      return;
     }
   }
 

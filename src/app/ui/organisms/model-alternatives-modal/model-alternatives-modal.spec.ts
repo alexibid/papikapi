@@ -14,7 +14,8 @@ describe('ModelAlternativesModalComponent', () => {
 
     fixture = TestBed.createComponent(ModelAlternativesModalComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('modelName', 'cat-darth');
+    fixture.componentRef.setInput('figureId', 'k7f2p9qx');
+    fixture.componentRef.setInput('displayName', { pt: 'Gato Darth', en: 'Cat Darth' });
     fixture.detectChanges();
   });
 
@@ -41,14 +42,18 @@ describe('ModelAlternativesModalComponent', () => {
     expect(pickedSpy).not.toHaveBeenCalled();
   });
 
-  it('emits picked with modelName and pick when confirmed with selection', () => {
+  it('emits picked with the figure id, its display name and the pick when confirmed with selection', () => {
     const pickedSpy = vi.fn();
     component.picked.subscribe(pickedSpy);
 
     component['selectCell'](4);
     component['confirm']();
 
-    expect(pickedSpy).toHaveBeenCalledWith({ name: 'cat-darth', pick: 4 });
+    expect(pickedSpy).toHaveBeenCalledWith({
+      figureId: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      pick: 4,
+    });
   });
 
   it('emits dismissed when closed', () => {

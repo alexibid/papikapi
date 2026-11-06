@@ -1,4 +1,6 @@
 import { Injectable, inject } from '@angular/core';
+import { FigureDisplayNames } from '@ibid/utils';
+import { CatalogueFigure, catalogueFiguresOf } from '@domain/models/catalogue-figure';
 import { FigureAssetsService } from './figure-assets.service';
 
 export type CreationProgressState = 'running' | 'done' | 'failed';
@@ -19,12 +21,12 @@ export type CreationProgressListener = (progress: CreationProgress) => void;
 export class CreationProgressService {
   private readonly assets = inject(FigureAssetsService);
 
-  connect(modelName: string, listener: CreationProgressListener): () => void {
+  connect(figureId: string, listener: CreationProgressListener): () => void {
     if (typeof EventSource === 'undefined') {
       return () => {};
     }
 
-    const url = `http://localhost:4502/api/creator/progress?name=${encodeURIComponent(modelName)}`;
+    const url = `http://localhost:4502/api/creator/progress?id=${encodeURIComponent(figureId)}`;
     const source = new EventSource(url);
 
     source.onmessage = (event: MessageEvent<string>) => {
@@ -48,7 +50,8 @@ export class CreationProgressService {
   }
 
   async triggerGeneration(payload: {
-    readonly name: string;
+    readonly id: string;
+    readonly displayName: FigureDisplayNames;
     readonly prompt: string;
     readonly images: readonly string[];
   }): Promise<boolean> {
@@ -79,7 +82,7 @@ export class CreationProgressService {
   }
 
   async triggerPick(payload: {
-    readonly name: string;
+    readonly id: string;
     readonly pick: number;
   }): Promise<boolean> {
     this.lastErrorMessage = null;
@@ -108,11 +111,11 @@ export class CreationProgressService {
     }
   }
 
-  sheetUrl(modelName: string): string {
-    return `http://localhost:4502/api/creator/sheet?name=${encodeURIComponent(modelName)}`;
+  sheetUrl(figureId: string): string {
+    return `http://localhost:4502/api/creator/sheet?id=${encodeURIComponent(figureId)}`;
   }
 
-  async checkInfo(modelName: string): Promise<{
+  async checkInfo(figureId: string): Promise<{
     readonly hasAlternatives: boolean;
     readonly sheetUrl: string;
   } | null> {
@@ -122,7 +125,7 @@ export class CreationProgressService {
 
     try {
       const response = await fetch(
-        `http://localhost:4502/api/creator/info?name=${encodeURIComponent(modelName)}`
+        `http://localhost:4502/api/creator/info?id=${encodeURIComponent(figureId)}`
       );
       if (!response.ok) return null;
       return (await response.json()) as {
@@ -134,18 +137,21 @@ export class CreationProgressService {
     }
   }
 
-  async fetchCatalogue(): Promise<readonly string[]> {
+  async fetchCatalogue(): Promise<readonly CatalogueFigure[]> {
     if (typeof fetch !== 'function') {
       return [];
     }
 
     // Try papikapi-api database models endpoint first
     try {
-      const response = await fetch('http://localhost:4505/api/v1/models', { cache: 'no-store' });
+      const response = await fetch('http://localhost:4505/api/v1/models', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(300),
+      });
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data)) {
-          return data.map((item: { id: string }) => item.id).filter(Boolean);
+          return catalogueFiguresOf(data);
         }
       }
     } catch {
@@ -153,11 +159,14 @@ export class CreationProgressService {
     }
 
     try {
-      const response = await fetch('http://localhost:4500/models/index.json', { cache: 'no-store' });
+      const response = await fetch('http://localhost:4500/models/index.json', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(300),
+      });
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data)) {
-          return data.map((item: { id: string }) => item.id).filter(Boolean);
+          return catalogueFiguresOf(data);
         }
       }
     } catch {
@@ -168,11 +177,27 @@ export class CreationProgressService {
       const response = await fetch('http://localhost:4502/api/catalogue/sync', {
         method: 'POST',
         cache: 'no-store',
+        signal: AbortSignal.timeout(300),
       });
       if (response.ok) {
         const data = await response.json();
         if (data?.models && Array.isArray(data.models)) {
-          return data.models.map((item: { id: string }) => item.id).filter(Boolean);
+          return catalogueFiguresOf(data.models);
+        }
+      }
+    } catch {
+      // Fall back to bundled assets
+    }
+
+    try {
+      const response = await fetch('/figures/index.json', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(300),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          return catalogueFiguresOf(data);
         }
       }
     } catch {
@@ -180,8 +205,8 @@ export class CreationProgressService {
     }
 
     try {
-      const ids = await this.assets.catalogueIds();
-      if (ids.length > 0) return ids;
+      const figures = await this.assets.catalogueFigures();
+      if (figures.length > 0) return figures;
     } catch {
       // Offline fallback
     }

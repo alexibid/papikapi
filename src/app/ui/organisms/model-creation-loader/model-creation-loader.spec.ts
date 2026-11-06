@@ -13,13 +13,13 @@ describe('ModelCreationLoaderComponent', () => {
   let component: ModelCreationLoaderComponent;
   let progressListener: CreationProgressListener | undefined;
   const mockCreationService = {
-    connect: vi.fn((_modelName: string, listener: CreationProgressListener) => {
+    connect: vi.fn((_figureId: string, listener: CreationProgressListener) => {
       progressListener = listener;
       return () => {};
     }),
     triggerGeneration: vi.fn().mockResolvedValue(true),
     triggerPick: vi.fn().mockResolvedValue(true),
-    sheetUrl: vi.fn((name: string) => `http://localhost:4502/api/creator/sheet?name=${name}`),
+    sheetUrl: vi.fn((figureId: string) => `http://localhost:4502/api/creator/sheet?id=${figureId}`),
     getLastError: vi.fn().mockReturnValue(null),
   };
 
@@ -37,7 +37,8 @@ describe('ModelCreationLoaderComponent', () => {
 
     fixture = TestBed.createComponent(ModelCreationLoaderComponent);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('modelName', 'darth-cat');
+    fixture.componentRef.setInput('figureId', 'k7f2p9qx');
+    fixture.componentRef.setInput('displayName', { pt: 'Gato Darth', en: 'Cat Darth' });
     fixture.componentRef.setInput('prompt', 'black tuxedo cat');
     fixture.detectChanges();
   });
@@ -50,7 +51,7 @@ describe('ModelCreationLoaderComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('A desenhar as primeiras ideias');
     expect(mockCreationService.triggerGeneration).toHaveBeenCalled();
-    expect(mockCreationService.connect).toHaveBeenCalledWith('darth-cat', expect.any(Function));
+    expect(mockCreationService.connect).toHaveBeenCalledWith('k7f2p9qx', expect.any(Function));
   });
 
   it('updates stage and step number when progress arrives from service', () => {
@@ -91,8 +92,9 @@ describe('ModelCreationLoaderComponent', () => {
 
     vi.advanceTimersByTime(1000);
     expect(readySpy).toHaveBeenCalledWith({
-      name: 'darth-cat',
-      sheetUrl: expect.stringContaining('darth-cat'),
+      figureId: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      sheetUrl: expect.stringContaining('id=k7f2p9qx'),
     });
   });
 
@@ -120,7 +122,7 @@ describe('ModelCreationLoaderComponent', () => {
     expect(component['isDone']()).toBe(true);
 
     vi.advanceTimersByTime(2500);
-    expect(completedSpy).toHaveBeenCalledWith('darth-cat');
+    expect(completedSpy).toHaveBeenCalledWith('k7f2p9qx');
   });
 
   it('emits dismissed event when close button is clicked', () => {
@@ -193,7 +195,7 @@ describe('ModelCreationLoaderComponent', () => {
     let modal = fixture.nativeElement.querySelector('.papikapi-creation-loader-modal') as HTMLElement;
     expect(modal).not.toBeNull();
     expect(modal.textContent).toContain('Prompt de Geração');
-    expect(modal.textContent).toContain('darth-cat');
+    expect(modal.textContent).toContain('Gato Darth');
 
     // Switch to user tab
     const tabs = fixture.nativeElement.querySelectorAll('.papikapi-creation-loader-modal__tab') as NodeListOf<HTMLButtonElement>;

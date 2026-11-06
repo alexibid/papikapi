@@ -1,6 +1,11 @@
-import { isStaticAsset, parseFigureUrl, studioFigureUrl } from './figures';
+import { figurePreviewUrl, isStaticAsset, parseFigureUrl, studioFigureUrl } from './figures';
 
 describe('figures', () => {
+  it('builds figure preview urls', () => {
+    expect(figurePreviewUrl('05krbysf')).toBe('/figures/05krbysf/preview-three-quarter.webp');
+    expect(figurePreviewUrl('05krbysf', 'art.jpeg')).toBe('/figures/05krbysf/art.jpeg');
+    expect(figurePreviewUrl('plane')).toBe('/figures/ayv4jctc/preview-three-quarter.webp');
+  });
   it('splits a bundled figure url and drops the cache buster', () => {
     expect(parseFigureUrl('/figures/fox/assembly.json?v=12')).toEqual({
       figureId: 'fox',

@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   effect,
   inject,
@@ -20,7 +21,7 @@ import { AssemblyRig } from './assembly-rig';
 import { FINAL_MODEL_LOADER } from './final-model-loader';
 import { FinalModel } from './final-model';
 import { BuildDirector } from './build-director';
-import { HOME_YAW } from './orbit-camera';
+import { figureStageYaw } from '@domain/data/figure-orientations';
 import { RENDERER_FACTORY } from './renderer-factory';
 import { StageViewport } from './stage-viewport';
 
@@ -40,8 +41,6 @@ const WHEEL_ZOOM_IN = 1.1;
     StickerComponent,
   ],
   host: {
-    '(window:scroll)': 'deactivate()',
-    '(document:pointerdown)': 'onDocumentPointerDown($event)',
     '[class.is-active]': 'active()',
   },
   templateUrl: './assembly-stage.html',
@@ -79,6 +78,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   private readonly createRenderer = inject(RENDERER_FACTORY);
   private readonly loadFinalModel = inject(FINAL_MODEL_LOADER);
   private readonly elementRef = inject(ElementRef);
+  private readonly ngZone = inject(NgZone);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('webglCanvas');
   private readonly containerRef = viewChild.required<ElementRef<HTMLElement>>('container');
 
@@ -90,6 +90,7 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   private lastPlayAll = 0;
   private dragging = false;
   private lastPointer = { x: 0, y: 0 };
+  private cleanupListeners?: () => void;
 
   constructor() {
     effect(() => {
@@ -140,6 +141,32 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
         this.director.advanceTo(built);
       }
     });
+
+    if (typeof window !== 'undefined') {
+      this.ngZone.runOutsideAngular(() => {
+        const onScroll = () => {
+          if (this.active()) {
+            this.ngZone.run(() => this.deactivate());
+          }
+        };
+
+        const onPointerDown = (event: PointerEvent) => {
+          if (!this.active()) return;
+          const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
+          if (!clickedInside) {
+            this.ngZone.run(() => this.deactivate());
+          }
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        document.addEventListener('pointerdown', onPointerDown, { passive: true });
+
+        this.cleanupListeners = () => {
+          window.removeEventListener('scroll', onScroll);
+          document.removeEventListener('pointerdown', onPointerDown);
+        };
+      });
+    }
   }
 
   ngAfterViewInit(): void {
@@ -153,16 +180,9 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.cleanupListeners?.();
     this.discardFigure();
     this.viewport?.dispose();
-  }
-
-  protected onDocumentPointerDown(event: PointerEvent): void {
-    if (!this.active()) return;
-    const clickedInside = this.elementRef.nativeElement.contains(event.target as Node);
-    if (!clickedInside) {
-      this.deactivate();
-    }
   }
 
   protected onPointerDown(event: PointerEvent): void {
@@ -216,8 +236,10 @@ export class AssemblyStageComponent implements AfterViewInit, OnDestroy {
     this.discardFigure();
     if (!url || !this.viewport) return;
     try {
-      const rig = new AssemblyRig(await this.plans.load(url), HOME_YAW);
+      const stageYaw = figureStageYaw(url);
+      const rig = new AssemblyRig(await this.plans.load(url), stageYaw);
       rig.resize(this.viewport.width, this.viewport.height);
+      this.viewport.camera.setHomeYaw(stageYaw);
       this.viewport.scene.add(rig.root);
       this.rig = rig;
       void this.ensureFinalModel();

@@ -49,8 +49,8 @@ describe('User Journey: Figure Progression & Points Economy', () => {
 
     // Award 10 consolidated points to default figure and allocate 1 point to ankylosaurus so shelf has multiple active figures
     progressStore.syncTotalPoints(110);
-    progressStore.reclaimPoint('t-rex');
-    progressStore.allocatePoint('ankylosaurus');
+    progressStore.reclaimPoint('504i5ivf');
+    progressStore.allocatePoint('6guaaxkb');
     fixture.detectChanges();
   });
 
@@ -303,10 +303,10 @@ describe('User Journey: Figure Progression & Points Economy', () => {
     });
 
     it('preserves exact incomplete progress and +/- buttons on pug (36 pieces) when selecting brachiosaurus (20 pieces)', () => {
-      progressStore.select('pug');
-      progressStore.addFigurePoints('pug', 50);
-      progressStore.select('brachiosaurus');
-      progressStore.select('pug');
+      progressStore.select('81avhktg');
+      progressStore.addFigurePoints('81avhktg', 50);
+      progressStore.select('jrho0d5f');
+      progressStore.select('81avhktg');
       component['onStageReady'](36);
       fixture.detectChanges();
 
@@ -324,54 +324,54 @@ describe('User Journey: Figure Progression & Points Economy', () => {
         });
       };
 
-      const pugBefore = findTrophyModel('pug');
+      const pugBefore = findTrophyModel('81avhktg');
       expect(pugBefore).toBeDefined();
       expect(pugBefore?.piecesTotal).toBe(36);
       expect(pugBefore?.piecesBuilt).toBe(26);
       expect(pugBefore?.piecesBuilt).toBeLessThan(pugBefore?.piecesTotal ?? 0);
 
-      const pugElBefore = findTrophyEl('pug')!;
+      const pugElBefore = findTrophyEl('81avhktg')!;
       expect(pugElBefore.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
       expect(pugElBefore.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
 
       // Now click brachiosaurus (20 total pieces, 0 points)
-      const brachEl = findTrophyEl('brachiosaurus')!;
+      const brachEl = findTrophyEl('jrho0d5f')!;
       ((brachEl.querySelector('.m-trophy__figure') ?? brachEl) as HTMLElement).click();
       component['onStageReady'](20);
       fixture.detectChanges();
 
-      expect(progressStore.progress().currentId).toBe('brachiosaurus');
+      expect(progressStore.progress().currentId).toBe('jrho0d5f');
 
       // Pug MUST still have piecesTotal = 36 and piecesBuilt = 26 (NOT completed!)
-      const pugAfter = findTrophyModel('pug');
+      const pugAfter = findTrophyModel('81avhktg');
       expect(pugAfter?.piecesTotal).toBe(36);
       expect(pugAfter?.piecesBuilt).toBe(26);
       expect(pugAfter?.state).toBe('building');
 
-      const pugElAfter = findTrophyEl('pug')!;
+      const pugElAfter = findTrophyEl('81avhktg')!;
       expect(pugElAfter.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
       expect(pugElAfter.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
 
       // Brachiosaurus with 0 points must have 0 piecesBuilt on its shelf thumbnail
-      const brachAfter = findTrophyModel('brachiosaurus');
+      const brachAfter = findTrophyModel('jrho0d5f');
       expect(brachAfter?.piecesTotal).toBe(20);
       expect(brachAfter?.allocatedPoints).toBe(0);
       expect(brachAfter?.piecesBuilt).toBe(0);
 
       // Even if a custom figure had stage pieceCount = 50 and 35 pieces built, deselecting it preserves 50
-      progressStore.select('darth', { allowCustom: true });
-      progressStore.addFigurePoints('darth', 68);
+      progressStore.select('d24q07eg', { allowCustom: true });
+      progressStore.addFigurePoints('d24q07eg', 68);
       component['onStageReady'](50);
       fixture.detectChanges();
 
-      expect(findTrophyModel('darth')?.piecesTotal).toBe(50);
+      expect(findTrophyModel('d24q07eg')?.piecesTotal).toBe(50);
 
       ((brachEl.querySelector('.m-trophy__figure') ?? brachEl) as HTMLElement).click();
       component['onStageReady'](20);
       fixture.detectChanges();
 
-      expect(findTrophyModel('darth')?.piecesTotal).toBe(50);
-      const darthEl = findTrophyEl('darth')!;
+      expect(findTrophyModel('d24q07eg')?.piecesTotal).toBe(50);
+      const darthEl = findTrophyEl('d24q07eg')!;
       expect(darthEl.querySelector('.m-trophy__action-btn--plus')).not.toBeNull();
       expect(darthEl.querySelector('.m-trophy__action-btn--minus')).not.toBeNull();
     });
@@ -391,21 +391,21 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       expect(activeFolds.length).toBeGreaterThan(0);
       expect(activeFolds.length).toBeLessThanOrEqual(4);
 
-      component['onFigureChosen']('plane');
+      component['onFigureChosen']('ayv4jctc');
       fixture.detectChanges();
 
-      expect(component['currentModelId']()).toBe('plane');
-      expect(progressStore.allocation('plane')).toBe(0);
+      expect(component['currentModelId']()).toBe('ayv4jctc');
+      expect(progressStore.allocation('ayv4jctc')).toBe(0);
       expect(component.figurePipsFilled()).toBe(0);
 
       const emptyFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
       expect(emptyFolds.length).toBe(0);
 
       progressStore.setUnassignedCredit(1);
-      component['onAllocatePoint']('plane');
+      component['onAllocatePoint']('ayv4jctc');
       fixture.detectChanges();
 
-      expect(progressStore.allocation('plane')).toBe(1);
+      expect(progressStore.allocation('ayv4jctc')).toBe(1);
       expect(component.figurePipsFilled()).toBeGreaterThan(0);
 
       const updatedFolds = pipsEl.querySelectorAll('.m-progress-pips__pip--filled');
@@ -462,9 +462,9 @@ describe('User Journey: Figure Progression & Points Economy', () => {
       expect(progressStore.allocation(curId)).toBe(initialPts);
 
       // removeFigure removes unchosen figure from shelf
-      (bridge['removeFigure'] as (id: string) => void)('bear');
+      (bridge['removeFigure'] as (id: string) => void)('rb83aitm');
       fixture.detectChanges();
-      expect(progressStore.progress().hiddenShelfIds).toContain('bear');
+      expect(progressStore.progress().hiddenShelfIds).toContain('rb83aitm');
     });
   });
 });

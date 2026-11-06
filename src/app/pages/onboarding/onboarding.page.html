@@ -1,0 +1,327 @@
+<section class="papikapi-onboarding">
+  <header class="papikapi-onboarding__bar">
+    <ibid-icon-button
+      class="papikapi-onboarding__back"
+      [ariaLabel]="i18n.translate('onboardingBack')"
+      (clicked)="goBack()"
+    >
+      <span class="papikapi-onboarding__glyph">
+        <papikapi-pictogram name="arrow-left" />
+      </span>
+    </ibid-icon-button>
+
+    <div class="papikapi-onboarding__bar-info">
+      <h1 class="papikapi-onboarding__title">{{ i18n.translate('onboardingTitle') }}</h1>
+      <p class="papikapi-onboarding__subtitle">{{ i18n.translate('onboardingSubtitle') }}</p>
+    </div>
+  </header>
+
+  <main class="papikapi-onboarding__content">
+    <!-- STEP 1: CONTEXT SELECTION -->
+    <ibid-card>
+      <h2 class="papikapi-onboarding__section-title">
+        {{ i18n.translate('onboardingContextLabel') }}
+      </h2>
+      <div class="papikapi-onboarding__type-grid">
+        <button
+          type="button"
+          class="papikapi-onboarding__type-btn"
+          [class.papikapi-onboarding__type-btn--active]="householdType() === 'family'"
+          [ibidHandDrawn]="2"
+          [ibidTactile]="'primary'"
+          ibidFocusState
+          (click)="setType('family')"
+        >
+          <span class="papikapi-onboarding__type-icon">🏠</span>
+          <span class="papikapi-onboarding__type-name">{{ i18n.translate('onboardingTypeFamily') }}</span>
+          <span class="papikapi-onboarding__type-desc">{{ i18n.translate('onboardingTypeFamilyDesc') }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="papikapi-onboarding__type-btn"
+          [class.papikapi-onboarding__type-btn--active]="householdType() === 'daycare'"
+          [ibidHandDrawn]="2"
+          [ibidTactile]="'primary'"
+          ibidFocusState
+          (click)="setType('daycare')"
+        >
+          <span class="papikapi-onboarding__type-icon">🏫</span>
+          <span class="papikapi-onboarding__type-name">{{ i18n.translate('onboardingTypeDaycare') }}</span>
+          <span class="papikapi-onboarding__type-desc">{{ i18n.translate('onboardingTypeDaycareDesc') }}</span>
+        </button>
+      </div>
+
+      <div class="papikapi-onboarding__field">
+        <label class="papikapi-onboarding__label">{{ i18n.translate('onboardingGroupName') }}</label>
+        <input
+          type="text"
+          class="papikapi-onboarding__input"
+          [value]="groupName()"
+          (input)="groupName.set($any($event.target).value)"
+          [placeholder]="
+            householdType() === 'family'
+              ? i18n.translate('onboardingGroupNameFamilyPlaceholder')
+              : i18n.translate('onboardingGroupNameDaycarePlaceholder')
+          "
+        />
+      </div>
+    </ibid-card>
+
+    <!-- STEP 2: ADULTS OR EDUCATOR -->
+    <ibid-card>
+      @if (householdType() === 'family') {
+        <h2 class="papikapi-onboarding__section-title">
+          {{ i18n.translate('onboardingCaregiversTitle') }}
+        </h2>
+        <p class="papikapi-onboarding__section-hint">
+          {{ i18n.translate('onboardingStructureLabel') }}
+        </p>
+
+        <div class="papikapi-onboarding__structure-row">
+          <ibid-button
+            [variant]="structure() === 'single_parent' ? 'primary' : 'outlined'"
+            [intensity]="2"
+            (clicked)="setStructure('single_parent')"
+          >
+            {{ i18n.translate('onboardingStructureSingle') }}
+          </ibid-button>
+
+          <ibid-button
+            [variant]="structure() === 'two_parents' ? 'primary' : 'outlined'"
+            [intensity]="2"
+            (clicked)="setStructure('two_parents')"
+          >
+            {{ i18n.translate('onboardingStructureTwo') }}
+          </ibid-button>
+        </div>
+
+        <div class="papikapi-onboarding__names-list">
+          @for (name of caregiverNames(); track $index) {
+            <div class="papikapi-onboarding__name-row">
+              <input
+                type="text"
+                class="papikapi-onboarding__input"
+                [value]="name"
+                (input)="updateCaregiver($index, $any($event.target).value)"
+                [placeholder]="i18n.translate('onboardingCaregiverName')"
+              />
+              @if (caregiverNames().length > 1) {
+                <ibid-icon-button
+                  [ariaLabel]="'Remover'"
+                  (clicked)="removeCaregiver($index)"
+                >
+                  <papikapi-pictogram name="close" />
+                </ibid-icon-button>
+              }
+            </div>
+          }
+          <ibid-button variant="outlined" [intensity]="1" (clicked)="addCaregiver()">
+            {{ i18n.translate('onboardingAddCaregiver') }}
+          </ibid-button>
+        </div>
+      } @else {
+        <h2 class="papikapi-onboarding__section-title">
+          {{ i18n.translate('onboardingEducatorTitle') }}
+        </h2>
+        <div class="papikapi-onboarding__field">
+          <input
+            type="text"
+            class="papikapi-onboarding__input"
+            [value]="educatorName()"
+            (input)="educatorName.set($any($event.target).value)"
+            placeholder="ex.: Educadora Maria"
+          />
+        </div>
+      }
+    </ibid-card>
+
+    <!-- STEP 3: CHILDREN (PRESET 1 CHILD DEFAULT) -->
+    <ibid-card>
+      <div class="papikapi-onboarding__header-with-badge">
+        <h2 class="papikapi-onboarding__section-title">
+          {{ i18n.translate('onboardingChildrenTitle') }}
+        </h2>
+        <span class="papikapi-onboarding__badge" [ibidHandDrawn]="1">
+          {{ children().length }}
+        </span>
+      </div>
+      <p class="papikapi-onboarding__section-hint">
+        {{ i18n.translate('onboardingChildrenPresetNote') }}
+      </p>
+
+      <div class="papikapi-onboarding__kids-list">
+        @for (kid of children(); track kid.id) {
+          <div class="papikapi-onboarding__kid-card" [ibidHandDrawn]="2">
+            <div class="papikapi-onboarding__kid-head">
+              <span
+                class="papikapi-onboarding__color-dot"
+                [style.background]="kid.paperColor"
+                [ibidHandDrawn]="1"
+              ></span>
+              <input
+                type="text"
+                class="papikapi-onboarding__input papikapi-onboarding__input--compact"
+                [value]="kid.name"
+                (input)="updateChildName(kid.id, $any($event.target).value)"
+                [placeholder]="i18n.translate('onboardingChildName')"
+              />
+              @if (children().length > 1) {
+                <ibid-icon-button
+                  [ariaLabel]="'Remover'"
+                  (clicked)="removeChild(kid.id)"
+                >
+                  <papikapi-pictogram name="close" />
+                </ibid-icon-button>
+              }
+            </div>
+
+            <div class="papikapi-onboarding__palette-row">
+              <span class="papikapi-onboarding__sublabel">
+                {{ i18n.translate('onboardingPaperColor') }}:
+              </span>
+              <div class="papikapi-onboarding__palette">
+                @for (color of palette; track color) {
+                  <button
+                    type="button"
+                    class="papikapi-onboarding__swatch"
+                    [class.papikapi-onboarding__swatch--active]="kid.paperColor === color"
+                    [style.background]="color"
+                    (click)="updateChildColor(kid.id, color)"
+                  ></button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <ibid-button
+          class="papikapi-onboarding__add-kid"
+          variant="outlined"
+          [intensity]="2"
+          (clicked)="addChild()"
+        >
+          {{ i18n.translate('onboardingAddChild') }}
+        </ibid-button>
+      </div>
+    </ibid-card>
+
+    <!-- STEP 4: ICONS & FLUX FAMILY PHOTO STYLE -->
+    <ibid-card>
+      <h2 class="papikapi-onboarding__section-title">
+        {{ i18n.translate('onboardingIconTitle') }}
+      </h2>
+      <p class="papikapi-onboarding__section-hint">
+        {{ i18n.translate('onboardingIconNote') }}
+      </p>
+
+      <div class="papikapi-onboarding__icon-selector">
+        <div class="papikapi-onboarding__preview-box" [ibidHandDrawn]="3">
+          <img
+            class="papikapi-onboarding__preview-img"
+            [src]="previewIconSrc()"
+            alt="Ícone Ativo"
+          />
+          <span class="papikapi-onboarding__preview-badge">
+            {{ iconPreset() === 'custom_flux' ? 'Ref. FLUX' : 'Preset Ativo' }}
+          </span>
+        </div>
+
+        <div class="papikapi-onboarding__presets-grid">
+          <button
+            type="button"
+            class="papikapi-onboarding__preset-btn"
+            [class.papikapi-onboarding__preset-btn--active]="iconPreset() === 'single_child'"
+            (click)="setIconPreset('single_child')"
+          >
+            👤 {{ i18n.translate('onboardingPresetSingleChild') }}
+          </button>
+
+          <button
+            type="button"
+            class="papikapi-onboarding__preset-btn"
+            [class.papikapi-onboarding__preset-btn--active]="iconPreset() === 'single_parent'"
+            (click)="setIconPreset('single_parent')"
+          >
+            👨‍👧 {{ i18n.translate('onboardingPresetSingleParent') }}
+          </button>
+
+          <button
+            type="button"
+            class="papikapi-onboarding__preset-btn"
+            [class.papikapi-onboarding__preset-btn--active]="iconPreset() === 'two_parents'"
+            (click)="setIconPreset('two_parents')"
+          >
+            👨‍👩‍👧 {{ i18n.translate('onboardingPresetTwoParents') }}
+          </button>
+
+          <button
+            type="button"
+            class="papikapi-onboarding__preset-btn"
+            [class.papikapi-onboarding__preset-btn--active]="iconPreset() === 'daycare'"
+            (click)="setIconPreset('daycare')"
+          >
+            🏫 {{ i18n.translate('onboardingPresetDaycare') }}
+          </button>
+        </div>
+      </div>
+
+      <div class="papikapi-onboarding__photo-section">
+        <label class="papikapi-onboarding__sublabel">
+          {{ i18n.translate('onboardingPhotoUpload') }}
+        </label>
+        <div class="papikapi-onboarding__upload-row">
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            style="display: none"
+            (change)="onPhotoSelected($event)"
+          />
+          <ibid-button
+            variant="outlined"
+            [intensity]="2"
+            (clicked)="fileInput.click()"
+          >
+            📷 Carregar Fotografia
+          </ibid-button>
+
+          @if (uploadedPhoto()) {
+            <ibid-button
+              variant="highlight"
+              [intensity]="1"
+              (clicked)="removePhoto()"
+            >
+              Remover Foto
+            </ibid-button>
+          }
+        </div>
+
+        @if (uploadedPhoto()) {
+          <div class="papikapi-onboarding__photo-card" [ibidHandDrawn]="2">
+            <img
+              class="papikapi-onboarding__polaroid-preview"
+              [src]="uploadedPhoto()"
+              alt="Referência Familiar"
+            />
+            <p class="papikapi-onboarding__photo-note">
+              ✨ {{ i18n.translate('onboardingPhotoReady') }}
+            </p>
+          </div>
+        }
+      </div>
+    </ibid-card>
+
+    <!-- ACTION BUTTON -->
+    <div class="papikapi-onboarding__actions">
+      <ibid-button
+        class="papikapi-onboarding__submit-btn"
+        variant="primary"
+        [intensity]="3"
+        (clicked)="finish()"
+      >
+        {{ i18n.translate('onboardingFinish') }}
+      </ibid-button>
+    </div>
+  </main>
+</section>

@@ -2,6 +2,8 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { ButtonComponent, HandDrawnDirective } from 'ibid-ui';
 import { I18nService } from '@ibid/services';
+import { FigureDisplayNames } from '@ibid/utils';
+import { AlternativePick } from '@domain/models/figure-creation';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
 export interface AlternativeCell {
@@ -19,10 +21,11 @@ export interface AlternativeCell {
 export class ModelAlternativesModalComponent {
   protected readonly i18n = inject(I18nService);
 
-  readonly modelName = input.required<string>();
+  readonly figureId = input.required<string>();
+  readonly displayName = input.required<FigureDisplayNames>();
   readonly sheetUrl = input<string>('');
 
-  readonly picked = output<{ readonly name: string; readonly pick: number }>();
+  readonly picked = output<AlternativePick>();
   readonly dismissed = output<void>();
 
   readonly selectedPick = signal<number | null>(null);
@@ -40,8 +43,8 @@ export class ModelAlternativesModalComponent {
   readonly effectiveSheetUrl = computed(() => {
     const customUrl = this.sheetUrl();
     if (customUrl) return customUrl;
-    const name = encodeURIComponent(this.modelName());
-    return `http://localhost:4502/api/creator/sheet?name=${name}`;
+    const figureId = encodeURIComponent(this.figureId());
+    return `http://localhost:4502/api/creator/sheet?id=${figureId}`;
   });
 
   readonly confirmLabel = computed(() => {
@@ -60,7 +63,7 @@ export class ModelAlternativesModalComponent {
   protected confirm(): void {
     const pick = this.selectedPick();
     if (pick === null) return;
-    this.picked.emit({ name: this.modelName(), pick });
+    this.picked.emit({ figureId: this.figureId(), displayName: this.displayName(), pick });
   }
 
   protected close(): void {

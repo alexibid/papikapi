@@ -15,6 +15,11 @@ export const appRoutes: Route[] = [
     loadComponent: () => import('./pages/gate/gate.page').then((m) => m.GatePage),
   },
   {
+    path: 'onboarding',
+    loadComponent: () =>
+      import('./pages/onboarding/onboarding.page').then((m) => m.OnboardingPage),
+  },
+  {
     path: 'pais',
     loadComponent: () =>
       import('./pages/backoffice/backoffice.page').then((m) => m.BackofficePage),

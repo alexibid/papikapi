@@ -14,7 +14,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { I18nService } from '@ibid/services';
 import { ButtonComponent, HeaderComponent } from 'ibid-ui';
-import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
+import { StickerComponent } from '@ui/atoms/sticker/sticker';
 
 const NAV_OFFSET_PROPERTY = '--header-nav-offset';
 const HEADER_SHELL_SELECTOR = '.o-header-shell';
@@ -23,7 +23,7 @@ const ADULT_ROUTES: readonly string[] = [DIARY_ROUTE, '/pais'];
 const WORDLESS_ROUTES: readonly string[] = ['/', '/adultos'];
 
 @Component({
-  imports: [ButtonComponent, HeaderComponent, PictogramComponent, RouterModule],
+  imports: [ButtonComponent, HeaderComponent, StickerComponent, RouterModule],
   selector: 'papikapi-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',

@@ -13,7 +13,7 @@ export class FigureThumbnailService {
     if (cached) return cached;
     const loading = this.plans
       .load(figureAssemblyUrl(figureId))
-      .then(projectFigure)
+      .then((plan) => projectFigure(plan, figureId))
       .catch((error: unknown) => {
         this.cache.delete(figureId);
         throw error;

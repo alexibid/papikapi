@@ -1,3 +1,5 @@
+import { canonicalFigureId } from '@domain/data/shipped-figures';
+
 const FIGURES_ROOT = '/figures';
 
 export function figureAssemblyUrl(figureId: string): string {
@@ -10,6 +12,13 @@ export function figureModelUrl(figureId: string): string {
 
 export function figurePdfUrl(figureId: string): string {
   return `${FIGURES_ROOT}/${figureId}/sheets.pdf`;
+}
+
+export function figurePreviewUrl(
+  figureId: string,
+  image = 'preview-three-quarter.webp'
+): string {
+  return `${FIGURES_ROOT}/${canonicalFigureId(figureId)}/${image}`;
 }
 
 export interface FigureAsset {

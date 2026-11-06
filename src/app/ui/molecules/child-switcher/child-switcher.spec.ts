@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { ChildProfile } from '@domain/models/child-profile';
 import { ChildSwitcherComponent } from './child-switcher';
 
-const CLASSROOM: readonly ChildProfile[] = [
+const CHILDREN: readonly ChildProfile[] = [
   { id: 'ines', name: 'Inês', avatarBustUrl: 'scene/ines.webp', paperColor: '#F8E4D6' },
   { id: 'tomas', name: 'Tomás', avatarBustUrl: 'scene/tomas.webp', paperColor: '#D6F0E0' },
   { id: 'leonor', name: 'Leonor', avatarBustUrl: '', paperColor: '#DBEAFE' },
@@ -17,7 +17,7 @@ describe('ChildSwitcherComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [ChildSwitcherComponent] });
     fixture = TestBed.createComponent(ChildSwitcherComponent);
-    fixture.componentRef.setInput('children', CLASSROOM);
+    fixture.componentRef.setInput('children', CHILDREN);
     fixture.componentRef.setInput('activeChildId', 'tomas');
     fixture.componentRef.setInput('switchLabel', 'Trocar de criança');
     fixture.componentRef.setInput('closeLabel', 'Fechar');
@@ -64,7 +64,7 @@ describe('ChildSwitcherComponent', () => {
     cards()[2]?.querySelector('button')?.click();
     fixture.detectChanges();
 
-    expect(selected).toEqual([CLASSROOM[2]]);
+    expect(selected).toEqual([CHILDREN[2]]);
     expect(host.querySelector('.m-child-switcher__drawer')).toBeNull();
   });
 

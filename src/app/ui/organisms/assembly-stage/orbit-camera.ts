@@ -15,6 +15,7 @@ export class OrbitCamera {
   private readonly target = new Vector3();
   private distance = 4;
   private framed?: Sphere;
+  private homeYaw = HOME.yaw;
   private yaw = HOME.yaw;
   private pitch = HOME.pitch;
   private zoom = 1;
@@ -44,8 +45,13 @@ export class OrbitCamera {
     this.apply();
   }
 
+  setHomeYaw(yaw: number): void {
+    this.homeYaw = yaw;
+    this.home();
+  }
+
   home(): void {
-    this.yaw = HOME.yaw;
+    this.yaw = this.homeYaw;
     this.pitch = HOME.pitch;
     this.zoom = 1;
     this.apply();

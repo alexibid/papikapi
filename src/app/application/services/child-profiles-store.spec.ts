@@ -13,7 +13,6 @@ const MARIA: ChildProfileDraft = {
   name: 'Maria',
   avatarBustUrl: 'assets/avatars/maria.png',
   paperColor: '#7FB3D5',
-  group: 'Sala dos Coelhos',
   birthDate: '2021-03-14',
 };
 
@@ -98,9 +97,9 @@ describe('ChildProfilesStore', () => {
     it('merges the changes into the profile', () => {
       const maria = store.registerChild(MARIA);
 
-      store.updateChild(maria.id, { name: 'Maria João', group: 'Sala das Raposas' });
+      store.updateChild(maria.id, { name: 'Maria João' });
 
-      expect(store.profiles()[1]).toEqual({ ...maria, name: 'Maria João', group: 'Sala das Raposas' });
+      expect(store.profiles()[1]).toEqual({ ...maria, name: 'Maria João' });
     });
 
     it('refreshes the active child', () => {
@@ -177,6 +176,26 @@ describe('ChildProfilesStore', () => {
       localStorage.setItem(CHILD_PROFILES_KEY, JSON.stringify([valid, { id: 3 }, 'maria', null]));
 
       expect(reloadStore().profiles()).toEqual([DEFAULT_CHILD_PROFILE, valid]);
+    });
+  });
+
+  describe('setProfiles', () => {
+    it('overwrites the profile list and updates active child if current is gone', () => {
+      const kids = [
+        { id: 'kid-1', name: 'Inês', avatarBustUrl: '', paperColor: '#F4C95D' },
+        { id: 'kid-2', name: 'Tomás', avatarBustUrl: '', paperColor: '#D6F0E0' },
+      ];
+      store.setProfiles(kids);
+
+      expect(store.profiles()).toEqual(kids);
+      expect(store.activeChildId()).toBe('kid-1');
+    });
+
+    it('ignores empty array input', () => {
+      const before = store.profiles();
+      store.setProfiles([]);
+
+      expect(store.profiles()).toEqual(before);
     });
   });
 });

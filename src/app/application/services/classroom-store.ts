@@ -4,7 +4,7 @@ import { ChildPointsStore } from './child-points-store';
 import { ChildProfilesStore } from './child-profiles-store';
 
 @Injectable({ providedIn: 'root' })
-export class ClassroomStore {
+export class ChildrenStore {
   private readonly profiles = inject(ChildProfilesStore);
   private readonly childPoints = inject(ChildPointsStore);
 
@@ -30,3 +30,5 @@ export class ClassroomStore {
     return this.pointsByChild().get(childId) ?? 0;
   }
 }
+
+export { ChildrenStore as ClassroomStore };

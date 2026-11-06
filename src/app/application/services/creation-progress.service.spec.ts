@@ -13,8 +13,9 @@ describe('CreationProgressService', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
 
     const ok = await service.triggerGeneration({
-      name: 'cat-darth',
-      prompt: 'a cute tuxedo cat',
+      id: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      prompt: 'a tuxedo cat',
       images: [],
     });
 
@@ -36,8 +37,9 @@ describe('CreationProgressService', () => {
     );
 
     const ok = await service.triggerGeneration({
-      name: 'cat-darth',
-      prompt: 'a cute tuxedo cat',
+      id: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      prompt: 'a tuxedo cat',
       images: [],
     });
 
@@ -61,7 +63,7 @@ describe('CreationProgressService', () => {
     vi.stubGlobal('EventSource', MockEventSource);
 
     const received: CreationProgress[] = [];
-    const unsubscribe = service.connect('cat-darth', (p) => received.push(p));
+    const unsubscribe = service.connect('k7f2p9qx', (p) => received.push(p));
 
     expect(capturedListener).toBeDefined();
 
@@ -89,24 +91,33 @@ describe('CreationProgressService', () => {
   it('triggers pick payload via POST fetch and returns sheetUrl', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
 
-    const ok = await service.triggerPick({ name: 'cat-darth', pick: 3 });
+    const ok = await service.triggerPick({ id: 'k7f2p9qx', pick: 3 });
     expect(ok).toBe(true);
     expect(fetchSpy).toHaveBeenCalledWith(
       'http://localhost:4502/api/creator/pick',
       expect.objectContaining({ method: 'POST' })
     );
 
-    expect(service.sheetUrl('cat-darth')).toContain('name=cat-darth');
+    expect(service.sheetUrl('k7f2p9qx')).toContain('id=k7f2p9qx');
     fetchSpy.mockRestore();
   });
 
-  it('fetches catalogue from server', async () => {
+  it('fetches the catalogue with each figure display name', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify([{ id: 'darth' }, { id: 'alex' }]), { status: 200 })
+      new Response(
+        JSON.stringify([
+          { id: 'k7f2p9qx', displayName: { pt: 'Gato Darth', en: 'Cat Darth' } },
+          { id: 'm3x8q1za' },
+        ]),
+        { status: 200 }
+      )
     );
 
     const catalogue = await service.fetchCatalogue();
-    expect(catalogue).toEqual(['darth', 'alex']);
+    expect(catalogue).toEqual([
+      { id: 'k7f2p9qx', displayName: { pt: 'Gato Darth', en: 'Cat Darth' } },
+      { id: 'm3x8q1za', displayName: { pt: 'm3x8q1za', en: 'm3x8q1za' } },
+    ]);
     fetchSpy.mockRestore();
   });
 });

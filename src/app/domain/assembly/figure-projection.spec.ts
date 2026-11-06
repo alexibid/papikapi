@@ -58,4 +58,18 @@ describe('projectFigure', () => {
 
     expect(facets.map((facet) => facet.fill)).toEqual(['#bbb', '#aaa']);
   });
+
+  it('supports figure id to project from calibrated 3/4 front angle', () => {
+    const frontFace: readonly Vec3[] = [[-50, 0, 0], [-40, 0, 0], [-40, 10, 0]];
+    const backFace: readonly Vec3[] = [[50, 0, 0], [60, 0, 0], [60, 10, 0]];
+    const testPlan = plan({ solid: frontFace, colour: '#front' }, { solid: backFace, colour: '#back' });
+
+    const defaultFacets = projectFigure(testPlan);
+    const alignedFacets = projectFigure(testPlan, 'a2182a3u');
+
+    expect(defaultFacets).toHaveLength(2);
+    expect(alignedFacets).toHaveLength(2);
+    // At default 35°, +X is closer; at 215° (180° rotation), -X is closer so paint order inverts
+    expect(defaultFacets[0].fill).not.toEqual(alignedFacets[0].fill);
+  });
 });

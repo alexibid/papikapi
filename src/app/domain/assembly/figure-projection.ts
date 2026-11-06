@@ -1,11 +1,11 @@
 import { AssemblyPlan, Vec3 } from './assembly-plan';
+import { figureProjectionYaw } from '@domain/data/figure-orientations';
 
 export interface ProjectedFacet {
   readonly points: string;
   readonly fill: string;
 }
 
-const YAW = (35 * Math.PI) / 180;
 const ELEVATION = (28 * Math.PI) / 180;
 const BOX = 100;
 const PADDING = 6;
@@ -16,9 +16,9 @@ interface Placed {
   readonly fill: string;
 }
 
-function project([x, y, z]: Vec3): { sx: number; sy: number; depth: number } {
-  const across = x * Math.cos(YAW) - y * Math.sin(YAW);
-  const away = x * Math.sin(YAW) + y * Math.cos(YAW);
+function projectVertex([x, y, z]: Vec3, yaw: number): { sx: number; sy: number; depth: number } {
+  const across = x * Math.cos(yaw) - y * Math.sin(yaw);
+  const away = x * Math.sin(yaw) + y * Math.cos(yaw);
   return {
     sx: across,
     sy: -(z * Math.cos(ELEVATION) + away * Math.sin(ELEVATION)),
@@ -26,10 +26,14 @@ function project([x, y, z]: Vec3): { sx: number; sy: number; depth: number } {
   };
 }
 
-export function projectFigure(plan: AssemblyPlan): readonly ProjectedFacet[] {
+export function projectFigure(
+  plan: AssemblyPlan,
+  figureIdOrYaw?: string | number
+): readonly ProjectedFacet[] {
+  const yaw = figureProjectionYaw(figureIdOrYaw);
   const placed = plan.pieces.flatMap((piece) =>
     piece.faces.map((face): Placed => {
-      const corners = face.solid.map(project);
+      const corners = face.solid.map((pt) => projectVertex(pt, yaw));
       return {
         corners: corners.map(({ sx, sy }) => [sx, sy] as const),
         depth: corners.reduce((sum, corner) => sum + corner.depth, 0) / corners.length,

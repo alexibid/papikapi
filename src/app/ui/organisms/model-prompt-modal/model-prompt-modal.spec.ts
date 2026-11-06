@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { isFigureId } from '@ibid/utils';
+import { FigureCreationRequest } from '@domain/models/figure-creation';
 import { ModelPromptModalComponent } from './model-prompt-modal';
 
-type CreatedModel = { name: string; prompt: string; images: readonly string[] };
+type CreatedModel = FigureCreationRequest;
 
 describe('ModelPromptModalComponent', () => {
   let fixture: ComponentFixture<ModelPromptModalComponent>;
@@ -106,10 +108,9 @@ describe('ModelPromptModalComponent', () => {
     fixture.detectChanges();
 
     const translator = component['promptTranslator'];
-    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
-      originalText: 'o meu gato Tobias, preto e branco',
-      englishPrompt: 'a cute tuxedo cat Tobias, black and white',
-      suggestedSlug: 'tuxedo-cat-tobias',
+    vi.spyOn(translator, 'describeFigure').mockResolvedValue({
+      englishPrompt: 'a tuxedo cat Tobias, black and white',
+      displayName: { pt: 'Gato Tobias', en: 'Tuxedo cat Tobias' },
     });
 
     let createdEvent: CreatedModel | null = null;
@@ -120,18 +121,23 @@ describe('ModelPromptModalComponent', () => {
     await component['createModel']();
 
     expect(createdEvent).not.toBeNull();
-    expect(createdEvent!['prompt']).toBe('a cute tuxedo cat Tobias, black and white');
-    expect(createdEvent!['name']).toBe('tuxedo-cat-tobias');
+    expect(createdEvent!['prompt']).toBe('a tuxedo cat Tobias, black and white');
+    expect(isFigureId(createdEvent!['figureId'])).toBe(true);
+    expect(createdEvent!['displayName']).toEqual({ pt: 'Gato Tobias', en: 'Tuxedo cat Tobias' });
     expect(createdEvent!['images']).toEqual(['data:image/jpeg;base64,abc123']);
     expect(component.statusMessage()).toBeTruthy();
   });
 
-  it('uses custom modelName to derive hyphenated folder name', async () => {
-    component.modelName.set('Cat Darth');
-    component.promptText.set('a cute tuxedo cat');
+  it('names the figure after the custom name and gives it a fresh short id', async () => {
+    component.modelName.set('o meu gato Darth');
+    component.promptText.set('um gato fraque');
     fixture.detectChanges();
 
-    expect(component.derivedFolderSlug()).toBe('cat-darth');
+    expect(component.displayNamePreview()).toBe('Gato Darth');
+    vi.spyOn(component['promptTranslator'], 'describeFigure').mockResolvedValue({
+      englishPrompt: 'a tuxedo cat',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+    });
 
     let createdEvent: CreatedModel | null = null;
     component.modelCreated.subscribe((val) => {
@@ -141,7 +147,8 @@ describe('ModelPromptModalComponent', () => {
     await component['createModel']();
 
     expect(createdEvent).not.toBeNull();
-    expect(createdEvent!['name']).toBe('cat-darth');
+    expect(createdEvent!['displayName'].pt).toBe('Gato Darth');
+    expect(isFigureId(createdEvent!['figureId'])).toBe(true);
   });
 
   it('copies studio prompt to clipboard and succeeds on createModel', async () => {
@@ -149,10 +156,9 @@ describe('ModelPromptModalComponent', () => {
     fixture.detectChanges();
 
     const translator = component['promptTranslator'];
-    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
-      originalText: 'dragão azul',
-      englishPrompt: 'a cute blue dragon',
-      suggestedSlug: 'blue-dragon',
+    vi.spyOn(translator, 'describeFigure').mockResolvedValue({
+      englishPrompt: 'a blue dragon',
+      displayName: { pt: 'Dragão azul', en: 'Blue dragon' },
     });
 
     let writtenText = '';
@@ -174,7 +180,7 @@ describe('ModelPromptModalComponent', () => {
       await component['createModel']();
 
       expect(createdEvent).not.toBeNull();
-      expect(writtenText).toContain('a cute blue dragon');
+      expect(writtenText).toContain('a blue dragon');
       expect(component.statusMessage()).toBeTruthy();
     } finally {
       Object.assign(navigator, { clipboard: originalClipboard });
@@ -212,19 +218,19 @@ describe('ModelPromptModalComponent', () => {
     expect(closed).toBe(true);
   });
 
-  it('updates prompt text and model slug when onVoiceAccepted is emitted', () => {
+  it('updates prompt text and the shown name when onVoiceAccepted is emitted', () => {
     component['onVoiceAccepted']('gato preto e branco com asas');
 
     expect(component.promptText()).toBe('gato preto e branco com asas');
     expect(component.voiceNotice()).toBe('gato preto e branco com asas');
-    expect(component.derivedFolderSlug()).toBe('cat-black-white');
+    expect(component.displayNamePreview()).toBe('Gato preto e branco');
   });
 
   it('streams speech recognition directly into promptText in real time', () => {
     component['onVoiceStream']('um peluche do Snoopy');
 
     expect(component.promptText()).toBe('um peluche do Snoopy');
-    expect(component.derivedFolderSlug()).toBe('snoopy-plush');
+    expect(component.displayNamePreview()).toBe('Peluche do Snoopy');
   });
 
   it('syncs manual textarea edits with speech transcript when paused', () => {
@@ -248,10 +254,9 @@ describe('ModelPromptModalComponent', () => {
   it('translates prompt to English upon submit in createModel', async () => {
     component.promptText.set('dragão bebé verde');
     const translator = component['promptTranslator'];
-    vi.spyOn(translator, 'translateAndStructure').mockResolvedValue({
-      originalText: 'dragão bebé verde',
-      englishPrompt: 'a cute baby dragon green',
-      suggestedSlug: 'baby-dragon-green',
+    vi.spyOn(translator, 'describeFigure').mockResolvedValue({
+      englishPrompt: 'a green baby dragon',
+      displayName: { pt: 'Dragão bebé verde', en: 'Green baby dragon' },
     });
 
     let createdEvent: CreatedModel | undefined;
@@ -271,7 +276,7 @@ describe('ModelPromptModalComponent', () => {
       const event = createdEvent as CreatedModel;
       expect(event).toBeDefined();
       // The emitted model prompt should be in English
-      expect(event.prompt).toBe('a cute baby dragon green');
+      expect(event.prompt).toBe('a green baby dragon');
     } finally {
       Object.assign(navigator, { clipboard: originalClipboard });
     }

@@ -54,6 +54,21 @@ ibid-icon-button {
     font-size: 0.85rem;
   }
 
+  &__household-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  &__household-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
   &__diary {
     display: flex;
     flex-direction: column;
@@ -119,6 +134,7 @@ ibid-icon-button {
     flex-direction: column;
   }
 
+  &__children,
   &__classroom {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));

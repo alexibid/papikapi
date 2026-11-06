@@ -1,7 +1,11 @@
 <section class="papikapi-backoffice">
   <header class="papikapi-backoffice__bar">
     <span class="papikapi-backoffice__avatar" role="img" [attr.aria-label]="i18n.translate('childAvatar')">
-      <papikapi-sticker name="avatar" />
+      @if (activeChild(); as kid) {
+        <papikapi-child-bust [child]="kid" />
+      } @else {
+        <papikapi-sticker name="avatar" />
+      }
     </span>
 
     <papikapi-progress-pips
@@ -30,8 +34,28 @@
   </div>
 
   <ibid-card>
-    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boClassroom') }}</h2>
-    <div class="papikapi-backoffice__classroom">
+    <div class="papikapi-backoffice__household-bar">
+      <div>
+        <h2 class="papikapi-backoffice__household-title" style="margin: 0">
+          {{ householdStore.household().name }}
+        </h2>
+        <p class="papikapi-backoffice__note" style="margin: 0.2rem 0 0">
+          {{ householdStore.compositionSummary() }}
+        </p>
+      </div>
+      <ibid-button
+        variant="outlined"
+        [intensity]="2"
+        routerLink="/onboarding"
+      >
+        {{ i18n.translate('householdConfigure') }}
+      </ibid-button>
+    </div>
+  </ibid-card>
+
+  <ibid-card>
+    <h2 class="papikapi-backoffice__heading">{{ i18n.translate('boChildren') }}</h2>
+    <div class="papikapi-backoffice__children papikapi-backoffice__classroom">
       @for (kid of classroom.children(); track kid.id) {
         <article
           class="papikapi-backoffice__kid"
@@ -41,12 +65,17 @@
           <papikapi-child-bust class="papikapi-backoffice__kid-bust" [child]="kid" />
           <span class="papikapi-backoffice__kid-name">{{ kid.name }}</span>
           <span class="papikapi-backoffice__kid-points" [ibidHandDrawn]="1">
-            {{ classroom.pointsOf(kid.id) }} {{ i18n.translate('boClassroomPoints') }}
+            {{ classroom.pointsOf(kid.id) }} {{ i18n.translate('boChildrenPoints') }}
           </span>
         </article>
       }
-      <ibid-button class="papikapi-backoffice__new-kid" variant="outlined" [intensity]="2">
-        {{ i18n.translate('boClassroomNewChild') }}
+      <ibid-button
+        class="papikapi-backoffice__new-kid"
+        variant="outlined"
+        [intensity]="2"
+        routerLink="/onboarding"
+      >
+        {{ i18n.translate('boChildrenNewChild') }}
       </ibid-button>
     </div>
   </ibid-card>

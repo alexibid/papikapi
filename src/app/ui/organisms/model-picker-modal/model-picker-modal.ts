@@ -4,7 +4,7 @@ import { HandDrawnDirective } from 'ibid-ui';
 import { I18nService } from '@ibid/services';
 import { CreationProgressService } from '@application/services/creation-progress.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
-import { formatFigureName } from '@domain/data/figure-names';
+import { CatalogueFigure, localizedName, unnamedFigure } from '@domain/models/catalogue-figure';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { FigureThumbnailComponent } from '@ui/molecules/figure-thumbnail/figure-thumbnail';
 
@@ -33,15 +33,17 @@ export class ModelPickerModalComponent {
 
   readonly currentId = input<string>('');
   readonly chosen = output<string>();
-  readonly editRequested = output<string>();
+  readonly editRequested = output<CatalogueFigure>();
   readonly dismissed = output<void>();
 
   protected readonly query = signal('');
+  private readonly catalogueFigures = signal<ReadonlyMap<string, CatalogueFigure>>(new Map());
 
   constructor() {
-    void this.creation.fetchCatalogue().then((ids) => {
-      if (ids.length > 0) {
-        this.progress.registerCustomFigures(ids);
+    void this.creation.fetchCatalogue().then((figures) => {
+      if (figures.length > 0) {
+        this.catalogueFigures.set(new Map(figures.map((figure) => [figure.id, figure])));
+        this.progress.registerCustomFigures(figures.map((figure) => figure.id));
       }
     });
   }
@@ -54,7 +56,7 @@ export class ModelPickerModalComponent {
 
     return allFigures.map((id) => ({
       id,
-      name: formatFigureName(id, lang),
+      name: this.displayNameOf(id, lang),
       isCurrent: id === current,
     })).filter((item) => {
       if (!rawQuery) return true;
@@ -62,13 +64,21 @@ export class ModelPickerModalComponent {
     });
   });
 
+  private displayNameOf(figureId: string, language: string): string {
+    return localizedName(this.figureOf(figureId).displayName, language);
+  }
+
+  private figureOf(figureId: string): CatalogueFigure {
+    return this.catalogueFigures().get(figureId) ?? unnamedFigure(figureId);
+  }
+
   protected select(figureId: string): void {
     this.chosen.emit(figureId);
   }
 
   protected edit(figureId: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.editRequested.emit(figureId);
+    this.editRequested.emit(this.figureOf(figureId));
   }
 
   protected close(): void {

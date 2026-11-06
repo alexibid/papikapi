@@ -57,8 +57,9 @@ describe('HomePage model selection and prompt flow', () => {
 
   it('hides stage tools when a model creation is active', () => {
     component['activeCreation'].set({
-      name: 'cat',
-      prompt: 'a cute cat',
+      figureId: 'k7f2p9qx',
+      displayName: { pt: 'Gato', en: 'Cat' },
+      prompt: 'a cat',
       images: [],
       phase: 'alternatives',
     });
@@ -127,35 +128,37 @@ describe('HomePage model selection and prompt flow', () => {
     expect(component['activeCreation']()).toBeNull();
 
     component['onModelCreated']({
-      name: 'cat-darth',
-      prompt: 'a cute tuxedo cat',
+      figureId: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      prompt: 'a tuxedo cat',
       images: [],
     });
     fixture.detectChanges();
 
     expect(component['activeCreation']()).not.toBeNull();
-    expect(component['activeCreation']()?.name).toBe('cat-darth');
+    expect(component['activeCreation']()?.figureId).toBe('k7f2p9qx');
 
     const loader = fixture.nativeElement.querySelector('papikapi-model-creation-loader');
     expect(loader).not.toBeNull();
 
-    component['onCreationCompleted']('cat-darth');
+    component['onCreationCompleted']('k7f2p9qx');
     fixture.detectChanges();
 
     expect(component['activeCreation']()).toBeNull();
-    expect(store.progress().currentId).toBe('cat-darth');
+    expect(store.progress().currentId).toBe('k7f2p9qx');
 
     // Test alternatives ready and picking flow
     component['onAlternativesReady']({
-      name: 'cat-darth',
-      sheetUrl: 'http://localhost:4502/api/creator/sheet?name=cat-darth',
+      figureId: 'k7f2p9qx',
+      displayName: { pt: 'Gato Darth', en: 'Cat Darth' },
+      sheetUrl: 'http://localhost:4502/api/creator/sheet?id=k7f2p9qx',
     });
     fixture.detectChanges();
     expect(component['alternativesModalData']()).not.toBeNull();
     const altModal = fixture.nativeElement.querySelector('papikapi-model-alternatives-modal');
     expect(altModal).not.toBeNull();
 
-    component['onAlternativePicked']({ name: 'cat-darth', pick: 4 });
+    component['onAlternativePicked']({ figureId: 'k7f2p9qx', displayName: { pt: 'Gato Darth', en: 'Cat Darth' }, pick: 4 });
     fixture.detectChanges();
     expect(component['alternativesModalData']()).toBeNull();
     expect(component['activeCreation']()?.phase).toBe('mesh');
@@ -165,7 +168,12 @@ describe('HomePage model selection and prompt flow', () => {
     expect(component['alternativesModalData']()).toBeNull();
 
     // Test cancelCreation
-    component['onModelCreated']({ name: 'temp', prompt: 'test', images: [] });
+    component['onModelCreated']({
+      figureId: 'm3x8q1za',
+      displayName: { pt: 'Teste', en: 'Test' },
+      prompt: 'test',
+      images: [],
+    });
     expect(component['activeCreation']()).not.toBeNull();
     component['cancelCreation']();
     expect(component['activeCreation']()).toBeNull();
@@ -175,13 +183,14 @@ describe('HomePage model selection and prompt flow', () => {
     component['openModelPicker']();
     expect(component['modelPickerOpen']()).toBe(true);
 
-    component['onModelEditRequested']('darth');
+    component['onModelEditRequested']({ id: 'darth', displayName: { pt: 'Darth', en: 'Darth' } });
     fixture.detectChanges();
 
     expect(component['modelPickerOpen']()).toBe(false);
     expect(component['alternativesModalData']()).toEqual({
-      name: 'darth',
-      sheetUrl: expect.stringContaining('/api/creator/sheet?name=darth'),
+      figureId: 'darth',
+      displayName: { pt: 'Darth', en: 'Darth' },
+      sheetUrl: expect.stringContaining('/api/creator/sheet?id=darth'),
     });
 
     const altModal = fixture.nativeElement.querySelector('papikapi-model-alternatives-modal');

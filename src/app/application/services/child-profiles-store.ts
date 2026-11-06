@@ -40,6 +40,14 @@ export class ChildProfilesStore {
     return profile;
   }
 
+  setProfiles(profiles: readonly ChildProfile[]): void {
+    if (profiles.length === 0) return;
+    this.saveProfiles(profiles);
+    if (!profiles.some((profile) => profile.id === this.activeId())) {
+      this.selectChild(profiles[0].id);
+    }
+  }
+
   updateChild(id: string, changes: ChildProfileChanges): void {
     this.assertKnown(id);
     this.saveProfiles(

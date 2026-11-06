@@ -8,7 +8,7 @@ const meta: Meta<ChildSwitcherComponent> = {
 };
 export default meta;
 
-export const Classroom: StoryObj<ChildSwitcherComponent> = {
+export const MultipleChildren: StoryObj<ChildSwitcherComponent> = {
   args: {
     children: [
       { id: 'ines', name: 'Inês', avatarBustUrl: 'scene/avatar.webp', paperColor: '#F8E4D6' },

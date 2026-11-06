@@ -40,22 +40,22 @@ describe('FigureProgressStore', () => {
   });
 
   it('switches to a waiting figure and remembers the choice across a reload', () => {
-    TestBed.inject(FigureProgressStore).choose('ankylosaurus', 5);
+    TestBed.inject(FigureProgressStore).choose('6guaaxkb', 5);
     TestBed.resetTestingModule();
 
     const { currentId, seenPieces } = TestBed.inject(FigureProgressStore).progress();
-    expect([currentId, seenPieces]).toEqual(['ankylosaurus', 5]);
+    expect([currentId, seenPieces]).toEqual(['6guaaxkb', 5]);
   });
 
   it('allows direct selection of any catalogue figure even if mounted', () => {
     const store = TestBed.inject(FigureProgressStore);
     store.mountCurrent(9);
-    store.select('t-rex');
+    store.select('504i5ivf');
     TestBed.resetTestingModule();
 
     const reloaded = TestBed.inject(FigureProgressStore).progress();
-    expect(reloaded.currentId).toBe('t-rex');
-    expect(reloaded.mountedIds).not.toContain('t-rex');
+    expect(reloaded.currentId).toBe('504i5ivf');
+    expect(reloaded.mountedIds).not.toContain('504i5ivf');
   });
 
   it('ignores invalid figure selection', () => {
@@ -73,16 +73,16 @@ describe('FigureProgressStore', () => {
 
   it('allows registering and selecting custom figures', () => {
     const store = TestBed.inject(FigureProgressStore);
-    store.registerCustomFigure('darth');
+    store.registerCustomFigure('d24q07eg');
 
-    expect(store.catalogue).toContain('darth');
-    store.select('darth');
-    expect(store.progress().currentId).toBe('darth');
+    expect(store.catalogue).toContain('d24q07eg');
+    store.select('d24q07eg');
+    expect(store.progress().currentId).toBe('d24q07eg');
 
     TestBed.resetTestingModule();
     const reloaded = TestBed.inject(FigureProgressStore);
-    expect(reloaded.catalogue).toContain('darth');
-    expect(reloaded.progress().currentId).toBe('darth');
+    expect(reloaded.catalogue).toContain('d24q07eg');
+    expect(reloaded.progress().currentId).toBe('d24q07eg');
   });
 
   it('allows selecting an uncatalogued figure when allowCustom is true', () => {
@@ -123,21 +123,21 @@ describe('FigureProgressStore', () => {
 
     // Transfer 3 points to ankylosaurus via credit
     store.reclaimPoint(DEFAULT_FIGURE_ID);
-    store.allocatePoint('ankylosaurus');
+    store.allocatePoint('6guaaxkb');
     store.reclaimPoint(DEFAULT_FIGURE_ID);
-    store.allocatePoint('ankylosaurus');
+    store.allocatePoint('6guaaxkb');
     store.reclaimPoint(DEFAULT_FIGURE_ID);
-    store.allocatePoint('ankylosaurus');
+    store.allocatePoint('6guaaxkb');
 
     expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
-    expect(store.allocation('ankylosaurus')).toBe(3);
+    expect(store.allocation('6guaaxkb')).toBe(3);
 
     // Switch to ankylosaurus
-    store.choose('ankylosaurus');
+    store.choose('6guaaxkb');
     store.markSeen(2);
 
-    expect(store.progress().currentId).toBe('ankylosaurus');
-    expect(store.allocation('ankylosaurus')).toBe(3);
+    expect(store.progress().currentId).toBe('6guaaxkb');
+    expect(store.allocation('6guaaxkb')).toBe(3);
     expect(store.progress().seenPieces).toBe(2);
     expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
 
@@ -146,7 +146,7 @@ describe('FigureProgressStore', () => {
     expect(store.progress().currentId).toBe(DEFAULT_FIGURE_ID);
     expect(store.allocation(DEFAULT_FIGURE_ID)).toBe(12);
     expect(store.progress().seenPieces).toBe(6);
-    expect(store.allocation('ankylosaurus')).toBe(3);
+    expect(store.allocation('6guaaxkb')).toBe(3);
 
     // Verify persistence across reload
     TestBed.resetTestingModule();
@@ -154,22 +154,22 @@ describe('FigureProgressStore', () => {
     expect(reloaded.progress().currentId).toBe(DEFAULT_FIGURE_ID);
     expect(reloaded.allocation(DEFAULT_FIGURE_ID)).toBe(12);
     expect(reloaded.progress().seenPieces).toBe(6);
-    expect(reloaded.allocation('ankylosaurus')).toBe(3);
+    expect(reloaded.allocation('6guaaxkb')).toBe(3);
   });
 
   it('allows removing a 0-point figure from the shelf and restores it when chosen', () => {
     const store = TestBed.inject(FigureProgressStore);
-    store.removeFigureFromShelf('fox');
-    expect(store.progress().hiddenShelfIds).toContain('fox');
+    store.removeFigureFromShelf('g92kvjtf');
+    expect(store.progress().hiddenShelfIds).toContain('g92kvjtf');
 
     // Reload preserves hiddenShelfIds
     TestBed.resetTestingModule();
     const reloaded = TestBed.inject(FigureProgressStore);
-    expect(reloaded.progress().hiddenShelfIds).toContain('fox');
+    expect(reloaded.progress().hiddenShelfIds).toContain('g92kvjtf');
 
     // Choosing fox unhides it
-    reloaded.choose('fox');
-    expect(reloaded.progress().currentId).toBe('fox');
-    expect(reloaded.progress().hiddenShelfIds).not.toContain('fox');
+    reloaded.choose('g92kvjtf');
+    expect(reloaded.progress().currentId).toBe('g92kvjtf');
+    expect(reloaded.progress().hiddenShelfIds).not.toContain('g92kvjtf');
   });
 });

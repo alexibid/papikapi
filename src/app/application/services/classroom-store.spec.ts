@@ -5,17 +5,17 @@ import { figureProgressKey } from '@application/state/points.state';
 import { ChildProfile } from '@domain/models/child-profile';
 import { ChildPointsStore } from './child-points-store';
 import { ChildProfilesStore } from './child-profiles-store';
-import { ClassroomStore } from './classroom-store';
+import { ChildrenStore } from './classroom-store';
 
-const CLASSROOM: readonly ChildProfile[] = [
+const CHILDREN: readonly ChildProfile[] = [
   { id: 'ines', name: 'Inês', avatarBustUrl: '', paperColor: '#F8E4D6' },
   { id: 'tomas', name: 'Tomás', avatarBustUrl: '', paperColor: '#D6F0E0' },
   { id: 'leonor', name: 'Leonor', avatarBustUrl: '', paperColor: '#DBEAFE' },
 ];
 
-describe('ClassroomStore', () => {
+describe('ChildrenStore', () => {
   const selectChild = vi.fn();
-  let store: ClassroomStore;
+  let store: ChildrenStore;
 
   beforeEach(() => {
     localStorage.clear();
@@ -30,15 +30,15 @@ describe('ClassroomStore', () => {
         { provide: ChildPointsStore, useValue: { rawPoints: signal(42) } },
         {
           provide: ChildProfilesStore,
-          useValue: { profiles: signal(CLASSROOM), activeChildId: signal('ines'), selectChild },
+          useValue: { profiles: signal(CHILDREN), activeChildId: signal('ines'), selectChild },
         },
       ],
     });
-    store = TestBed.inject(ClassroomStore);
+    store = TestBed.inject(ChildrenStore);
   });
 
   it('should expose the child profiles and the active child', () => {
-    expect(store.children()).toEqual(CLASSROOM);
+    expect(store.children()).toEqual(CHILDREN);
     expect(store.activeChildId()).toBe('ines');
   });
 

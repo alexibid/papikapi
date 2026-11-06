@@ -34,7 +34,22 @@
             "output": "/figures"
           },
           {
-            "glob": "t-rex/sheets.pdf",
+            "glob": "*/sheets.pdf",
+            "input": "apps/papikapi-api/public/models",
+            "output": "/figures"
+          },
+          {
+            "glob": "*/preview-*.png",
+            "input": "apps/papikapi-api/public/models",
+            "output": "/figures"
+          },
+          {
+            "glob": "*/art.jpeg",
+            "input": "apps/papikapi-api/public/models",
+            "output": "/figures"
+          },
+          {
+            "glob": "index.json",
             "input": "apps/papikapi-api/public/models",
             "output": "/figures"
           }

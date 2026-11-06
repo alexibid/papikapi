@@ -4,10 +4,15 @@ import { FigureAssetsService } from './figure-assets.service';
 
 const BASE = 'https://assets.test/figures';
 
+const PUBLISHED_FIGURES = [
+  { id: 'fox', displayName: { pt: 'Raposa', en: 'Fox' } },
+  { id: 'owl', displayName: { pt: 'Coruja', en: 'Owl' } },
+];
+
 function indexWith(revision: string): string {
   return JSON.stringify([
-    { id: 'fox', files: { 'model.glb': { rev: revision } }, pdf: { id: 'pdf-1' } },
-    { id: 'owl', files: {} },
+    { id: 'fox', displayName: { pt: 'Raposa', en: 'Fox' }, files: { 'model.glb': { rev: revision } }, pdf: { id: 'pdf-1' } },
+    { id: 'owl', displayName: { pt: 'Coruja', en: 'Owl' }, files: {} },
   ]);
 }
 
@@ -50,10 +55,10 @@ describe('FigureAssetsService', () => {
     vi.unstubAllGlobals();
   });
 
-  it('lists the published figures from the index of the assets host', async () => {
+  it('lists the published figures with their display names from the index of the assets host', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(hostStub(() => revision));
 
-    await expect(service().catalogueIds()).resolves.toEqual(['fox', 'owl']);
+    await expect(service().catalogueFigures()).resolves.toEqual(PUBLISHED_FIGURES);
   });
 
   it('downloads an asset from its own url with the revision as cache buster', async () => {
@@ -99,7 +104,7 @@ describe('FigureAssetsService', () => {
 
     fetchSpy.mockRejectedValue(new TypeError('offline'));
 
-    await expect(offline.catalogueIds()).resolves.toEqual(['fox', 'owl']);
+    await expect(offline.catalogueFigures()).resolves.toEqual(PUBLISHED_FIGURES);
     await expect(offline.assetUrl('fox', 'model.glb')).resolves.toBe('blob:figure');
   });
 
@@ -108,7 +113,7 @@ describe('FigureAssetsService', () => {
       new Response('<html></html>', { status: 200, headers: { 'content-type': 'text/html' } })
     );
 
-    await expect(service().catalogueIds()).rejects.toBeDefined();
+    await expect(service().catalogueFigures()).rejects.toBeDefined();
   });
 
   it('rejects a file or a figure that was never published', async () => {

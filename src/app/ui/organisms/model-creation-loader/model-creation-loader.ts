@@ -20,6 +20,9 @@ import {
   MODEL_SYSTEM_PROMPT,
   composeFullAiPrompt,
 } from '@domain/data/model-generation-prompts';
+import { FigureDisplayNames } from '@ibid/utils';
+import { localizedName } from '@domain/models/catalogue-figure';
+import { AlternativesSheet } from '@domain/models/figure-creation';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 
 export type LoaderPromptTab = 'final' | 'user' | 'system' | 'negative';
@@ -27,13 +30,16 @@ export type LoaderPromptTab = 'final' | 'user' | 'system' | 'negative';
 const STAGE_KEYS_BY_STEP: Readonly<Record<string, string>> = {
   's1-step-1': 'creationStageAlternatives',
   's1-step-2': 'creationStagePick',
+  's1-step-3': 'creationStageUpscale',
   's2-step-1': 'creationStageCutout',
   's2-step-2': 'creationStageMesh',
-  's2-step-3': 'creationStageMesh',
   'stage-3': 'creationStagePlinth',
   's3-step-1': 'creationStagePlinth',
   's3-step-2': 'creationStagePlinth',
   's3-step-3': 'creationStagePlinth',
+  's3-step-4': 'creationStagePlinth',
+  's3-step-5': 'creationStagePlinth',
+  's3-step-6': 'creationStagePlinth',
   'stage-4': 'creationStageSheets',
   's4-step-1': 'creationStageSheets',
   's4-step-2': 'creationStageSheets',
@@ -46,11 +52,13 @@ const STEP_NUMBERS_BY_ID: Readonly<Record<string, number>> = {
   's1-step-2': 2,
   's2-step-1': 3,
   's2-step-2': 3,
-  's2-step-3': 3,
   'stage-3': 4,
   's3-step-1': 4,
   's3-step-2': 4,
   's3-step-3': 4,
+  's3-step-4': 4,
+  's3-step-5': 4,
+  's3-step-6': 4,
   'stage-4': 4,
   's4-step-1': 4,
   's4-step-2': 4,
@@ -72,14 +80,15 @@ export class ModelCreationLoaderComponent implements OnInit {
   private readonly creationService = inject(CreationProgressService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly modelName = input.required<string>();
+  readonly figureId = input.required<string>();
+  readonly displayName = input.required<FigureDisplayNames>();
   readonly prompt = input<string>('');
   readonly images = input<readonly string[]>([]);
   readonly startedAt = input<number>();
   readonly phase = input<'alternatives' | 'mesh'>('alternatives');
   readonly pick = input<number | undefined>(undefined);
 
-  readonly alternativesReady = output<{ readonly name: string; readonly sheetUrl: string }>();
+  readonly alternativesReady = output<AlternativesSheet>();
   readonly completed = output<string>();
   readonly dismissed = output<void>();
 
@@ -116,6 +125,8 @@ export class ModelCreationLoaderComponent implements OnInit {
   protected readonly isPromptModalOpen = signal(false);
   protected readonly activePromptTab = signal<LoaderPromptTab>('final');
   protected readonly promptCopied = signal(false);
+
+  protected readonly displayLabel = computed(() => localizedName(this.displayName(), this.i18n.currentLang()));
 
   protected readonly userPrompt = computed(() => this.prompt().trim() || '(sem prompt)');
   protected readonly systemPrompt = computed(() => MODEL_SYSTEM_PROMPT);
@@ -166,7 +177,7 @@ export class ModelCreationLoaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const name = this.modelName();
+    const figureId = this.figureId();
     const promptText = this.prompt();
     const imagesList = this.images();
     const currentPhase = this.phase();
@@ -176,7 +187,7 @@ export class ModelCreationLoaderComponent implements OnInit {
       this.currentStageKey.set('creationStageMesh');
       void this.creationService
         .triggerPick({
-          name,
+          id: figureId,
           pick: this.pick() ?? 3,
         })
         .then((ok) => {
@@ -190,7 +201,8 @@ export class ModelCreationLoaderComponent implements OnInit {
       if (promptText) {
         void this.creationService
           .triggerGeneration({
-            name,
+            id: figureId,
+            displayName: this.displayName(),
             prompt: promptText,
             images: imagesList,
           })
@@ -202,7 +214,7 @@ export class ModelCreationLoaderComponent implements OnInit {
       }
     }
 
-    const unsubscribe = this.creationService.connect(name, (progress) =>
+    const unsubscribe = this.creationService.connect(figureId, (progress) =>
       this.handleProgressUpdate(progress)
     );
     this.destroyRef.onDestroy(() => {
@@ -308,11 +320,12 @@ export class ModelCreationLoaderComponent implements OnInit {
     this.currentStageKey.set('creationStagePick');
     this.clearTimers();
 
-    const name = this.modelName();
+    const figureId = this.figureId();
     this.dismissTimerId = setTimeout(() => {
       this.alternativesReady.emit({
-        name,
-        sheetUrl: this.creationService.sheetUrl(name),
+        figureId,
+        displayName: this.displayName(),
+        sheetUrl: this.creationService.sheetUrl(figureId),
       });
     }, 600);
   }
@@ -326,7 +339,7 @@ export class ModelCreationLoaderComponent implements OnInit {
     this.clearTimers();
 
     this.dismissTimerId = setTimeout(() => {
-      this.completed.emit(this.modelName());
+      this.completed.emit(this.figureId());
     }, 2200);
   }
 

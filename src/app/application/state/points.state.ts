@@ -1,5 +1,5 @@
 import { DEFAULT_CHILD_ID } from '@application/config/child';
-import { DEFAULT_FIGURE_ID } from '@domain/data/shipped-figures';
+import { DEFAULT_FIGURE_ID, canonicalFigureId } from '@domain/data/shipped-figures';
 import { FigureProgress } from '@domain/models/figure-progress';
 import { PLINTH_PIECES } from '@domain/models/rhythm';
 
@@ -47,7 +47,7 @@ export function restoreFromStorage(childId: string = DEFAULT_CHILD_ID): Partial<
     const rawCustom = localStorage.getItem(CUSTOM_FIGURES_KEY);
     const parsedCustom = rawCustom ? JSON.parse(rawCustom) : [];
     const customFigures = Array.isArray(parsedCustom)
-      ? parsedCustom.filter((x): x is string => typeof x === 'string')
+      ? parsedCustom.filter((x): x is string => typeof x === 'string').map(canonicalFigureId)
       : [];
 
     if (!rawStored) {
@@ -57,15 +57,33 @@ export function restoreFromStorage(childId: string = DEFAULT_CHILD_ID): Partial<
     if (!isProgress(stored)) {
       return { customFigures };
     }
-    const currentId = stored.currentId;
-    const allocations = { ...(stored.allocations ?? {}) };
+    const currentId = canonicalFigureId(stored.currentId);
+    const rawAllocations = stored.allocations ?? {};
+    const allocations: Record<string, number> = {};
+    for (const [key, value] of Object.entries(rawAllocations)) {
+      allocations[canonicalFigureId(key)] = Number(value) || 0;
+    }
     if (!(currentId in allocations)) {
       allocations[currentId] = Math.max(0, stored.baselinePoints);
     }
-    const seenByFig = { ...(stored.seenPiecesByFigure ?? {}) };
+    const rawSeen = stored.seenPiecesByFigure ?? {};
+    const seenByFig: Record<string, number> = {};
+    for (const [key, value] of Object.entries(rawSeen)) {
+      seenByFig[canonicalFigureId(key)] = Number(value) || 0;
+    }
     if (!(currentId in seenByFig)) {
       seenByFig[currentId] = stored.seenPieces;
     }
+
+    const mountedFigureIds = Array.isArray(stored.mountedIds)
+      ? stored.mountedIds.map(canonicalFigureId)
+      : [];
+    const shelfFigureIds = Array.isArray(stored.shelfIds)
+      ? stored.shelfIds.map(canonicalFigureId)
+      : [currentId];
+    const hiddenShelfFigureIds = Array.isArray(stored.hiddenShelfIds)
+      ? stored.hiddenShelfIds.map(canonicalFigureId)
+      : [];
 
     return {
       rawPoints: stored.baselinePoints,
@@ -73,9 +91,9 @@ export function restoreFromStorage(childId: string = DEFAULT_CHILD_ID): Partial<
       consolidatingProgress: stored.consolidatingProgress ?? 0,
       unassignedCredits: stored.unassignedCredit ?? 0,
       currentFigureId: currentId,
-      mountedFigureIds: stored.mountedIds,
-      shelfFigureIds: Array.isArray(stored.shelfIds) ? stored.shelfIds : [currentId],
-      hiddenShelfFigureIds: Array.isArray(stored.hiddenShelfIds) ? stored.hiddenShelfIds : [],
+      mountedFigureIds,
+      shelfFigureIds,
+      hiddenShelfFigureIds,
       allocations,
       seenPiecesByFigure: seenByFig,
       customFigures,

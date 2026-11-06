@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { FIGURE_ASSETS_BASE_URL } from '@application/config/figure-assets.config';
 import { isStaticAsset } from '@application/config/figures';
+import { CatalogueFigure, catalogueFiguresOf } from '@domain/models/catalogue-figure';
 
 const CACHE_NAME = 'papikapi-figures-v3';
 const CACHE_ORIGIN = 'https://figures.invalid';
@@ -14,7 +15,10 @@ interface FigureEntry {
   readonly pdfId: string | null;
 }
 
-type Catalogue = ReadonlyMap<string, FigureEntry>;
+interface Catalogue {
+  readonly entries: ReadonlyMap<string, FigureEntry>;
+  readonly figures: readonly CatalogueFigure[];
+}
 
 interface CachedBlob {
   readonly blob: Blob;
@@ -28,8 +32,8 @@ export class FigureAssetsService {
   private readonly objectUrls = new Map<string, string>();
   private catalogue: Promise<Catalogue> | null = null;
 
-  async catalogueIds(): Promise<readonly string[]> {
-    return [...(await this.loadCatalogue()).keys()];
+  async catalogueFigures(): Promise<readonly CatalogueFigure[]> {
+    return (await this.loadCatalogue()).figures;
   }
 
   async assetUrl(figureId: string, file: string): Promise<string> {
@@ -50,7 +54,7 @@ export class FigureAssetsService {
   }
 
   private async entryOf(figureId: string): Promise<FigureEntry> {
-    const entry = (await this.loadCatalogue()).get(figureId);
+    const entry = (await this.loadCatalogue()).entries.get(figureId);
     if (!entry) throw new Error(`Figure not published: ${figureId}`);
     return entry;
   }
@@ -110,12 +114,15 @@ export class FigureAssetsService {
 
 function catalogueOf(body: unknown): Catalogue {
   const entries = Array.isArray(body) ? body : [];
-  return new Map(
-    entries.flatMap((entry: unknown) => {
-      if (!isRecord(entry) || typeof entry['id'] !== 'string') return [];
-      return [[entry['id'], { revisions: revisionsOf(entry['files']), pdfId: pdfIdOf(entry['pdf']) }] as const];
-    })
-  );
+  return {
+    entries: new Map(
+      entries.flatMap((entry: unknown) => {
+        if (!isRecord(entry) || typeof entry['id'] !== 'string') return [];
+        return [[entry['id'], { revisions: revisionsOf(entry['files']), pdfId: pdfIdOf(entry['pdf']) }] as const];
+      })
+    ),
+    figures: catalogueFiguresOf(body),
+  };
 }
 
 function revisionsOf(files: unknown): Readonly<Record<string, string>> {

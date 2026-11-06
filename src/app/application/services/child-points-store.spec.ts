@@ -54,25 +54,25 @@ describe('ChildPointsStore (NgRx Store + Signals)', () => {
     const store = TestBed.inject(ChildPointsStore);
 
     // Select pug and give it 30 points
-    store.chooseFigure('pug');
-    expect(store.currentFigureId()).toBe('pug');
+    store.chooseFigure('81avhktg');
+    expect(store.currentFigureId()).toBe('81avhktg');
 
     store.syncRawPoints(30);
-    expect(store.allocationFor('pug')).toBe(3);
+    expect(store.allocationFor('81avhktg')).toBe(3);
 
     // Switch to brachiosaurus (has 0 points)
-    store.chooseFigure('brachiosaurus');
-    expect(store.currentFigureId()).toBe('brachiosaurus');
-    expect(store.allocationFor('brachiosaurus')).toBe(0);
+    store.chooseFigure('jrho0d5f');
+    expect(store.currentFigureId()).toBe('jrho0d5f');
+    expect(store.allocationFor('jrho0d5f')).toBe(0);
     expect(store.isCurrentMounted()).toBe(false);
 
     // Pug should still retain its 3 points
-    expect(store.allocationFor('pug')).toBe(3);
+    expect(store.allocationFor('81avhktg')).toBe(3);
 
     // Switching back to pug restores its active progress
-    store.chooseFigure('pug');
-    expect(store.currentFigureId()).toBe('pug');
-    expect(store.allocationFor('pug')).toBe(3);
+    store.chooseFigure('81avhktg');
+    expect(store.currentFigureId()).toBe('81avhktg');
+    expect(store.allocationFor('81avhktg')).toBe(3);
   });
 
   it('mounts current figure and transitions cleanly', () => {

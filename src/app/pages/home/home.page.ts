@@ -36,6 +36,7 @@ import { FigureAssetsService } from '@application/services/figure-assets.service
 import { DiaryStore } from '@application/services/diary-store';
 import { ClassroomStore } from '@application/services/classroom-store';
 import { CreationProgressService } from '@application/services/creation-progress.service';
+import { DynamicFaviconService } from '@application/services/dynamic-favicon.service';
 import { FigureProgressStore } from '@application/services/figure-progress-store';
 import { RhythmStore } from '@application/services/rhythm-store';
 import { RoutineProgressStore } from '@application/services/routine-progress-store';
@@ -44,6 +45,7 @@ import { ModelCreationLoaderComponent } from '@ui/organisms/model-creation-loade
 import { ModelPickerModalComponent } from '@ui/organisms/model-picker-modal/model-picker-modal';
 import { ModelPromptModalComponent } from '@ui/organisms/model-prompt-modal/model-prompt-modal';
 import { ParentGateModalComponent } from '@ui/organisms/parent-gate-modal/parent-gate-modal';
+import { ChildBustComponent } from '@ui/atoms/child-bust/child-bust';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { StickerComponent } from '@ui/atoms/sticker/sticker';
 import { ChildSwitcherComponent } from '@ui/molecules/child-switcher/child-switcher';
@@ -52,6 +54,9 @@ import { TaskCardComponent } from '@ui/molecules/task-card/task-card';
 import { TrophyComponent } from '@ui/molecules/trophy/trophy';
 import { AssemblyStageComponent } from '@ui/organisms/assembly-stage/assembly-stage';
 import { SceneryComponent } from '@ui/organisms/scenery/scenery';
+import { FigureDisplayNames } from '@ibid/utils';
+import { CatalogueFigure } from '@domain/models/catalogue-figure';
+import { AlternativePick, AlternativesSheet, FigureCreationRequest } from '@domain/models/figure-creation';
 
 const CELEBRATION_MS = 2800;
 
@@ -60,6 +65,7 @@ const CELEBRATION_MS = 2800;
   standalone: true,
   imports: [
     AssemblyStageComponent,
+    ChildBustComponent,
     ChildSwitcherComponent,
     FocusStateDirective,
     HandDrawnDirective,
@@ -85,6 +91,11 @@ export class HomePage implements DoCheck {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(DiaryStore);
   protected readonly classroom = inject(ClassroomStore);
+  protected readonly activeChild = computed(
+    () =>
+      this.classroom.children().find((c) => c.id === this.classroom.activeChildId()) ??
+      this.classroom.children()[0]
+  );
   private readonly sensory = inject(PapikapiSensoryFeedbackAdapter);
   private readonly rhythm = inject(RhythmStore);
   private readonly progress = inject(FigureProgressStore);
@@ -101,17 +112,15 @@ export class HomePage implements DoCheck {
   protected readonly gateOpen = signal(false);
   protected readonly promptOpen = signal(false);
   protected readonly activeCreation = signal<{
-    readonly name: string;
+    readonly figureId: string;
+    readonly displayName: FigureDisplayNames;
     readonly prompt: string;
     readonly images: readonly string[];
     readonly phase?: 'alternatives' | 'mesh';
     readonly pick?: number;
   } | null>(null);
 
-  protected readonly alternativesModalData = signal<{
-    readonly name: string;
-    readonly sheetUrl: string;
-  } | null>(null);
+  protected readonly alternativesModalData = signal<AlternativesSheet | null>(null);
 
   protected readonly currentModelId = computed(() => this.progress.progress().currentId);
 
@@ -255,10 +264,11 @@ export class HomePage implements DoCheck {
   );
 
   constructor() {
+    inject(DynamicFaviconService);
     void this.store.load();
-    void this.creation.fetchCatalogue().then((ids) => {
-      if (ids.length > 0) {
-        this.progress.registerCustomFigures(ids);
+    void this.creation.fetchCatalogue().then((figures) => {
+      if (figures.length > 0) {
+        this.progress.registerCustomFigures(figures.map((figure) => figure.id));
       }
     });
     this.destroyRef.onDestroy(() => {
@@ -468,11 +478,12 @@ export class HomePage implements DoCheck {
     this.modelPickerOpen.set(false);
   }
 
-  protected onModelEditRequested(modelId: string): void {
+  protected onModelEditRequested(figure: CatalogueFigure): void {
     this.modelPickerOpen.set(false);
     this.alternativesModalData.set({
-      name: modelId,
-      sheetUrl: this.creation.sheetUrl(modelId),
+      figureId: figure.id,
+      displayName: figure.displayName,
+      sheetUrl: this.creation.sheetUrl(figure.id),
     });
   }
 
@@ -542,29 +553,27 @@ export class HomePage implements DoCheck {
     this.promptOpen.set(false);
   }
 
-  protected onModelCreated(creation: {
-    readonly name: string;
-    readonly prompt: string;
-    readonly images: readonly string[];
-  }): void {
+  protected onModelCreated(creation: FigureCreationRequest): void {
     this.closePrompt();
     this.activeCreation.set({
-      name: creation.name,
+      figureId: creation.figureId,
+      displayName: creation.displayName,
       prompt: creation.prompt,
       images: creation.images,
       phase: 'alternatives',
     });
   }
 
-  protected onAlternativesReady(data: { readonly name: string; readonly sheetUrl: string }): void {
+  protected onAlternativesReady(data: AlternativesSheet): void {
     this.activeCreation.set(null);
     this.alternativesModalData.set(data);
   }
 
-  protected onAlternativePicked(event: { readonly name: string; readonly pick: number }): void {
+  protected onAlternativePicked(event: AlternativePick): void {
     this.alternativesModalData.set(null);
     this.activeCreation.set({
-      name: event.name,
+      figureId: event.figureId,
+      displayName: event.displayName,
       prompt: '',
       images: [],
       phase: 'mesh',
@@ -576,11 +585,11 @@ export class HomePage implements DoCheck {
     this.alternativesModalData.set(null);
   }
 
-  protected onCreationCompleted(modelName: string): void {
+  protected onCreationCompleted(figureId: string): void {
     this.activeCreation.set(null);
     this.modelVersion.set(Date.now());
     this.pieceTotal.set(0);
-    this.progress.select(modelName, { allowCustom: true, forceReload: true });
+    this.progress.select(figureId, { allowCustom: true, forceReload: true });
   }
 
   protected cancelCreation(): void {

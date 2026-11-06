@@ -11,7 +11,7 @@ export const creationProgressStub: CreationProgressApi = {
   triggerPick: () => Promise.resolve(true),
   checkInfo: () => Promise.resolve(null),
   fetchCatalogue: () => Promise.resolve([]),
-  sheetUrl: (modelName) =>
-    `http://localhost:4502/api/creator/sheet?name=${encodeURIComponent(modelName)}`,
+  sheetUrl: (figureId) =>
+    `http://localhost:4502/api/creator/sheet?id=${encodeURIComponent(figureId)}`,
   getLastError: () => null,
 };

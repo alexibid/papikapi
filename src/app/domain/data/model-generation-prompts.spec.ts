@@ -7,7 +7,6 @@ import {
   buildStudioPrompt,
   composeFullAiPrompt,
   composeStudioPrompt,
-  normalizeCuteSubject,
   slugify,
 } from './model-generation-prompts';
 
@@ -25,19 +24,11 @@ describe('model-generation-prompts', () => {
     });
   });
 
-  describe('normalizeCuteSubject', () => {
-    it('normalizes "cute cute" and prevents duplicate prefixes', () => {
-      expect(normalizeCuteSubject('cute white dog')).toBe('a cute white dog');
-      expect(normalizeCuteSubject('a cute cute white dog')).toBe('a cute white dog');
-      expect(normalizeCuteSubject('white dog')).toBe('a cute white dog');
-      expect(normalizeCuteSubject('a cute white dog')).toBe('a cute white dog');
-    });
-  });
-
   describe('composeStudioPrompt', () => {
     it('creates studio prompt without photos with zero floor shadow', () => {
       const prompt = composeStudioPrompt('o meu gato Tobias', 0);
-      expect(prompt).toContain('a cute o meu gato Tobias');
+      expect(prompt.startsWith('o meu gato Tobias,')).toBe(true);
+      expect(prompt).not.toMatch(/\bcute o meu\b/);
       expect(prompt).toContain('standing naturally on all four paws');
       expect(prompt).toContain('zero floor shadow');
       expect(prompt).toContain('pure low-poly papercraft cardstock facets');
@@ -56,7 +47,7 @@ describe('model-generation-prompts', () => {
 
     it('falls back to default subject when prompt is empty or blank', () => {
       const prompt = composeStudioPrompt('   ', 0);
-      expect(prompt).toContain('a cute o meu gato');
+      expect(prompt.startsWith('o meu gato,')).toBe(true);
       expect(prompt).toContain('standing naturally on all four paws');
     });
   });

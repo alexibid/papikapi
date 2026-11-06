@@ -28,12 +28,12 @@ describe('ModelPickerModalComponent', () => {
   });
 
   it('filters models by search query', () => {
-    component['query'].set('fox');
+    component['query'].set('g92kvjtf');
     fixture.detectChanges();
 
     const items = component['items']();
     expect(items.length).toBeGreaterThanOrEqual(1);
-    expect(items.some((item) => item.id === 'fox')).toBe(true);
+    expect(items.some((item) => item.id === 'g92kvjtf')).toBe(true);
   });
 
   it('emits chosen when a model is selected', () => {
@@ -42,8 +42,8 @@ describe('ModelPickerModalComponent', () => {
       chosenId = id;
     });
 
-    component['select']('cheetah');
-    expect(chosenId).toBe('cheetah');
+    component['select']('sx8qdo3v');
+    expect(chosenId).toBe('sx8qdo3v');
   });
 
   it('emits dismissed when closed', () => {
@@ -58,22 +58,22 @@ describe('ModelPickerModalComponent', () => {
 
   it('renders custom models when registered in store', () => {
     const store = TestBed.inject(FigureProgressStore);
-    store.registerCustomFigure('darth');
+    store.registerCustomFigure('d24q07eg');
     fixture.detectChanges();
 
     const items = component['items']();
-    expect(items.some((item) => item.id === 'darth')).toBe(true);
+    expect(items.some((item) => item.id === 'd24q07eg')).toBe(true);
   });
 
-  it('emits editRequested when edit is triggered', () => {
-    let editedId = '';
-    component.editRequested.subscribe((id) => {
-      editedId = id;
+  it('emits the figure with its display name when edit is triggered', () => {
+    let edited = { id: '', displayName: { pt: '', en: '' } };
+    component.editRequested.subscribe((figure) => {
+      edited = figure;
     });
 
     const mockEvent = { stopPropagation: vi.fn() } as unknown as MouseEvent;
-    component['edit']('darth', mockEvent);
+    component['edit']('d24q07eg', mockEvent);
     expect(mockEvent.stopPropagation).toHaveBeenCalled();
-    expect(editedId).toBe('darth');
+    expect(edited).toEqual({ id: 'd24q07eg', displayName: { pt: 'd24q07eg', en: 'd24q07eg' } });
   });
 });

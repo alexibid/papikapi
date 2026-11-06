@@ -66,20 +66,20 @@ describe('NgRx Points State & RxDB Integration', () => {
   });
 
   it('preserves individual figure allocations across figure selection', () => {
-    facade.chooseFigure('pug');
-    expect(facade.currentFigureId()).toBe('pug');
+    facade.chooseFigure('81avhktg');
+    expect(facade.currentFigureId()).toBe('81avhktg');
 
     facade.syncRawPoints(30);
-    expect(facade.allocationFor('pug')).toBe(3);
+    expect(facade.allocationFor('81avhktg')).toBe(3);
 
-    facade.chooseFigure('brachiosaurus');
-    expect(facade.currentFigureId()).toBe('brachiosaurus');
-    expect(facade.allocationFor('brachiosaurus')).toBe(0);
-    expect(facade.allocationFor('pug')).toBe(3);
+    facade.chooseFigure('jrho0d5f');
+    expect(facade.currentFigureId()).toBe('jrho0d5f');
+    expect(facade.allocationFor('jrho0d5f')).toBe(0);
+    expect(facade.allocationFor('81avhktg')).toBe(3);
 
-    facade.chooseFigure('pug');
-    expect(facade.currentFigureId()).toBe('pug');
-    expect(facade.allocationFor('pug')).toBe(3);
+    facade.chooseFigure('81avhktg');
+    expect(facade.currentFigureId()).toBe('81avhktg');
+    expect(facade.allocationFor('81avhktg')).toBe(3);
   });
 
   it('updates state reactively when RxDB tree state emits changes', async () => {
@@ -103,12 +103,12 @@ describe('NgRx Points State & RxDB Integration', () => {
   });
 
   it('adds removed points from an uncompleted figure to unassigned credits and ignores completed figures', () => {
-    facade.addFigurePoints('cheetah', 3);
-    expect(facade.allocationFor('cheetah')).toBe(3);
+    facade.addFigurePoints('sx8qdo3v', 3);
+    expect(facade.allocationFor('sx8qdo3v')).toBe(3);
     const initialCredits = facade.unassignedCredits();
 
-    facade.removeFigurePoints('cheetah', 2);
-    expect(facade.allocationFor('cheetah')).toBe(1);
+    facade.removeFigurePoints('sx8qdo3v', 2);
+    expect(facade.allocationFor('sx8qdo3v')).toBe(1);
     expect(facade.unassignedCredits()).toBe(initialCredits + 2);
 
     // Complete/mount the figure
@@ -140,49 +140,74 @@ describe('NgRx Points State & RxDB Integration', () => {
     });
 
     it('persists the default child under the legacy key', () => {
-      facade.chooseFigure('pug');
+      facade.chooseFigure('81avhktg');
 
-      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"pug"');
+      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"81avhktg"');
     });
 
     it('loads a fresh progression for a newly selected child', () => {
-      facade.chooseFigure('pug');
-      facade.addFigurePoints('pug', 3);
+      facade.chooseFigure('81avhktg');
+      facade.addFigurePoints('81avhktg', 3);
       const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
 
       switchTo(maria.id);
 
       expect(facade.childId()).toBe(maria.id);
       expect(facade.currentFigureId()).toBe(DEFAULT_FIGURE_ID);
-      expect(facade.allocationFor('pug')).toBe(0);
+      expect(facade.allocationFor('81avhktg')).toBe(0);
     });
 
     it('restores each child progression when switching back and forth', () => {
-      facade.chooseFigure('pug');
+      facade.chooseFigure('81avhktg');
       const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
 
       switchTo(maria.id);
-      facade.chooseFigure('brachiosaurus');
-      expect(localStorage.getItem(figureProgressKey(maria.id))).toContain('"currentId":"brachiosaurus"');
+      facade.chooseFigure('jrho0d5f');
+      expect(localStorage.getItem(figureProgressKey(maria.id))).toContain('"currentId":"jrho0d5f"');
 
       switchTo(DEFAULT_CHILD_ID);
-      expect(facade.currentFigureId()).toBe('pug');
+      expect(facade.currentFigureId()).toBe('81avhktg');
 
       switchTo(maria.id);
-      expect(facade.currentFigureId()).toBe('brachiosaurus');
+      expect(facade.currentFigureId()).toBe('jrho0d5f');
     });
 
     it('resets only the active child progression', () => {
-      facade.chooseFigure('pug');
+      facade.chooseFigure('81avhktg');
       const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
       switchTo(maria.id);
-      facade.chooseFigure('brachiosaurus');
+      facade.chooseFigure('jrho0d5f');
 
       facade.reset();
 
       expect(localStorage.getItem(figureProgressKey(maria.id))).toBeNull();
-      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"pug"');
+      expect(localStorage.getItem(STORAGE_KEY)).toContain('"currentId":"81avhktg"');
       expect(facade.childId()).toBe(maria.id);
+    });
+
+    it('migrates legacy figure slugs in localStorage to canonical hash IDs', () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          currentId: 'plane',
+          mountedIds: ['t-rex'],
+          shelfIds: ['plane', 'bear', 'cow'],
+          baselinePoints: 10,
+          seenPieces: 25,
+          allocations: { plane: 10, bear: 5 },
+          seenPiecesByFigure: { plane: 25 },
+        })
+      );
+
+      const maria = profiles.registerChild({ name: 'Maria', avatarBustUrl: '', paperColor: '#7FB3D5' });
+      switchTo(maria.id);
+      switchTo(DEFAULT_CHILD_ID);
+
+      expect(facade.currentFigureId()).toBe('ayv4jctc');
+      expect(facade.mountedFigureIds()).toEqual(['504i5ivf']);
+      expect(facade.shelfFigureIds()).toEqual(['ayv4jctc', 'rb83aitm', '0rxptcst']);
+      expect(facade.allocationFor('ayv4jctc')).toBe(10);
+      expect(facade.allocationFor('rb83aitm')).toBe(5);
     });
   });
 });

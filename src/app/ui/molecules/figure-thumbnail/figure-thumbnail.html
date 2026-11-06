@@ -1,4 +1,12 @@
-@if (facets().length > 0) {
+@if (preferImage() && imageSrc()) {
+  <img
+    class="m-figure-thumbnail__img"
+    [src]="imageSrc()"
+    alt=""
+    loading="lazy"
+    (error)="onImageError()"
+  />
+} @else if (facets().length > 0) {
   <svg class="m-figure-thumbnail" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
     <defs>
       <clipPath [attr.id]="clipId">

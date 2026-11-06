@@ -8,7 +8,11 @@
       [attr.aria-label]="i18n.translate('childAvatar')"
       (click)="childSwitcher.open()"
     >
-      <papikapi-sticker name="avatar" />
+      @if (activeChild(); as kid) {
+        <papikapi-child-bust [child]="kid" />
+      } @else {
+        <papikapi-sticker name="avatar" />
+      }
     </button>
 
     <papikapi-child-switcher
@@ -120,7 +124,8 @@
 
     @if (activeCreation(); as creation) {
       <papikapi-model-creation-loader
-        [modelName]="creation.name"
+        [figureId]="creation.figureId"
+        [displayName]="creation.displayName"
         [prompt]="creation.prompt"
         [images]="creation.images"
         [phase]="creation.phase ?? 'alternatives'"
@@ -236,7 +241,8 @@
 
   @if (alternativesModalData(); as altData) {
     <papikapi-model-alternatives-modal
-      [modelName]="altData.name"
+      [figureId]="altData.figureId"
+      [displayName]="altData.displayName"
       [sheetUrl]="altData.sheetUrl"
       (picked)="onAlternativePicked($event)"
       (dismissed)="closeAlternativesModal()"

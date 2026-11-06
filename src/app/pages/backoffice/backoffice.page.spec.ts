@@ -37,8 +37,11 @@ describe('BackofficePage', () => {
     expect(backBtn).not.toBeNull();
   });
 
-  it('should list every classroom child with bust, name and points, plus a new child button', () => {
+  it('should list every child with bust, name and points, plus a new child button', () => {
     const el = fixture.nativeElement as HTMLElement;
+    const heading = el.querySelector('.papikapi-backoffice__heading');
+    expect(heading?.textContent).toContain('Crianças');
+
     const kids = Array.from(el.querySelectorAll('.papikapi-backoffice__kid'));
 
     expect(kids.length).toBeGreaterThan(0);
