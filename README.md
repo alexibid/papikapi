@@ -1,5 +1,33 @@
 # 🦖 Papikapi
 
+> **Turning screen time into family craft: introducing digital devices as purpose-driven tools, not toys.**
+
+---
+
+## 🎯 Mission Statement
+
+In modern family life, children watching their parents navigate smartphones is an inevitable daily reality. Kids naturally imitate what they see. Most digital products exploit this curiosity by pulling children into passive consumption, addictive games, and endless screen loops.
+
+**Papikapi exists to fundamentally flip that script.**
+
+Our mission is to provide children with **their very first, healthy, and controlled introduction to personal technology** — not as an entertainment console or a dopamine pacifier, but as a **functional instrument of organization, self-regulation, and accomplishment**.
+
+### 🌟 Our Core Tenets
+
+1. **The Device is a Tool, Not a Toy:**  
+   Papikapi teaches children that smartphones are purposeful tools to track goals, register daily growth, and organize life — not a bottomless toy box. Interaction is intentional, brief, and structured.
+
+2. **Strictly Controlled, Anti-Screen Time Architecture:**  
+   We deliberately design for **minimal time on glass**. The child doesn't own the device, browse feeds, or get trapped in sensory overload. Seconds of reflection replace hours of scrolling.
+
+3. **Bridging the Digital into the Tangible Physical World:**  
+   The screen is never the final destination; it is merely the launchpad. Every point and milestone earned digitally culminates in a **physical, printable 3D papercraft figure**.
+
+4. **Reclaiming Hands-On Parent-Child Bonding:**  
+   By transforming digital behavior recognition into physical paper folding and assembly, we bring parents and children together at the living room table. The real reward is quality time, manual tactile crafting, and shared pride away from glowing screens.
+
+---
+
 Papikapi is a family reward system whose prize is a **real object**. Chore apps hand a child a number that goes up; Papikapi hands them a paper figure that unfolds as they earn it — turning in three dimensions on screen, and finally as a printable template they cut out and build with a parent. The points stop being an abstraction the moment the dinosaur stands on the shelf.
 
 The adult side is deliberately not a form. The parent **writes one ordinary sentence** — *"Tidied up his toys and gave his brother a hug"* — and an on-device assistant reads it, proposes which behaviour domains it touched and how many points each is worth, and asks for a single confirmation. Nothing is categorised by hand unless the parent wants to correct it, and only a correction teaches the assistant.
