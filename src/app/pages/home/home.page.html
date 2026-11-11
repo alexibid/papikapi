@@ -32,6 +32,18 @@
     />
 
     <ibid-icon-button
+      [ariaLabel]="i18n.translate('voiceDiaryBtnAria')"
+      (clicked)="requestDiaryAccess()"
+    >
+      <span class="papikapi-child__glyph">
+        <papikapi-pictogram name="sparkle" />
+        <span class="papikapi-child__lock-badge">
+          <papikapi-pictogram name="lock" />
+        </span>
+      </span>
+    </ibid-icon-button>
+
+    <ibid-icon-button
       [ariaLabel]="i18n.translate(soundOn() ? 'childSoundOn' : 'childSoundOff')"
       (clicked)="toggleSound()"
     >
@@ -246,6 +258,13 @@
       [sheetUrl]="altData.sheetUrl"
       (picked)="onAlternativePicked($event)"
       (dismissed)="closeAlternativesModal()"
+    />
+  }
+
+  @if (voiceDiaryOpen()) {
+    <papikapi-voice-diary-modal
+      (dismissed)="closeVoiceDiary()"
+      (completed)="onVoiceDiaryCompleted()"
     />
   }
 </section>

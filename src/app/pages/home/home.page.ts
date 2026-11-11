@@ -45,6 +45,7 @@ import { ModelCreationLoaderComponent } from '@ui/organisms/model-creation-loade
 import { ModelPickerModalComponent } from '@ui/organisms/model-picker-modal/model-picker-modal';
 import { ModelPromptModalComponent } from '@ui/organisms/model-prompt-modal/model-prompt-modal';
 import { ParentGateModalComponent } from '@ui/organisms/parent-gate-modal/parent-gate-modal';
+import { VoiceDiaryModalComponent } from '@ui/organisms/voice-diary-modal/voice-diary-modal';
 import { ChildBustComponent } from '@ui/atoms/child-bust/child-bust';
 import { PictogramComponent } from '@ui/atoms/pictogram/pictogram';
 import { StickerComponent } from '@ui/atoms/sticker/sticker';
@@ -76,6 +77,7 @@ const CELEBRATION_MS = 2800;
     ModelPromptModalComponent,
     ParentGateModalComponent,
     PictogramComponent,
+    VoiceDiaryModalComponent,
     StickerComponent,
     ProgressPipsComponent,
     RouterModule,
@@ -110,7 +112,9 @@ export class HomePage implements DoCheck {
   protected readonly soundOn = this.sensory.soundEnabled;
   protected readonly modelPickerOpen = signal(false);
   protected readonly gateOpen = signal(false);
+  private readonly gateTarget = signal<'prompt' | 'diary' | null>(null);
   protected readonly promptOpen = signal(false);
+  protected readonly voiceDiaryOpen = signal(false);
   protected readonly activeCreation = signal<{
     readonly figureId: string;
     readonly displayName: FigureDisplayNames;
@@ -537,20 +541,46 @@ export class HomePage implements DoCheck {
   }
 
   protected requestPromptAccess(): void {
+    this.gateTarget.set('prompt');
+    this.gateOpen.set(true);
+  }
+
+  protected requestDiaryAccess(): void {
+    this.gateTarget.set('diary');
     this.gateOpen.set(true);
   }
 
   protected closeGate(): void {
     this.gateOpen.set(false);
+    this.gateTarget.set(null);
   }
 
   protected onGateUnlocked(): void {
+    const target = this.gateTarget();
     this.gateOpen.set(false);
-    this.promptOpen.set(true);
+    this.gateTarget.set(null);
+    if (target === 'diary') {
+      this.openVoiceDiary();
+    } else {
+      this.promptOpen.set(true);
+    }
   }
 
   protected closePrompt(): void {
     this.promptOpen.set(false);
+  }
+
+  protected openVoiceDiary(): void {
+    this.voiceDiaryOpen.set(true);
+  }
+
+  protected closeVoiceDiary(): void {
+    this.voiceDiaryOpen.set(false);
+  }
+
+  protected onVoiceDiaryCompleted(): void {
+    this.pieceTotal.set(0);
+    this.modelVersion.set(Date.now());
   }
 
   protected onModelCreated(creation: FigureCreationRequest): void {

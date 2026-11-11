@@ -124,6 +124,30 @@ describe('HomePage model selection and prompt flow', () => {
     expect(component['promptOpen']()).toBe(false);
   });
 
+  it('protects voice diary modal behind parental gate', () => {
+    expect(component['gateOpen']()).toBe(false);
+    expect(component['voiceDiaryOpen']()).toBe(false);
+
+    component['requestDiaryAccess']();
+    fixture.detectChanges();
+
+    expect(component['gateOpen']()).toBe(true);
+    expect(component['voiceDiaryOpen']()).toBe(false);
+
+    component['onGateUnlocked']();
+    fixture.detectChanges();
+
+    expect(component['gateOpen']()).toBe(false);
+    expect(component['voiceDiaryOpen']()).toBe(true);
+
+    const diaryModal = fixture.nativeElement.querySelector('papikapi-voice-diary-modal');
+    expect(diaryModal).not.toBeNull();
+
+    component['closeVoiceDiary']();
+    fixture.detectChanges();
+    expect(component['voiceDiaryOpen']()).toBe(false);
+  });
+
   it('activates floating creation loader when onModelCreated is called and selects model on completion', () => {
     expect(component['activeCreation']()).toBeNull();
 

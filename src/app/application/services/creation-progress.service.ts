@@ -142,11 +142,11 @@ export class CreationProgressService {
       return [];
     }
 
-    // Try papikapi-api database models endpoint first
+    // Load catalogue directly from the database API endpoint
     try {
-      const response = await fetch('http://localhost:4505/api/v1/models', {
+      const response = await fetch('http://localhost:4500/api/v1/models', {
         cache: 'no-store',
-        signal: AbortSignal.timeout(300),
+        signal: AbortSignal.timeout(1000),
       });
       if (response.ok) {
         const data = await response.json();
@@ -155,53 +155,7 @@ export class CreationProgressService {
         }
       }
     } catch {
-      // Fall back to alternative ports or published assets
-    }
-
-    try {
-      const response = await fetch('http://localhost:4500/models/index.json', {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(300),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          return catalogueFiguresOf(data);
-        }
-      }
-    } catch {
-      // Fall back to creator server catalogue
-    }
-
-    try {
-      const response = await fetch('http://localhost:4502/api/catalogue/sync', {
-        method: 'POST',
-        cache: 'no-store',
-        signal: AbortSignal.timeout(300),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.models && Array.isArray(data.models)) {
-          return catalogueFiguresOf(data.models);
-        }
-      }
-    } catch {
-      // Fall back to bundled assets
-    }
-
-    try {
-      const response = await fetch('/figures/index.json', {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(300),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          return catalogueFiguresOf(data);
-        }
-      }
-    } catch {
-      // Fall back to remote CDN
+      // Fall back to assets catalogue if API is unreachable
     }
 
     try {

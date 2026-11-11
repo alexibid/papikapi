@@ -1,0 +1,169 @@
+<div
+  class="papikapi-voice-diary-modal"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="i18n.translate(step() === 'input' ? 'voiceDiaryTitle' : 'voiceDiaryAttributionTitle')"
+>
+  <button
+    type="button"
+    class="papikapi-voice-diary-modal__backdrop"
+    [attr.aria-label]="i18n.translate('gateClose')"
+    (click)="close()"
+    (keydown.escape)="close()"
+  ></button>
+
+  <div class="papikapi-voice-diary-modal__card" [ibidHandDrawn]="3">
+    <header class="papikapi-voice-diary-modal__header">
+      <div class="papikapi-voice-diary-modal__header-titles">
+        <span class="papikapi-voice-diary-modal__icon" [ibidHandDrawn]="1">
+          <papikapi-pictogram name="sparkle" />
+        </span>
+        <div>
+          <h2 class="papikapi-voice-diary-modal__title">
+            {{ i18n.translate(step() === 'input' ? 'voiceDiaryTitle' : 'voiceDiaryAttributionTitle') }}
+          </h2>
+          <span class="papikapi-voice-diary-modal__subtitle">
+            {{ i18n.translate(step() === 'input' ? 'voiceDiarySubtitle' : 'voiceDiaryAttributionSubtitle') }}
+          </span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="papikapi-voice-diary-modal__close"
+        [ibidHandDrawn]="1"
+        [ibidTactile]="'subtle'"
+        ibidFocusState
+        [attr.aria-label]="i18n.translate('gateClose')"
+        (click)="close()"
+      >
+        <papikapi-pictogram name="close" />
+      </button>
+    </header>
+
+    @if (errorMessage()) {
+      <div class="papikapi-voice-diary-modal__status papikapi-voice-diary-modal__status--error" [ibidHandDrawn]="1">
+        <span>⚠ {{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- STEP 1: VOICE / DRAFT INPUT -->
+    @if (step() === 'input') {
+      <div class="papikapi-voice-diary-modal__body">
+        @if (activeChild(); as child) {
+          <div class="papikapi-voice-diary-modal__child-badge" [ibidHandDrawn]="1">
+            <span>Para: <strong>{{ child.name }}</strong></span>
+          </div>
+        }
+
+        <div class="papikapi-voice-diary-modal__dictation">
+          <ibid-voice-dictation
+            [lang]="'pt-PT'"
+            [timeoutSeconds]="60"
+            [targetValue]="draftText()"
+            [disabled]="isAnalyzing()"
+            (transcriptChange)="onVoiceStream($event)"
+            (accepted)="onVoiceAccepted($event)"
+          />
+        </div>
+
+        <div class="papikapi-voice-diary-modal__field">
+          <ibid-form-field [required]="true">
+            <ibid-textarea
+              [required]="true"
+              [placeholder]="i18n.translate('voiceDiaryPlaceholder')"
+              [value]="draftText()"
+              (valueChange)="draftText.set($event)"
+              [rows]="4"
+            />
+          </ibid-form-field>
+        </div>
+
+        <div class="papikapi-voice-diary-modal__actions">
+          <ibid-button
+            [disabled]="!draftText().trim() || isAnalyzing()"
+            (clicked)="analyze()"
+          >
+            @if (isAnalyzing()) {
+              {{ i18n.translate('voiceDiaryAnalyzing') }}
+            } @else {
+              {{ i18n.translate('voiceDiaryAnalyze') }}
+            }
+          </ibid-button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: ATTRIBUTION & PARENTAL ADJUSTMENT -->
+    @if (step() === 'attribution') {
+      <div class="papikapi-voice-diary-modal__body">
+        @if (proposal(); as prop) {
+          <div class="papikapi-voice-diary-modal__feedback" [ibidHandDrawn]="2">
+            <p class="papikapi-voice-diary-modal__feedback-text">
+              "{{ prop.feedbackPt }}"
+            </p>
+          </div>
+        }
+
+        <div class="papikapi-voice-diary-modal__domains-grid">
+          @for (domain of domains; track domain.id) {
+            <div
+              class="papikapi-voice-diary-modal__domain-row"
+              [class.papikapi-voice-diary-modal__domain-row--active]="domainPoints()[domain.id] > 0"
+              [ibidHandDrawn]="1"
+            >
+              <div class="papikapi-voice-diary-modal__domain-info">
+                <span class="papikapi-voice-diary-modal__domain-icon">
+                  <papikapi-pictogram [name]="pictogramOf(domain.id)" />
+                </span>
+                <span class="papikapi-voice-diary-modal__domain-label">
+                  {{ labelOf(domain.id) }}
+                </span>
+              </div>
+
+              <div class="papikapi-voice-diary-modal__stepper">
+                <button
+                  type="button"
+                  class="papikapi-voice-diary-modal__stepper-btn"
+                  [disabled]="domainPoints()[domain.id] <= 0"
+                  (click)="decrement(domain.id)"
+                  aria-label="Diminuir ponto"
+                >
+                  −
+                </button>
+                <span class="papikapi-voice-diary-modal__stepper-value">
+                  +{{ domainPoints()[domain.id] }}
+                </span>
+                <button
+                  type="button"
+                  class="papikapi-voice-diary-modal__stepper-btn"
+                  [disabled]="domainPoints()[domain.id] >= 3"
+                  (click)="increment(domain.id)"
+                  aria-label="Aumentar ponto"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="papikapi-voice-diary-modal__impact" [ibidHandDrawn]="1">
+          <span class="papikapi-voice-diary-modal__impact-icon">🧩</span>
+          <span class="papikapi-voice-diary-modal__impact-text">
+            <strong>+{{ totalAdjustedPoints() }} pontos</strong> = <strong>+{{ piecesGained() }} {{ i18n.translate('voiceDiaryImpactPieces') }}</strong>
+          </span>
+        </div>
+
+        <div class="papikapi-voice-diary-modal__actions">
+          <ibid-button variant="outlined" (clicked)="backToInput()">
+            {{ i18n.translate('voiceDiaryBack') }}
+          </ibid-button>
+          <ibid-button [disabled]="totalAdjustedPoints() === 0" (clicked)="confirm()">
+            {{ i18n.translate('voiceDiaryConfirm') }}
+          </ibid-button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
