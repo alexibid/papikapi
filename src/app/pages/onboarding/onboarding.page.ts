@@ -78,7 +78,8 @@ export class OnboardingPage {
   );
 
   readonly previewIconSrc = computed(() => {
-    if (this.uploadedPhoto()) return this.uploadedPhoto()!;
+    const uploaded = this.uploadedPhoto();
+    if (uploaded) return uploaded;
     switch (this.iconPreset()) {
       case 'single_parent':
       case 'two_parents':

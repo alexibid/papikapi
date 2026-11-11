@@ -6,7 +6,6 @@ import {
   STAGE,
   STAGE_CANVAS,
   TROPHY,
-  TROPHY_CARD,
   TROPHY_CHOSEN,
   TROPHY_MINUS,
   TROPHY_PLUS,
@@ -42,8 +41,6 @@ test.describe('User Journey 04: Figure Progression, Immediate Selection and Poin
 
       await flow.step(1, 'initial-shelf-and-stage', 'default-figure-chosen-without-blue-outline');
     });
-
-    const secondTrophy = page.locator(TROPHY).nth(1);
 
     await test.step('Step 2: Switch to another figure with immediate selection and no delay timers', async () => {
       // Prior to click, a non-chosen trophy has action buttons (+ / -)
