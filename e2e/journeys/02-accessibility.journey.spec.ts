@@ -1,5 +1,4 @@
-import { test } from '@playwright/test';
-import { A11yAuditor } from '@ibid/testing';
+import { A11yAuditor, test } from '@ibid/testing';
 import { JUST_AFTER_SEED, freezeClock, openSeeded } from '../support/app';
 
 const SCREENS = [

@@ -189,6 +189,10 @@
         @if (consolidatingProgress() > 0) {
           <span
             class="papikapi-child__credit-pip papikapi-child__credit-pip--consolidating"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="10"
+            [attr.aria-valuenow]="consolidatingProgress()"
             [attr.title]="consolidatingProgress() + '/10'"
             [attr.aria-label]="consolidatingProgress() + '/10'"
           >

@@ -9,7 +9,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "../../tools/vitest/forbid-local-services.ts"
+    "../../tools/vitest/forbid-network.ts",
+    "../../tools/vitest/mock-icon-assets.ts"
   ],
   "exclude": [
     "src/**/*.stories.ts"

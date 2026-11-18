@@ -27,6 +27,7 @@ declare global {
     papikapiDev?: {
       seed(startedAt?: number): Promise<void>;
       reset(): Promise<void>;
+      addPoints(amount: number, figureId: string): void;
     };
   }
 }
@@ -77,12 +78,19 @@ export async function freezeClock(page: Page, at: number): Promise<void> {
   await page.clock.setFixedTime(new Date(at));
 }
 
-async function keepFigureHostOffline(page: Page): Promise<void> {
-  await page.route('https://ibid-assets.web.app/**', (route) => route.abort());
+const STUDIO_SERVICES = [
+  'https://ibid-assets.web.app/**',
+  'http://localhost:4500/**',
+  'http://localhost:4502/**',
+];
+
+async function keepStudioServicesOffline(page: Page): Promise<void> {
+  for (const service of STUDIO_SERVICES) await page.route(service, (route) => route.abort());
+  await page.route('**/figures/**', (route) => route.fulfill({ status: 404 }));
 }
 
 async function waitForBridge(page: Page, path: string): Promise<void> {
-  await keepFigureHostOffline(page);
+  await keepStudioServicesOffline(page);
   await page.goto(path, { waitUntil: 'commit' });
   await page.waitForFunction(() => typeof window.papikapiDev?.seed === 'function', undefined, {
     timeout: 30_000,
@@ -106,4 +114,9 @@ export async function write(page: Page, text: string): Promise<void> {
   await page.locator(SAVE).click();
   await expect(page.locator(ENTRY)).toHaveCount(before + 1, { timeout: 20_000 });
   await expect(page.locator(READING)).toBeVisible({ timeout: 20_000 });
+}
+
+export async function placeOnShelf(page: Page, figureId: string): Promise<void> {
+  await page.waitForFunction(() => typeof window.papikapiDev?.addPoints === 'function');
+  await page.evaluate((id) => window.papikapiDev?.addPoints(1, id), figureId);
 }

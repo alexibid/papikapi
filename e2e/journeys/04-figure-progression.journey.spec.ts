@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { FlowRecorder } from '@ibid/testing';
+import { FlowRecorder, expect, test } from '@ibid/testing';
 import {
   JUST_AFTER_SEED,
   SHELF,
@@ -11,13 +10,18 @@ import {
   TROPHY_PLUS,
   freezeClock,
   openSeeded,
+  placeOnShelf,
 } from '../support/app';
+import { SHIPPED_FIGURE_IDS } from '../../src/app/domain/data/shipped-figures';
+
+const SECOND_FIGURE = SHIPPED_FIGURE_IDS[1];
 
 test.describe('User Journey 04: Figure Progression, Immediate Selection and Points Economy', () => {
   test('executes complete journey for immediate figure switching without outline or points loss', async ({ page }, testInfo) => {
     const flow = new FlowRecorder(page, testInfo, '04-figure-progression');
     await freezeClock(page, JUST_AFTER_SEED);
     await openSeeded(page, '/');
+    await placeOnShelf(page, SECOND_FIGURE);
 
     await test.step('Step 1: Assert initial stage, shelf and default chosen figure', async () => {
       await expect(page.locator(STAGE)).toBeVisible();

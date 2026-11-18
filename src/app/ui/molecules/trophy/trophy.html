@@ -7,7 +7,7 @@
   [ibidHandDrawn]="2"
   [ibidTactile]="'secondary'"
   tabindex="0"
-  [attr.role]="queued() ? null : 'img'"
+  [attr.role]="queued() ? null : 'group'"
   [attr.aria-label]="queued() ? null : ariaLabel() || null"
   (click)="onCardClicked($event)"
   (keydown.enter)="onPickClicked()"

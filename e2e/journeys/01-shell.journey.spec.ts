@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { FlowRecorder } from '@ibid/testing';
+import { FlowRecorder, expect, test } from '@ibid/testing';
 import { CHILD_GATE, EN, GATE_KEY, PROFILE, STAGE, freezeClock, openSeeded, t } from '../support/app';
 
 test.describe('Application shell', () => {
