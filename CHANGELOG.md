@@ -1,3 +1,22 @@
+## 0.1.20 (2026-11-18)
+
+### 🐛 Bug Fixes
+
+- **papikapi:** mock studio services in journeys and fix nested interactive roles (623a924)
+- **papikapi:** resolve onboarding lint errors and unused test vars (0d295a8)
+- **papikapi:** migrate legacy figure ids and stabilize preview thumbnails (a0b9904)
+- **papikapi:** make stage interactive, bleed scenery to screen, and link favicons (6f5dcfb)
+- **papikapi:** preserve full english figure names and translate voice prompts (71accdc)
+- **papikapi:** sync ngrx points with credit pool and stage completion (ff5f222)
+- **papikapi:** update assembly director, model creation loader, and backoffice suite (3be4971)
+- **papikapi:** sync figure progression with points economy and dynamic shelf (ccb5cf3)
+
+### 🚀 Features
+
+- **papikapi:** add voice diary scoring flow and home integration (d939851)
+- **papikapi:** bridge figure models and pdfs to papikapi-api backend (f355b87)
+- **papikapi:** add multi-child profiles with per-child progress and child switcher ui (733d1ac)
+
 ## 0.1.16 (2026-10-12)
 
 ### 🐛 Bug Fixes
