@@ -30,7 +30,7 @@ Our mission is to provide children with **their very first, healthy, and control
 
 Papikapi is a family reward system whose prize is a **real object**. Chore apps hand a child a number that goes up; Papikapi hands them a paper figure that unfolds as they earn it — turning in three dimensions on screen, and finally as a printable template they cut out and build with a parent. The points stop being an abstraction the moment the dinosaur stands on the shelf.
 
-The adult side is deliberately not a form. The parent **writes one ordinary sentence** — *"Tidied up his toys and gave his brother a hug"* — and an on-device assistant reads it, proposes which behaviour domains it touched and how many points each is worth, and asks for a single confirmation. Nothing is categorised by hand unless the parent wants to correct it, and only a correction teaches the assistant.
+The adult side is deliberately not a form. The parent **writes one ordinary sentence** — _"Tidied up his toys and gave his brother a hug"_ — and an on-device assistant reads it, proposes which behaviour domains it touched and how many points each is worth, and asks for a single confirmation. Nothing is categorised by hand unless the parent wants to correct it, and only a correction teaches the assistant.
 
 Built on three pillars: **the prize is physical**, **the adult never fills in a form**, and **we operate no server**.
 
@@ -40,11 +40,11 @@ Around that: there is no Papikapi account, no backend, no database — we never 
 
 Having no infrastructure to pay for is also what makes the app free: the adult unlocks more figures by **watching a rewarded ad on their own screen**, instead of paying a subscription. Advertising lives strictly behind the **"Grown-ups!"** tab; the child build carries no ad code at all. See [`PRD.md`](PRD.md) §1.6 for the exact boundary and §6 for the obligations that follow.
 
-Angular 22 with signals, `libs/ibid-ui` under the **Papikapi** theme, RxDB for local storage, and the 3D figure rendered with **three.js**. Mobile only, by design.
+Angular 22 with signals, `libs/ibid-ui` under the **Papikapi** theme, RxDB for local storage, and the 3D figure rendered with **three.js**. Designed for the phone, and packaged for Android and iOS with Capacitor and for the desktop with Tauri.
 
 See [`PRD.md`](PRD.md) for the full vision, the functional requirements and the active roadmap (§5), and [`MVP.md`](MVP.md) for the scope and acceptance of the first shippable version.
 
-> **Status:** pre-MVP. The loop from sentence to points to folds works end to end. Not yet built: the figure assembling part by part as thresholds are crossed, the guard on the **"Grown-ups!"** crossing, household sharing through Drive, and rewarded advertising. See `PRD.md` §5.
+> **Status:** pre-MVP. The loop from sentence — typed or dictated — to points to folds works end to end, and the figure builds piece by piece as points arrive. The **"Grown-ups!"** crossing asks for a four-digit PIN but does not check it yet. Not yet built: household sharing through Drive and rewarded advertising. See `PRD.md` §5.
 
 ---
 
@@ -56,13 +56,17 @@ apps/papikapi/            # the app inside the ibid-workspace monorepo
 │   ├── app/
 │   │   ├── domain/         # entities, rules, the classifier — pure TypeScript
 │   │   ├── infrastructure/ # RxDB schemas and adapters
-│   │   ├── application/    # use cases, signal state, i18n, the demo seed
-│   │   └── ui/             # molecules, organisms, pages
+│   │   ├── application/    # use cases, signal state, services, the demo seed
+│   │   ├── pages/          # home, diary, gate, backoffice, onboarding, sheet
+│   │   └── ui/             # atoms, molecules, organisms, interaction feedback
 │   ├── styles.scss         # the Papikapi theme plus Papikapi's own overrides
 │   └── index.html
 ├── e2e/
 │   ├── journeys/       # Deterministic Stateful Journeys, mobile only
 │   └── support/        # frozen clock, seeded and empty entry points
+├── platforms/
+│   ├── mobile/         # Capacitor project (android, ios), app id com.ibid.papikapi
+│   └── desktop/        # Tauri project
 ├── uploads/            # reference material (Git ignored)
 ├── PRD.md              # product vision, requirements and roadmap
 ├── MVP.md              # MVP scope, acceptance and batch plan
@@ -75,14 +79,14 @@ apps/papikapi/            # the app inside the ibid-workspace monorepo
 
 Within `src/app/` the layers are strict, so the product rules never depend on Angular:
 
-| Layer | Holds | Rule |
-| :--- | :--- | :--- |
-| `domain/` | Entities, the growth engine, the classifier, repository interfaces | Pure TypeScript. No Angular import, ever. |
-| `infrastructure/` | RxDB schemas and adapters | Nothing reaches IndexedDB outside this folder. |
-| `application/` | Use cases, `DiaryStore` (signals), i18n, the demo seed | Orchestrates the domain; owns no rules of its own. |
-| `ui/` | `molecules/`, `organisms/`, `pages/` | Presentation only. Product-specific components carry the `papikapi-` prefix. |
+| Layer             | Holds                                                              | Rule                                                                         |
+| :---------------- | :----------------------------------------------------------------- | :--------------------------------------------------------------------------- |
+| `domain/`         | Entities, the growth engine, the classifier, repository interfaces | Pure TypeScript. No Angular import, ever.                                    |
+| `infrastructure/` | RxDB schemas and adapters                                          | Nothing reaches IndexedDB outside this folder.                               |
+| `application/`    | Use cases, `DiaryStore` (signals), i18n, the demo seed             | Orchestrates the domain; owns no rules of its own.                           |
+| `pages/` · `ui/`  | Route pages; `atoms/`, `molecules/`, `organisms/`, `interaction/`  | Presentation only. Product-specific components carry the `papikapi-` prefix. |
 
-Path aliases: `@domain/*`, `@application/*`, `@infrastructure/*`, `@ui/*`, plus the workspace's `ibid-ui`, `@ibid/services`, `@ibid/testing` and `@ibid/utils`.
+Path aliases: `@/*`, `@app/*`, `@domain/*`, `@application/*`, `@infrastructure/*`, `@ui/*`, plus the workspace's `ibid-ui`, `@ibid/services`, `@ibid/testing` and `@ibid/utils`.
 
 ---
 
@@ -90,14 +94,14 @@ Path aliases: `@domain/*`, `@application/*`, `@infrastructure/*`, `@ui/*`, plus 
 
 A two-layer classifier, entirely on device, in `domain/services/domain-classifier.ts`:
 
-1. **A shipped Portuguese vocabulary** — a few hundred ordinary words (*dishes*, *teeth*, *hug*, *patience*) mapped to the five behaviour domains with a weight each.
+1. **A shipped Portuguese vocabulary** — a few hundred ordinary words (_dishes_, _teeth_, _hug_, _patience_) mapped to the five behaviour domains with a weight each.
 2. **Privately learned rules** — when the parent overrules a reading, every content word of that sentence is written into that household's own vocabulary, and from then on it **always outranks** the shipped one.
 
 Three properties worth knowing:
 
-* **`predictDomains()` returns several domains with points**, not one label. One sentence can land on Chores and Family at once.
-* **Negation is scoped to the clause.** The text is split on punctuation and on joining words; a clause carrying a negation word scores nothing. *"Didn't brush his teeth"* earns nothing, while *"brushed his teeth without being asked"* earns the full amount.
-* **`DomainPrediction` is a discriminated union**, so a caller cannot silently ignore the case where the assistant understood nothing.
+- **`predictDomains()` returns several domains with points**, not one label. One sentence can land on Chores and Family at once.
+- **Negation is scoped to the clause.** The text is split on punctuation and on joining words; a clause carrying a negation word scores nothing. _"Didn't brush his teeth"_ earns nothing, while _"brushed his teeth without being asked"_ earns the full amount.
+- **`DomainPrediction` is a discriminated union**, so a caller cannot silently ignore the case where the assistant understood nothing.
 
 `domain/data/pt/corpus.ts` pins the behaviour: sixteen sentences with their expected domains, plus five that must stay unread. It is the only defence against silent regression in a component whose failure is invisible, and it has already caught two real bugs.
 
@@ -111,9 +115,9 @@ The workspace conventions apply without exception — **SCSS with ITCSS layering
 
 Three Papikapi-specific overrides live in `src/styles.scss`, each for a stated reason:
 
-* The theme paints primary buttons in solid blue; Papikapi repaints them ink-on-paper.
-* `<ibid-header>` takes flow space while its shell is `position: fixed`, so the header would be counted twice; Papikapi zeroes its height.
-* The backdrop wash is dialled down, because the composition is quiet and the theme's default is not.
+- The theme paints primary buttons in solid blue; Papikapi repaints them ink-on-paper.
+- `<ibid-header>` takes flow space while its shell is `position: fixed`, so the header would be counted twice; Papikapi zeroes its height.
+- The backdrop wash is dialled down, because the composition is quiet and the theme's default is not.
 
 **Muted text uses a defined ink, never `opacity`** — opacity dropped small text to 3.9:1 contrast and failed the accessibility audit.
 
@@ -123,10 +127,10 @@ Three Papikapi-specific overrides live in `src/styles.scss`, each for a stated r
 
 `ui/organisms/assembly-stage/` renders the figure with **three.js** from an assembly plan (`assembly.json`) produced by Papikapi Studio. The plan lists the paper pieces in build order, with the fold hinges and the placed pose of every face.
 
-* The scene always looks at the figure. The unbuilt figure stands as a rainbow wireframe on its plinth, and each piece turns opaque as it is built.
-* Pieces still to build lie on the horizon with their printed number above; the next one is highlighted.
-* Only when a piece is earned does the camera go to it, the piece folds and travels to the figure, and the camera returns to centre on the figure.
-* The canvas only responds to drag and wheel after it has been clicked, so the page keeps scrolling over it. Clicking outside, Escape, scrolling the page or the close button give the page back.
+- The scene always looks at the figure. The unbuilt figure stands as a rainbow wireframe on its plinth, and each piece turns opaque as it is built.
+- Pieces still to build lie on the horizon with their printed number above; the next one is highlighted.
+- Only when a piece is earned does the camera go to it, the piece folds and travels to the figure, and the camera returns to centre on the figure.
+- The canvas only responds to drag and wheel after it has been clicked, so the page keeps scrolling over it. Clicking outside, Escape, scrolling the page or the close button give the page back.
 
 Responsibilities are split: `StageViewport` (renderer, lights, resize, drawing), `BuildDirector` (which pieces are shown and when to animate), `BuildAnimation` (the timer), and `AssemblyRig` / `PieceRig` (the three.js objects). The geometry and timing rules are pure functions in `domain/assembly/`.
 
@@ -136,10 +140,10 @@ Responsibilities are split: `StageViewport` (renderer, lights, resize, drawing),
 
 Every icon in the app is a **folded-paper, low-poly** drawing: flat polygons with no strokes, one colour family per icon, light from the top left. There is no other icon language in the app, and no icon font, emoji or text symbol is used as an icon.
 
-* `ui/atoms/pictogram/paper-icons.ts` is the registry; `<papikapi-pictogram name="…">` draws any of them as an `svg` made of `polygon` facets.
-* The mascot, `heart`, `book`, `broom`, `trophy`, `calendar`, `health`, `sparkle` and `shield` come from the Papikapi design file. The others (`toothbrush`, `bed`, `backpack`, `plate`, `check`, `close`, `backspace`, `eye`, `reset`, `hourglass`, `lock`, `sound`, `mute`, `avatar`, `balloon`) were drawn in the same language with the colour ramps in `paper-icon.ts`.
-* `paper-icons.spec.ts` guards the language: every icon is filled polygons with hex colours and stays inside its own grid.
-* The app icons in `public/` (favicons, PWA, touch icon) are the mascot on the paper background.
+- `ui/atoms/pictogram/paper-icons.ts` is the registry; `<papikapi-pictogram name="…">` draws any of them as an `svg` made of `polygon` facets.
+- The mascot, `heart`, `book`, `broom`, `trophy`, `calendar`, `health`, `sparkle` and `shield` come from the Papikapi design file. The others (`toothbrush`, `bed`, `backpack`, `plate`, `check`, `close`, `backspace`, `eye`, `reset`, `hourglass`, `lock`, `sound`, `mute`, `avatar`, `balloon`) were drawn in the same language with the colour ramps in `paper-icon.ts`.
+- `paper-icons.spec.ts` guards the language: every icon is filled polygons with hex colours and stays inside its own grid.
+- The app icons in `public/` (favicons, PWA, touch icon) are the mascot on the paper background.
 
 ---
 
@@ -157,12 +161,12 @@ One geometry, **two variants** driven by a `variant` input: `coloured` and `outl
 
 The workspace standards apply in full — see the root `README.md`. The ones this app leans on hardest:
 
-* **Comments are forbidden.** Names carry the meaning. If a lint rule demands a non-empty block, configure the rule.
-* **Strict TypeScript.** Never `any`; `readonly` by default; union types over numeric enums; type guards over assertions.
-* **Never return or accept `null`/`undefined` when it is avoidable.** Errors are thrown, not returned as codes.
-* **Files of at most 200–300 lines**, small functions with one level of abstraction.
-* **Selector prefix `papikapi-`**, enforced at lint time. The `app-` prefix is banned workspace-wide.
-* **English** in documentation and code; user-facing copy lives in `i18n.config.ts`, default `pt-PT`.
+- **Comments are forbidden.** Names carry the meaning. If a lint rule demands a non-empty block, configure the rule.
+- **Strict TypeScript.** Never `any`; `readonly` by default; union types over numeric enums; type guards over assertions.
+- **Never return or accept `null`/`undefined` when it is avoidable.** Errors are thrown, not returned as codes.
+- **Files of at most 200–300 lines**, small functions with one level of abstraction.
+- **Selector prefix `papikapi-`**, enforced at lint time. The `app-` prefix is banned workspace-wide.
+- **English** in documentation and code; user-facing copy lives in `i18n.config.ts`, default `pt-PT`.
 
 ---
 
@@ -181,15 +185,18 @@ In development, `window.papikapiDev` exposes `seed()` and `reset()`. It is insta
 
 ## 🛠️ Development & Build Commands
 
-| For | Command |
-| :--- | :--- |
-| Serve | `npx nx serve papikapi` (port 4400) |
-| Build | `npx nx build papikapi` |
-| Unit tests | `npx nx test papikapi` |
-| E2E journeys | `npx nx e2e papikapi` |
-| Accessibility audit | `npx nx test-a11y papikapi` |
-| Storybook | `npx nx storybook papikapi` (port 6008) |
-| Validate a change | `npx nx affected -t lint test build` |
+| For                                         | Command                                 |
+| :------------------------------------------ | :-------------------------------------- |
+| Serve                                       | `npx nx serve papikapi` (port 4400)     |
+| Build                                       | `npx nx build papikapi`                 |
+| Unit tests                                  | `npx nx test papikapi`                  |
+| E2E journeys                                | `npx nx e2e papikapi`                   |
+| Accessibility audit                         | `npx nx test-a11y papikapi`             |
+| Storybook                                   | `npx nx storybook papikapi` (port 6008) |
+| Desktop in development                      | `npm run desktop:papikapi`              |
+| Copy the web build into the native projects | `npx nx mobile-sync papikapi`           |
+| Android APK                                 | `npx nx mobile-apk papikapi`            |
+| Validate a change                           | `npm run check:affected`                |
 
 Ports: **4400** serve, **4401** e2e, **6008** Storybook.
 
@@ -211,7 +218,7 @@ The journeys never test against empty data by accident — `openSeeded()` and `o
 
 ## 🌿 Git & Versioning
 
-The workspace rules apply: work is reviewed and committed through GitHub Desktop, in batches of at most ten files, each with a single Conventional Commits subject line, scope `papikapi`. The type decides the version: `fix` bumps patch, `feat` bumps minor, `feat!` bumps major.
+This app is a submodule of [ibid-workspace](https://github.com/alexibid/ibid-workspace). Commits use a single Conventional Commits subject line with the scope `papikapi`, and the type decides the version: `fix` bumps patch, `feat` bumps minor, `feat!` bumps major. When CI is green on the workspace's `main`, the automatic versioning bumps the version here and tags `papikapi-v<version>`, which runs the release.
 
 ---
 
@@ -219,12 +226,12 @@ The workspace rules apply: work is reviewed and committed through GitHub Desktop
 
 This product concerns a minor and is treated as YMYL throughout.
 
-* **The child has no device and no account.** They look at the adult's phone. The separation is between screens: the child's screen reaches nothing but the figure.
-* **A child's photograph never leaves the device it was added on** — not to Drive, not between two parents. Each parent adds their own. The app only displays it: no detection, no matching, no derived features.
-* **We run no server.** No account, no backend, no database of ours. A household's diary syncs **adult-to-adult** through **their own Google Drive**, never through us.
-* **Advertising is only ever rendered on the adult's screen**, behind the **"Grown-ups!"** tab, and never while the child's screen is showing.
-* **Consent before personalised ads** in the EEA and the UK, through a certified CMP. Refusing leaves the app fully usable with non-personalised advertising.
-* **Never write that nothing leaves the device.** It is not true any more, and an overstated privacy claim is a liability with users, with store reviewers and under consumer protection rules. `PRD.md` §1.6 is the claim to make.
-* The assistant **scores events, never traits**. *"Helped with dinner"* is an event; *"is helpful"* is a profile of a minor, which is a different legal object under EU Regulation 2024/1689.
-* GDPR and parental consent apply. The Portuguese digital consent age is 13 (Portuguese Law 58/2019, art. 16) — confirm with a lawyer; national law diverges within the EU.
-* The product gives no medical, legal or financial advice, and makes no clinical claim.
+- **The child has no device and no account.** They look at the adult's phone. The separation is between screens: the child's screen reaches nothing but the figure.
+- **A child's photograph never leaves the device it was added on** — not to Drive, not between two parents. Each parent adds their own. The app only displays it: no detection, no matching, no derived features.
+- **We run no server.** No account, no backend, no database of ours. A household's diary syncs **adult-to-adult** through **their own Google Drive**, never through us.
+- **Advertising is only ever rendered on the adult's screen**, behind the **"Grown-ups!"** tab, and never while the child's screen is showing.
+- **Consent before personalised ads** in the EEA and the UK, through a certified CMP. Refusing leaves the app fully usable with non-personalised advertising.
+- **Never write that nothing leaves the device.** It is not true any more, and an overstated privacy claim is a liability with users, with store reviewers and under consumer protection rules. `PRD.md` §1.6 is the claim to make.
+- The assistant **scores events, never traits**. _"Helped with dinner"_ is an event; _"is helpful"_ is a profile of a minor, which is a different legal object under EU Regulation 2024/1689.
+- GDPR and parental consent apply. The Portuguese digital consent age is 13 (Portuguese Law 58/2019, art. 16) — confirm with a lawyer; national law diverges within the EU.
+- The product gives no medical, legal or financial advice, and makes no clinical claim.
